@@ -1,0 +1,7 @@
+# Google AdSense 판매자 인증 파일.
+#
+# 아직 실제 AdSense 계정이 연결되지 않았습니다. 아래 줄의 pub-0000000000000000 을
+# 실제 게시자 ID로 바꾸고 주석(#)을 해제하면 이 파일이 유효해집니다.
+# 형식: https://iabtechlab.com/ads-txt/
+#
+# google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

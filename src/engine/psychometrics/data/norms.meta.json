@@ -1,0 +1,59 @@
+{
+  "version": 2,
+  "source": {
+    "name": "Open Source Psychometrics Project IPIP Big Five Factor Markers",
+    "version": "8 November 2018",
+    "url": "https://openpsychometrics.org/_rawdata/IPIP-FFM-data-8Nov2018.zip",
+    "licenseNote": "Only aggregate statistics are retained; respondent-level data is not committed."
+  },
+  "inputRows": 1015341,
+  "includedRows": 551607,
+  "excludedRows": 463734,
+  "filters": [
+    "all 50 responses must be integer values from 1 through 5",
+    "exclude repeated exact response patterns",
+    "exclude shared-IP records when IPC is present and not equal to 1",
+    "test completion time must be 20–3600 seconds",
+    "each item response time must be 100–120000 milliseconds",
+    "exclude straight-line responses with one repeated answer"
+  ],
+  "alphaComparison": {
+    "extraversion": {
+      "computed": 0.899597,
+      "published": 0.87,
+      "difference": 0.029597,
+      "withinTolerance": true
+    },
+    "agreeableness": {
+      "computed": 0.844894,
+      "published": 0.82,
+      "difference": 0.024894,
+      "withinTolerance": true
+    },
+    "conscientiousness": {
+      "computed": 0.824502,
+      "published": 0.79,
+      "difference": 0.034502,
+      "withinTolerance": true
+    },
+    "emotionalStability": {
+      "computed": 0.874743,
+      "published": 0.86,
+      "difference": 0.014743,
+      "withinTolerance": true
+    },
+    "intellect": {
+      "computed": 0.80052,
+      "published": 0.84,
+      "difference": 0.03948,
+      "withinTolerance": true
+    }
+  },
+  "stratification": {
+    "ageColumn": null,
+    "genderColumn": null,
+    "available": false,
+    "groupCount": 0,
+    "note": "The source file did not provide age and gender columns; only aggregate norms were emitted."
+  }
+}

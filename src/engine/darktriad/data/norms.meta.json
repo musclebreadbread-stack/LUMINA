@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "source": {
+    "name": "OpenPsychometrics SD3 Dataset",
+    "version": "2014-03-08",
+    "url": "https://openpsychometrics.org/_rawdata/SD3.zip",
+    "licenseNote": "Only aggregate statistics are retained; respondent-level data is not committed."
+  },
+  "inputRows": 18192,
+  "includedRows": 17682,
+  "excludedRows": 510,
+  "filters": [
+    "all 27 responses must be integer values from 1 through 5",
+    "exclude repeated exact response patterns",
+    "exclude straight-line responses with one repeated answer"
+  ],
+  "alphaComparison": {
+    "machiavellianism": {
+      "computed": 0.859212,
+      "published": 0.77,
+      "difference": 0.089212,
+      "withinTolerance": true
+    },
+    "narcissism": {
+      "computed": 0.803399,
+      "published": 0.74,
+      "difference": 0.063399,
+      "withinTolerance": true
+    },
+    "psychopathy": {
+      "computed": 0.795874,
+      "published": 0.77,
+      "difference": 0.025874,
+      "withinTolerance": true
+    }
+  }
+}

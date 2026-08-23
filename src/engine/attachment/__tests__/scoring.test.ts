@@ -1,0 +1,166 @@
+import { describe, it, expect } from "vitest";
+import { scoreECR, encodeResponses, decodeResponses, type AttachmentResponse } from "../scoring";
+import { classifyQuadrant } from "../quadrants";
+import { getPercentile } from "../norms";
+import { ECR_ITEMS, getAxisItems } from "../items";
+
+describe("ECR Engine", () => {
+  describe("scoring", () => {
+    it("should calculate correct scores for all neutral responses", () => {
+      const responses: Record<number, 1 | 2 | 3 | 4 | 5> = {};
+      ECR_ITEMS.forEach(item => {
+        responses[item.id] = 3; // 중립
+      });
+
+      const scores = scoreECR(responses);
+
+      expect(scores.anxiety.rawSum).toBe(54); // 18문항 × 3점
+      expect(scores.anxiety.mean).toBe(3);
+      expect(scores.avoidance.rawSum).toBe(54);
+      expect(scores.avoidance.mean).toBe(3);
+    });
+
+    it("should correctly reverse-score avoidance items", () => {
+      const responses: Record<number, 1 | 2 | 3 | 4 | 5> = {};
+
+      // Q3 (avoidance, reverse): 5 → 1
+      responses[3] = 5;
+      // Q15 (avoidance, reverse): 5 → 1
+      responses[15] = 5;
+
+      // 다른 avoidance 문항들은 1점
+      const avoidanceItems = getAxisItems("avoidance");
+      avoidanceItems.forEach(item => {
+        if (item.id !== 3 && item.id !== 15) {
+          responses[item.id] = 1;
+        }
+      });
+
+      // anxiety 문항들은 3점
+      const anxietyItems = getAxisItems("anxiety");
+      anxietyItems.forEach(item => {
+        responses[item.id] = 3;
+      });
+
+      const scores = scoreECR(responses);
+
+      // Avoidance: (16문항 × 1) + (2문항 × 1) = 18
+      expect(scores.avoidance.rawSum).toBe(18);
+      expect(scores.avoidance.mean).toBe(1);
+    });
+
+    it("should handle missing responses gracefully", () => {
+      const responses = {
+        1: 5,
+        2: 5,
+        // 나머지는 없음
+      } as AttachmentResponse;
+
+      const scores = scoreECR(responses);
+
+      expect(scores.anxiety.rawSum).toBe(5);
+      expect(scores.anxiety.mean).toBe(5); // 5 / 1
+      expect(scores.avoidance.rawSum).toBe(5);
+      expect(scores.avoidance.mean).toBe(5); // 5 / 1
+    });
+  });
+
+  describe("encoding/decoding", () => {
+    it("should encode and decode responses correctly", () => {
+      const responses: Record<number, 1 | 2 | 3 | 4 | 5> = {};
+      ECR_ITEMS.forEach((item, index) => {
+        responses[item.id] = ((index % 5) + 1) as 1 | 2 | 3 | 4 | 5;
+      });
+
+      const encoded = encodeResponses(responses);
+      const decoded = decodeResponses(encoded);
+
+      expect(decoded).toEqual(responses);
+    });
+
+    it("should return null for invalid encoded string", () => {
+      expect(decodeResponses("")).toBe(null);
+      expect(decodeResponses("12345")).toBe(null);
+      expect(decodeResponses("a".repeat(36))).toBe(null);
+    });
+  });
+
+  describe("quadrant classification", () => {
+    it("should classify as Secure for low anxiety and low avoidance", () => {
+      const result = classifyQuadrant(
+        { rawSum: 36, mean: 2.0 }, // 낮은 불안
+        { rawSum: 36, mean: 2.0 }  // 낮은 회피
+      );
+
+      expect(result.quadrant).toBe("secure");
+      expect(result.labelKo).toBe("안정형");
+    });
+
+    it("should classify as Anxious for high anxiety and low avoidance", () => {
+      const result = classifyQuadrant(
+        { rawSum: 72, mean: 4.0 }, // 높은 불안
+        { rawSum: 36, mean: 2.0 }  // 낮은 회피
+      );
+
+      expect(result.quadrant).toBe("anxious");
+      expect(result.labelKo).toBe("불안형");
+    });
+
+    it("should classify as Avoidant for low anxiety and high avoidance", () => {
+      const result = classifyQuadrant(
+        { rawSum: 36, mean: 2.0 }, // 낮은 불안
+        { rawSum: 72, mean: 4.0 }  // 높은 회피
+      );
+
+      expect(result.quadrant).toBe("avoidant");
+      expect(result.labelKo).toBe("회피형");
+    });
+
+    it("should classify as Fearful for high anxiety and high avoidance", () => {
+      const result = classifyQuadrant(
+        { rawSum: 72, mean: 4.0 }, // 높은 불안
+        { rawSum: 72, mean: 4.0 }  // 높은 회피
+      );
+
+      expect(result.quadrant).toBe("fearful");
+      expect(result.labelKo).toBe("두려움형");
+    });
+
+    it("should use 3.5 as the boundary", () => {
+      // 경계값 테스트
+      const result = classifyQuadrant(
+        { rawSum: 63, mean: 3.5 }, // 정확히 경계
+        { rawSum: 63, mean: 3.5 }  // 정확히 경계
+      );
+
+      // 3.5 이상은 "높음"으로 분류
+      expect(result.quadrant).toBe("fearful");
+    });
+  });
+
+  describe("percentile calculation", () => {
+    it("should return valid percentile for mean score", () => {
+      const percentile = getPercentile("anxiety", 2.92);
+      expect(percentile).toBeGreaterThanOrEqual(45);
+      expect(percentile).toBeLessThanOrEqual(55);
+    });
+
+    it("should return low percentile for low score", () => {
+      const percentile = getPercentile("anxiety", 1.0);
+      expect(percentile).toBeLessThan(10);
+    });
+
+    it("should return high percentile for high score", () => {
+      const percentile = getPercentile("anxiety", 5.0);
+      expect(percentile).toBeGreaterThan(90);
+    });
+
+    it("should clamp percentile between 1 and 99", () => {
+      const lowPercentile = getPercentile("anxiety", 0.1);
+      const highPercentile = getPercentile("anxiety", 10.0);
+
+      expect(lowPercentile).toBeGreaterThanOrEqual(1);
+      expect(highPercentile).toBeLessThanOrEqual(99);
+    });
+  });
+});

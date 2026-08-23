@@ -1,0 +1,1233 @@
+{
+  "version": 1,
+  "source": {
+    "name": "OpenPsychometrics SD3 Dataset",
+    "version": "2014-03-08",
+    "url": "https://openpsychometrics.org/_rawdata/SD3.zip",
+    "licenseNote": "Only aggregate statistics are retained; respondent-level data is not committed."
+  },
+  "sampleSize": 17682,
+  "factors": {
+    "machiavellianism": {
+      "mean": 33.401878,
+      "sd": 7.083088,
+      "percentileTable": [
+        {
+          "percentile": 1,
+          "rawSum": 15
+        },
+        {
+          "percentile": 2,
+          "rawSum": 17
+        },
+        {
+          "percentile": 3,
+          "rawSum": 18
+        },
+        {
+          "percentile": 4,
+          "rawSum": 19
+        },
+        {
+          "percentile": 5,
+          "rawSum": 20
+        },
+        {
+          "percentile": 6,
+          "rawSum": 21
+        },
+        {
+          "percentile": 7,
+          "rawSum": 22
+        },
+        {
+          "percentile": 8,
+          "rawSum": 22
+        },
+        {
+          "percentile": 9,
+          "rawSum": 23
+        },
+        {
+          "percentile": 10,
+          "rawSum": 23
+        },
+        {
+          "percentile": 11,
+          "rawSum": 24
+        },
+        {
+          "percentile": 12,
+          "rawSum": 24
+        },
+        {
+          "percentile": 13,
+          "rawSum": 25
+        },
+        {
+          "percentile": 14,
+          "rawSum": 25
+        },
+        {
+          "percentile": 15,
+          "rawSum": 25
+        },
+        {
+          "percentile": 16,
+          "rawSum": 26
+        },
+        {
+          "percentile": 17,
+          "rawSum": 26
+        },
+        {
+          "percentile": 18,
+          "rawSum": 27
+        },
+        {
+          "percentile": 19,
+          "rawSum": 27
+        },
+        {
+          "percentile": 20,
+          "rawSum": 27
+        },
+        {
+          "percentile": 21,
+          "rawSum": 28
+        },
+        {
+          "percentile": 22,
+          "rawSum": 28
+        },
+        {
+          "percentile": 23,
+          "rawSum": 28
+        },
+        {
+          "percentile": 24,
+          "rawSum": 28
+        },
+        {
+          "percentile": 25,
+          "rawSum": 29
+        },
+        {
+          "percentile": 26,
+          "rawSum": 29
+        },
+        {
+          "percentile": 27,
+          "rawSum": 29
+        },
+        {
+          "percentile": 28,
+          "rawSum": 30
+        },
+        {
+          "percentile": 29,
+          "rawSum": 30
+        },
+        {
+          "percentile": 30,
+          "rawSum": 30
+        },
+        {
+          "percentile": 31,
+          "rawSum": 30
+        },
+        {
+          "percentile": 32,
+          "rawSum": 31
+        },
+        {
+          "percentile": 33,
+          "rawSum": 31
+        },
+        {
+          "percentile": 34,
+          "rawSum": 31
+        },
+        {
+          "percentile": 35,
+          "rawSum": 31
+        },
+        {
+          "percentile": 36,
+          "rawSum": 32
+        },
+        {
+          "percentile": 37,
+          "rawSum": 32
+        },
+        {
+          "percentile": 38,
+          "rawSum": 32
+        },
+        {
+          "percentile": 39,
+          "rawSum": 32
+        },
+        {
+          "percentile": 40,
+          "rawSum": 32
+        },
+        {
+          "percentile": 41,
+          "rawSum": 33
+        },
+        {
+          "percentile": 42,
+          "rawSum": 33
+        },
+        {
+          "percentile": 43,
+          "rawSum": 33
+        },
+        {
+          "percentile": 44,
+          "rawSum": 33
+        },
+        {
+          "percentile": 45,
+          "rawSum": 33
+        },
+        {
+          "percentile": 46,
+          "rawSum": 34
+        },
+        {
+          "percentile": 47,
+          "rawSum": 34
+        },
+        {
+          "percentile": 48,
+          "rawSum": 34
+        },
+        {
+          "percentile": 49,
+          "rawSum": 34
+        },
+        {
+          "percentile": 50,
+          "rawSum": 34
+        },
+        {
+          "percentile": 51,
+          "rawSum": 35
+        },
+        {
+          "percentile": 52,
+          "rawSum": 35
+        },
+        {
+          "percentile": 53,
+          "rawSum": 35
+        },
+        {
+          "percentile": 54,
+          "rawSum": 35
+        },
+        {
+          "percentile": 55,
+          "rawSum": 35
+        },
+        {
+          "percentile": 56,
+          "rawSum": 35
+        },
+        {
+          "percentile": 57,
+          "rawSum": 36
+        },
+        {
+          "percentile": 58,
+          "rawSum": 36
+        },
+        {
+          "percentile": 59,
+          "rawSum": 36
+        },
+        {
+          "percentile": 60,
+          "rawSum": 36
+        },
+        {
+          "percentile": 61,
+          "rawSum": 36
+        },
+        {
+          "percentile": 62,
+          "rawSum": 36
+        },
+        {
+          "percentile": 63,
+          "rawSum": 37
+        },
+        {
+          "percentile": 64,
+          "rawSum": 37
+        },
+        {
+          "percentile": 65,
+          "rawSum": 37
+        },
+        {
+          "percentile": 66,
+          "rawSum": 37
+        },
+        {
+          "percentile": 67,
+          "rawSum": 37
+        },
+        {
+          "percentile": 68,
+          "rawSum": 37
+        },
+        {
+          "percentile": 69,
+          "rawSum": 38
+        },
+        {
+          "percentile": 70,
+          "rawSum": 38
+        },
+        {
+          "percentile": 71,
+          "rawSum": 38
+        },
+        {
+          "percentile": 72,
+          "rawSum": 38
+        },
+        {
+          "percentile": 73,
+          "rawSum": 38
+        },
+        {
+          "percentile": 74,
+          "rawSum": 39
+        },
+        {
+          "percentile": 75,
+          "rawSum": 39
+        },
+        {
+          "percentile": 76,
+          "rawSum": 39
+        },
+        {
+          "percentile": 77,
+          "rawSum": 39
+        },
+        {
+          "percentile": 78,
+          "rawSum": 39
+        },
+        {
+          "percentile": 79,
+          "rawSum": 40
+        },
+        {
+          "percentile": 80,
+          "rawSum": 40
+        },
+        {
+          "percentile": 81,
+          "rawSum": 40
+        },
+        {
+          "percentile": 82,
+          "rawSum": 40
+        },
+        {
+          "percentile": 83,
+          "rawSum": 40
+        },
+        {
+          "percentile": 84,
+          "rawSum": 41
+        },
+        {
+          "percentile": 85,
+          "rawSum": 41
+        },
+        {
+          "percentile": 86,
+          "rawSum": 41
+        },
+        {
+          "percentile": 87,
+          "rawSum": 41
+        },
+        {
+          "percentile": 88,
+          "rawSum": 42
+        },
+        {
+          "percentile": 89,
+          "rawSum": 42
+        },
+        {
+          "percentile": 90,
+          "rawSum": 42
+        },
+        {
+          "percentile": 91,
+          "rawSum": 42
+        },
+        {
+          "percentile": 92,
+          "rawSum": 43
+        },
+        {
+          "percentile": 93,
+          "rawSum": 43
+        },
+        {
+          "percentile": 94,
+          "rawSum": 43
+        },
+        {
+          "percentile": 95,
+          "rawSum": 44
+        },
+        {
+          "percentile": 96,
+          "rawSum": 44
+        },
+        {
+          "percentile": 97,
+          "rawSum": 44
+        },
+        {
+          "percentile": 98,
+          "rawSum": 45
+        },
+        {
+          "percentile": 99,
+          "rawSum": 45
+        }
+      ],
+      "alpha": 0.859212,
+      "publishedAlpha": 0.77,
+      "alphaDifference": 0.089212,
+      "alphaWithinTolerance": true,
+      "itemCount": 9
+    },
+    "narcissism": {
+      "mean": 27.601233,
+      "sd": 6.894428,
+      "percentileTable": [
+        {
+          "percentile": 1,
+          "rawSum": 13
+        },
+        {
+          "percentile": 2,
+          "rawSum": 14
+        },
+        {
+          "percentile": 3,
+          "rawSum": 15
+        },
+        {
+          "percentile": 4,
+          "rawSum": 16
+        },
+        {
+          "percentile": 5,
+          "rawSum": 17
+        },
+        {
+          "percentile": 6,
+          "rawSum": 17
+        },
+        {
+          "percentile": 7,
+          "rawSum": 18
+        },
+        {
+          "percentile": 8,
+          "rawSum": 18
+        },
+        {
+          "percentile": 9,
+          "rawSum": 18
+        },
+        {
+          "percentile": 10,
+          "rawSum": 19
+        },
+        {
+          "percentile": 11,
+          "rawSum": 19
+        },
+        {
+          "percentile": 12,
+          "rawSum": 20
+        },
+        {
+          "percentile": 13,
+          "rawSum": 20
+        },
+        {
+          "percentile": 14,
+          "rawSum": 20
+        },
+        {
+          "percentile": 15,
+          "rawSum": 20
+        },
+        {
+          "percentile": 16,
+          "rawSum": 21
+        },
+        {
+          "percentile": 17,
+          "rawSum": 21
+        },
+        {
+          "percentile": 18,
+          "rawSum": 21
+        },
+        {
+          "percentile": 19,
+          "rawSum": 21
+        },
+        {
+          "percentile": 20,
+          "rawSum": 22
+        },
+        {
+          "percentile": 21,
+          "rawSum": 22
+        },
+        {
+          "percentile": 22,
+          "rawSum": 22
+        },
+        {
+          "percentile": 23,
+          "rawSum": 22
+        },
+        {
+          "percentile": 24,
+          "rawSum": 22
+        },
+        {
+          "percentile": 25,
+          "rawSum": 23
+        },
+        {
+          "percentile": 26,
+          "rawSum": 23
+        },
+        {
+          "percentile": 27,
+          "rawSum": 23
+        },
+        {
+          "percentile": 28,
+          "rawSum": 23
+        },
+        {
+          "percentile": 29,
+          "rawSum": 23
+        },
+        {
+          "percentile": 30,
+          "rawSum": 24
+        },
+        {
+          "percentile": 31,
+          "rawSum": 24
+        },
+        {
+          "percentile": 32,
+          "rawSum": 24
+        },
+        {
+          "percentile": 33,
+          "rawSum": 24
+        },
+        {
+          "percentile": 34,
+          "rawSum": 24
+        },
+        {
+          "percentile": 35,
+          "rawSum": 25
+        },
+        {
+          "percentile": 36,
+          "rawSum": 25
+        },
+        {
+          "percentile": 37,
+          "rawSum": 25
+        },
+        {
+          "percentile": 38,
+          "rawSum": 25
+        },
+        {
+          "percentile": 39,
+          "rawSum": 25
+        },
+        {
+          "percentile": 40,
+          "rawSum": 26
+        },
+        {
+          "percentile": 41,
+          "rawSum": 26
+        },
+        {
+          "percentile": 42,
+          "rawSum": 26
+        },
+        {
+          "percentile": 43,
+          "rawSum": 26
+        },
+        {
+          "percentile": 44,
+          "rawSum": 26
+        },
+        {
+          "percentile": 45,
+          "rawSum": 26
+        },
+        {
+          "percentile": 46,
+          "rawSum": 27
+        },
+        {
+          "percentile": 47,
+          "rawSum": 27
+        },
+        {
+          "percentile": 48,
+          "rawSum": 27
+        },
+        {
+          "percentile": 49,
+          "rawSum": 27
+        },
+        {
+          "percentile": 50,
+          "rawSum": 27
+        },
+        {
+          "percentile": 51,
+          "rawSum": 28
+        },
+        {
+          "percentile": 52,
+          "rawSum": 28
+        },
+        {
+          "percentile": 53,
+          "rawSum": 28
+        },
+        {
+          "percentile": 54,
+          "rawSum": 28
+        },
+        {
+          "percentile": 55,
+          "rawSum": 28
+        },
+        {
+          "percentile": 56,
+          "rawSum": 28
+        },
+        {
+          "percentile": 57,
+          "rawSum": 29
+        },
+        {
+          "percentile": 58,
+          "rawSum": 29
+        },
+        {
+          "percentile": 59,
+          "rawSum": 29
+        },
+        {
+          "percentile": 60,
+          "rawSum": 29
+        },
+        {
+          "percentile": 61,
+          "rawSum": 29
+        },
+        {
+          "percentile": 62,
+          "rawSum": 30
+        },
+        {
+          "percentile": 63,
+          "rawSum": 30
+        },
+        {
+          "percentile": 64,
+          "rawSum": 30
+        },
+        {
+          "percentile": 65,
+          "rawSum": 30
+        },
+        {
+          "percentile": 66,
+          "rawSum": 30
+        },
+        {
+          "percentile": 67,
+          "rawSum": 31
+        },
+        {
+          "percentile": 68,
+          "rawSum": 31
+        },
+        {
+          "percentile": 69,
+          "rawSum": 31
+        },
+        {
+          "percentile": 70,
+          "rawSum": 31
+        },
+        {
+          "percentile": 71,
+          "rawSum": 31
+        },
+        {
+          "percentile": 72,
+          "rawSum": 32
+        },
+        {
+          "percentile": 73,
+          "rawSum": 32
+        },
+        {
+          "percentile": 74,
+          "rawSum": 32
+        },
+        {
+          "percentile": 75,
+          "rawSum": 32
+        },
+        {
+          "percentile": 76,
+          "rawSum": 33
+        },
+        {
+          "percentile": 77,
+          "rawSum": 33
+        },
+        {
+          "percentile": 78,
+          "rawSum": 33
+        },
+        {
+          "percentile": 79,
+          "rawSum": 33
+        },
+        {
+          "percentile": 80,
+          "rawSum": 34
+        },
+        {
+          "percentile": 81,
+          "rawSum": 34
+        },
+        {
+          "percentile": 82,
+          "rawSum": 34
+        },
+        {
+          "percentile": 83,
+          "rawSum": 35
+        },
+        {
+          "percentile": 84,
+          "rawSum": 35
+        },
+        {
+          "percentile": 85,
+          "rawSum": 35
+        },
+        {
+          "percentile": 86,
+          "rawSum": 35
+        },
+        {
+          "percentile": 87,
+          "rawSum": 36
+        },
+        {
+          "percentile": 88,
+          "rawSum": 36
+        },
+        {
+          "percentile": 89,
+          "rawSum": 37
+        },
+        {
+          "percentile": 90,
+          "rawSum": 37
+        },
+        {
+          "percentile": 91,
+          "rawSum": 37
+        },
+        {
+          "percentile": 92,
+          "rawSum": 38
+        },
+        {
+          "percentile": 93,
+          "rawSum": 38
+        },
+        {
+          "percentile": 94,
+          "rawSum": 39
+        },
+        {
+          "percentile": 95,
+          "rawSum": 39
+        },
+        {
+          "percentile": 96,
+          "rawSum": 40
+        },
+        {
+          "percentile": 97,
+          "rawSum": 41
+        },
+        {
+          "percentile": 98,
+          "rawSum": 42
+        },
+        {
+          "percentile": 99,
+          "rawSum": 43
+        }
+      ],
+      "alpha": 0.803399,
+      "publishedAlpha": 0.74,
+      "alphaDifference": 0.063399,
+      "alphaWithinTolerance": true,
+      "itemCount": 9
+    },
+    "psychopathy": {
+      "mean": 25.298156,
+      "sd": 7.222623,
+      "percentileTable": [
+        {
+          "percentile": 1,
+          "rawSum": 10
+        },
+        {
+          "percentile": 2,
+          "rawSum": 12
+        },
+        {
+          "percentile": 3,
+          "rawSum": 13
+        },
+        {
+          "percentile": 4,
+          "rawSum": 13
+        },
+        {
+          "percentile": 5,
+          "rawSum": 14
+        },
+        {
+          "percentile": 6,
+          "rawSum": 14
+        },
+        {
+          "percentile": 7,
+          "rawSum": 15
+        },
+        {
+          "percentile": 8,
+          "rawSum": 15
+        },
+        {
+          "percentile": 9,
+          "rawSum": 15
+        },
+        {
+          "percentile": 10,
+          "rawSum": 16
+        },
+        {
+          "percentile": 11,
+          "rawSum": 16
+        },
+        {
+          "percentile": 12,
+          "rawSum": 17
+        },
+        {
+          "percentile": 13,
+          "rawSum": 17
+        },
+        {
+          "percentile": 14,
+          "rawSum": 17
+        },
+        {
+          "percentile": 15,
+          "rawSum": 17
+        },
+        {
+          "percentile": 16,
+          "rawSum": 18
+        },
+        {
+          "percentile": 17,
+          "rawSum": 18
+        },
+        {
+          "percentile": 18,
+          "rawSum": 18
+        },
+        {
+          "percentile": 19,
+          "rawSum": 19
+        },
+        {
+          "percentile": 20,
+          "rawSum": 19
+        },
+        {
+          "percentile": 21,
+          "rawSum": 19
+        },
+        {
+          "percentile": 22,
+          "rawSum": 19
+        },
+        {
+          "percentile": 23,
+          "rawSum": 20
+        },
+        {
+          "percentile": 24,
+          "rawSum": 20
+        },
+        {
+          "percentile": 25,
+          "rawSum": 20
+        },
+        {
+          "percentile": 26,
+          "rawSum": 20
+        },
+        {
+          "percentile": 27,
+          "rawSum": 20
+        },
+        {
+          "percentile": 28,
+          "rawSum": 21
+        },
+        {
+          "percentile": 29,
+          "rawSum": 21
+        },
+        {
+          "percentile": 30,
+          "rawSum": 21
+        },
+        {
+          "percentile": 31,
+          "rawSum": 21
+        },
+        {
+          "percentile": 32,
+          "rawSum": 22
+        },
+        {
+          "percentile": 33,
+          "rawSum": 22
+        },
+        {
+          "percentile": 34,
+          "rawSum": 22
+        },
+        {
+          "percentile": 35,
+          "rawSum": 22
+        },
+        {
+          "percentile": 36,
+          "rawSum": 22
+        },
+        {
+          "percentile": 37,
+          "rawSum": 23
+        },
+        {
+          "percentile": 38,
+          "rawSum": 23
+        },
+        {
+          "percentile": 39,
+          "rawSum": 23
+        },
+        {
+          "percentile": 40,
+          "rawSum": 23
+        },
+        {
+          "percentile": 41,
+          "rawSum": 23
+        },
+        {
+          "percentile": 42,
+          "rawSum": 24
+        },
+        {
+          "percentile": 43,
+          "rawSum": 24
+        },
+        {
+          "percentile": 44,
+          "rawSum": 24
+        },
+        {
+          "percentile": 45,
+          "rawSum": 24
+        },
+        {
+          "percentile": 46,
+          "rawSum": 24
+        },
+        {
+          "percentile": 47,
+          "rawSum": 25
+        },
+        {
+          "percentile": 48,
+          "rawSum": 25
+        },
+        {
+          "percentile": 49,
+          "rawSum": 25
+        },
+        {
+          "percentile": 50,
+          "rawSum": 25
+        },
+        {
+          "percentile": 51,
+          "rawSum": 25
+        },
+        {
+          "percentile": 52,
+          "rawSum": 25
+        },
+        {
+          "percentile": 53,
+          "rawSum": 26
+        },
+        {
+          "percentile": 54,
+          "rawSum": 26
+        },
+        {
+          "percentile": 55,
+          "rawSum": 26
+        },
+        {
+          "percentile": 56,
+          "rawSum": 26
+        },
+        {
+          "percentile": 57,
+          "rawSum": 26
+        },
+        {
+          "percentile": 58,
+          "rawSum": 27
+        },
+        {
+          "percentile": 59,
+          "rawSum": 27
+        },
+        {
+          "percentile": 60,
+          "rawSum": 27
+        },
+        {
+          "percentile": 61,
+          "rawSum": 27
+        },
+        {
+          "percentile": 62,
+          "rawSum": 28
+        },
+        {
+          "percentile": 63,
+          "rawSum": 28
+        },
+        {
+          "percentile": 64,
+          "rawSum": 28
+        },
+        {
+          "percentile": 65,
+          "rawSum": 28
+        },
+        {
+          "percentile": 66,
+          "rawSum": 28
+        },
+        {
+          "percentile": 67,
+          "rawSum": 29
+        },
+        {
+          "percentile": 68,
+          "rawSum": 29
+        },
+        {
+          "percentile": 69,
+          "rawSum": 29
+        },
+        {
+          "percentile": 70,
+          "rawSum": 29
+        },
+        {
+          "percentile": 71,
+          "rawSum": 29
+        },
+        {
+          "percentile": 72,
+          "rawSum": 30
+        },
+        {
+          "percentile": 73,
+          "rawSum": 30
+        },
+        {
+          "percentile": 74,
+          "rawSum": 30
+        },
+        {
+          "percentile": 75,
+          "rawSum": 30
+        },
+        {
+          "percentile": 76,
+          "rawSum": 31
+        },
+        {
+          "percentile": 77,
+          "rawSum": 31
+        },
+        {
+          "percentile": 78,
+          "rawSum": 31
+        },
+        {
+          "percentile": 79,
+          "rawSum": 31
+        },
+        {
+          "percentile": 80,
+          "rawSum": 32
+        },
+        {
+          "percentile": 81,
+          "rawSum": 32
+        },
+        {
+          "percentile": 82,
+          "rawSum": 32
+        },
+        {
+          "percentile": 83,
+          "rawSum": 33
+        },
+        {
+          "percentile": 84,
+          "rawSum": 33
+        },
+        {
+          "percentile": 85,
+          "rawSum": 33
+        },
+        {
+          "percentile": 86,
+          "rawSum": 33
+        },
+        {
+          "percentile": 87,
+          "rawSum": 34
+        },
+        {
+          "percentile": 88,
+          "rawSum": 34
+        },
+        {
+          "percentile": 89,
+          "rawSum": 35
+        },
+        {
+          "percentile": 90,
+          "rawSum": 35
+        },
+        {
+          "percentile": 91,
+          "rawSum": 35
+        },
+        {
+          "percentile": 92,
+          "rawSum": 36
+        },
+        {
+          "percentile": 93,
+          "rawSum": 36
+        },
+        {
+          "percentile": 94,
+          "rawSum": 37
+        },
+        {
+          "percentile": 95,
+          "rawSum": 38
+        },
+        {
+          "percentile": 96,
+          "rawSum": 38
+        },
+        {
+          "percentile": 97,
+          "rawSum": 39
+        },
+        {
+          "percentile": 98,
+          "rawSum": 40
+        },
+        {
+          "percentile": 99,
+          "rawSum": 42
+        }
+      ],
+      "alpha": 0.795874,
+      "publishedAlpha": 0.77,
+      "alphaDifference": 0.025874,
+      "alphaWithinTolerance": true,
+      "itemCount": 9
+    }
+  }
+}

@@ -551,6 +551,7 @@
   "jungian": {
     "metaTitle": "MBTI Type Test",
     "metaDescription": "Re-read IPIP-50 Big Five responses on the four axes E–I · S–N · T–F · J–P and summarize them as one of 16 MBTI types.",
+    "brokenLink": "This link's result couldn't be read.",
     "kicker": "MBTI TYPE TEST · BUILT ON IPIP-50",
     "heroTitle": "Same answers, your type",
     "heroBody": "Your completed IPIP-50 Big Five responses are re-read as four continuous axes following the correlation structure reported in comparison literature (McCrae & Costa, 1989), then summarized as one of 16 MBTI type codes. A type is a starting point for self-reflection, not a verdict.",

@@ -99,7 +99,7 @@ export default async function DarkTriadResultPage({
 
         <MethodNote
           locale={resolvedLocale}
-          title={tCommon("methodNoteTitle")}
+          title={tCommon("methodNote")}
           citations={[]}
         />
 

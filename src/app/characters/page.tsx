@@ -51,7 +51,7 @@ export default async function CharactersPage() {
 
         <CharacterCollection
           cards={cards}
-          progressLabel={t("progress")}
+          progressLabel={t.raw("progress")}
           lockedLabel={t("locked")}
           unlockedLabel={t("unlocked")}
           lockedBody={t("lockedBody")}

@@ -1,26 +1,1559 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+  LUMINA — 탁본(拓本) 위의 계측 기록
+  ------------------------------------------------------------------
+  바탕은 송연묵(松烟墨) 먹빛, 글자는 호분(胡粉) 흰색. 비문 탁본의 반전 대비다.
+  색은 오직 오행(五行)에만 쓴다 — 단청 안료 계열로 옮긴 오방색이며,
+  버튼·테두리·포커스 같은 UI 크롬은 전부 무채색으로 둔다.
+  이 규율이 다섯 색을 장식이 아니라 의미로 유지시킨다.
+*/
+
+@theme {
+  /* 먹 — 따뜻한 검정 계열 */
+  --color-ink-950: #0b0a08;
+  --color-ink-900: #12100d;
+  --color-ink-850: #17140f;
+  --color-ink-800: #1e1a15;
+  --color-ink-700: #2a251e;
+  --color-ink-600: #3b342b;
+  --color-surface-light: #f1e8d8;
+  --color-surface-soft: #ded1bd;
+
+  /* 호분 — 분필 흰색, 따뜻한 기운 */
+  --color-hobun: #ede6d8;
+  --color-hobun-dim: #a79e90;
+  /* WCAG 검산: 먹(#12100D) 위에서 7.32:1 (AAA) — 기존 #8A8276 은 5.01:1 이라
+     작은 글자에서 흐릿하게 읽혔다. 같은 색 계열 안에서 밝기만 올렸다. */
+  --color-hobun-faint: #a8a08f;
+
+  /*
+    글자 크기 눈금판. Tailwind 기본값보다 한 단계씩 키운다 — 계측기 눈금은
+    수치를 못 읽으면 의미가 없다. line-height 는 원래 배율을 그대로 지킨다.
+  */
+  --text-xs: 0.8125rem; /* 13px, 기본 12px */
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.9375rem; /* 15px, 기본 14px */
+  --text-sm--line-height: 1.55;
+  --text-base: 1.0625rem; /* 17px, 기본 16px */
+  --text-base--line-height: 1.65;
+  --text-lg: 1.1875rem; /* 19px, 기본 18px */
+  --text-lg--line-height: 1.6;
+  --text-xl: 1.3125rem; /* 21px, 기본 20px */
+  --text-xl--line-height: 1.5;
+  --text-2xl: 1.625rem; /* 26px, 기본 24px */
+  --text-2xl--line-height: 1.35;
+  --text-3xl: 2rem; /* 32px, 기본 30px */
+  --text-3xl--line-height: 1.25;
+
+  /*
+    오행 — 단청 안료 이름을 그대로 따랐다.
+    금(백)과 수(흑)는 원색 그대로면 먹 바탕에서 각각 본문과 뭉개지고 사라지므로,
+    전통 단청에서 쓰이는 백동(cool silver)과 감청(indigo)으로 옮겼다.
+  */
+  --color-mok: #5ba383; /* 木 뇌록(磊碌) */
+  --color-hwa: #d95b41; /* 火 장단(長丹) */
+  --color-to: #dfa83e; /* 土 황토(黃土) */
+  --color-geum: #b9bfc4; /* 金 백동(白銅) */
+  --color-su: #5580d4; /* 水 감청(紺靑) */
+
+  --font-sans: var(--font-plex-kr), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --font-hanja: var(--font-noto-serif-kr), serif;
+
+  --radius-none: 0px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: dark;
+    --motion-fast: 140ms;
+    --motion-state: 360ms;
+    --motion-scene: 900ms;
+    --ease-lumina: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-ink-900);
+    color: var(--color-hobun);
+    font-family: var(--font-sans);
+    font-feature-settings: "tnum" 0;
+    -webkit-font-smoothing: antialiased;
+    /* 동의 배너처럼 고정으로 떠 있는 하단 크롬의 실측 높이(--consent-banner-h).
+       그만큼 문서 끝에 여백을 남겨 스크롤을 끝까지 내려도 내용이 배너 뒤에
+       가려지지 않게 한다. 배너가 없으면 0. */
+    padding-bottom: var(--consent-banner-h, 0px);
+  }
+
+  /* 한지 섬유 결. 종이의 촉감만 남기고 읽기를 방해하지 않을 만큼만 얹는다. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  ::selection {
+    background-color: var(--color-hobun);
+    color: var(--color-ink-900);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-hobun);
+    outline-offset: 3px;
+  }
+
+  /* 숫자는 언제나 자릿수가 고정되어야 표가 흔들리지 않는다. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .hairline {
+    border-color: var(--color-ink-700);
+  }
+
+  /* 세로쓰기 — 만세력의 기둥 라벨에 쓴다. */
+  .vertical {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+  }
+
+  /*
+    상감(象嵌) 글자.
+    어두운 쇠에 은을 박아 넣은 것처럼 보이게 한다 — 아래로는 그림자가 지고
+    위 모서리에는 빛이 걸린다. 글자가 면 위로 살짝 떠오른다.
+  */
+  .glyph {
+    text-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.6),
+      0 2px 4px rgba(0, 0, 0, 0.5),
+      0 -1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  /* 박힌 금속이 빛을 머금은 듯한 번짐. 글자 색을 그대로 따라간다. */
+  .glyph-inlay {
+    filter: drop-shadow(0 6px 18px color-mix(in srgb, currentColor 32%, transparent));
+  }
+
+  .glyph-inlay-sm {
+    filter: drop-shadow(0 3px 10px color-mix(in srgb, currentColor 28%, transparent));
+  }
+
+  .scene {
+    perspective: 2000px;
+    perspective-origin: 50% 42%;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  /* 기둥의 옆면 — 두께가 있다는 것을 눈에 보이게 하는 유일한 장치다. */
+  .pillar-face {
+    background-image: linear-gradient(
+      to bottom,
+      var(--color-ink-700),
+      var(--color-ink-900) 55%,
+      var(--color-ink-950)
+    );
+  }
+
+  /* 다이얼 판 — 가운데가 살짝 꺼진 금속판처럼 */
+  .dial-plate {
+    background:
+      radial-gradient(
+        circle at 50% 38%,
+        rgba(237, 230, 216, 0.05),
+        rgba(237, 230, 216, 0.015) 42%,
+        transparent 68%
+      );
+  }
+
+  .scene-shell {
+    position: relative;
+    /* 100vh 는 모바일 주소창 높이를 포함해 실제 보이는 영역보다 크다 —
+       dvh 를 지원하지 않는 브라우저를 위한 폴백을 앞에 둔다. */
+    min-height: 100vh;
+    min-height: 100dvh;
+    isolation: isolate;
+    overflow: clip;
+  }
+
+  .scene-shell > .relative {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .ambient-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .ambient-orb {
+    position: absolute;
+    border-radius: 999px;
+    pointer-events: none;
+    filter: blur(96px);
+    will-change: transform;
+  }
+
+  .ambient-orb-a {
+    top: -28vmax;
+    left: -18vmax;
+    width: 78vmax;
+    height: 78vmax;
+    opacity: 0.14;
+    background: radial-gradient(circle, var(--ambient-tint), transparent 64%);
+    animation: ink-drift-a 52s ease-in-out infinite;
+  }
+
+  .ambient-orb-b {
+    right: -24vmax;
+    bottom: -34vmax;
+    width: 74vmax;
+    height: 74vmax;
+    opacity: 0.1;
+    background: radial-gradient(circle, var(--color-hobun), transparent 62%);
+    animation: ink-drift-b 67s ease-in-out infinite;
+  }
+
+  .ambient-grid {
+    position: absolute;
+    inset: 0;
+    opacity: 0.23;
+    background-image:
+      linear-gradient(rgba(237, 230, 216, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(237, 230, 216, 0.035) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: linear-gradient(to bottom, black, transparent 72%);
+  }
+
+  .ambient-vignette {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(237, 230, 216, 0.055), transparent 35%, rgba(0, 0, 0, 0.34));
+  }
+
+  .scene-shell-tarot .ambient-grid {
+    background-size: 42px 42px;
+    opacity: 0.18;
+  }
+
+  .scene-shell-tarot .ambient-orb-a {
+    opacity: 0.18;
+    background: radial-gradient(circle, #d1a46a, transparent 62%);
+  }
+
+  .tarot-hero-stage {
+    transform: rotate(3deg);
+    transition: transform var(--motion-state) var(--ease-lumina), box-shadow var(--motion-state) var(--ease-lumina);
+  }
+
+  .tarot-hero-stage:hover {
+    transform: rotate(0deg) translateY(-6px) scale(1.02);
+    box-shadow: 0 38px 90px -34px rgba(0, 0, 0, 0.95);
+  }
+
+  .tarot-hero-seal {
+    position: absolute;
+    right: 1rem;
+    bottom: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    padding: 0.35rem 0.55rem;
+    color: white;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.22em;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.65);
+  }
+
+  .tarot-spread-option {
+    border-radius: 1.1rem;
+  }
+
+  .tarot-reveal-gate {
+    background:
+      radial-gradient(circle at 50% 30%, rgba(237, 230, 216, 0.14), transparent 38%),
+      linear-gradient(145deg, rgba(42, 37, 30, 0.98), rgba(11, 10, 8, 0.98));
+    box-shadow: inset 0 0 0 1px rgba(237, 230, 216, 0.04);
+  }
+
+  .tarot-reveal-back {
+    background:
+      linear-gradient(135deg, transparent 48%, rgba(237, 230, 216, 0.11) 49%, transparent 51%),
+      linear-gradient(45deg, transparent 48%, rgba(237, 230, 216, 0.08) 49%, transparent 51%),
+      radial-gradient(circle, rgba(209, 164, 106, 0.18), transparent 62%);
+    background-size: 26px 26px, 26px 26px, auto;
+    transform: rotate(-3deg);
+  }
+
+  .tarot-reveal-mark {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: rgba(237, 230, 216, 0.75);
+    font-family: var(--font-hanja);
+    font-size: 4rem;
+  }
+
+  .tarot-reveal-choice {
+    perspective: 700px;
+  }
+
+  .tarot-reveal-choice .tarot-reveal-back {
+    transition: transform var(--motion-state) var(--ease-lumina), box-shadow var(--motion-state) var(--ease-lumina);
+  }
+
+  .tarot-reveal-choice:hover .tarot-reveal-back,
+  .tarot-reveal-choice[aria-pressed="true"] .tarot-reveal-back {
+    transform: rotateY(12deg) rotate(-3deg) translateY(-2px);
+    box-shadow: 0 14px 26px -18px rgba(209, 164, 106, 0.85);
+  }
+
+  .scene-shell-saju .ambient-orb-a {
+    background: radial-gradient(circle, var(--color-mok), transparent 64%);
+  }
+
+  .scene-shell-numerology .ambient-grid {
+    background-size: 36px 36px;
+    opacity: 0.17;
+  }
+
+  .scene-shell-numerology .ambient-orb-a {
+    opacity: 0.16;
+    background: radial-gradient(circle, #c2a27b, transparent 64%);
+  }
+
+  .scene-shell-psychometrics .ambient-grid {
+    background-size: 80px 80px;
+    opacity: 0.12;
+  }
+
+  .scene-shell-psychometrics .ambient-orb-a,
+  .scene-shell-psychometrics .ambient-orb-b {
+    opacity: 0.055;
+  }
+
+  .scene-shell-horoscope .ambient-grid {
+    background-size: 54px 54px;
+    opacity: 0.15;
+  }
+
+  .scene-shell-horoscope .ambient-orb-a {
+    opacity: 0.13;
+    background: radial-gradient(circle, #a999d1, transparent 64%);
+  }
+
+  .reading-panel {
+    background: color-mix(in srgb, var(--color-surface-light) 96%, white 4%);
+    color: var(--color-ink-950);
+  }
+
+  .jungian-axis-card,
+  .jungian-axis-result {
+    transition: transform var(--motion-state) var(--ease-lumina), border-color var(--motion-state) var(--ease-lumina), box-shadow var(--motion-state) var(--ease-lumina);
+  }
+
+  .jungian-axis-card:hover,
+  .jungian-axis-card:focus-within {
+    transform: translateY(-4px);
+    border-color: var(--color-hobun);
+    box-shadow: 0 24px 60px -36px rgba(237, 230, 216, 0.38);
+  }
+
+  .jungian-axis-result {
+    border: 1px solid var(--color-ink-700);
+    border-radius: 1.25rem;
+    background: color-mix(in srgb, var(--color-ink-950) 78%, var(--color-ink-900) 22%);
+    padding: 1.25rem;
+  }
+
+  .jungian-axis-result:hover {
+    border-color: var(--color-ink-600);
+    box-shadow: 0 24px 54px -38px rgba(237, 230, 216, 0.4);
+  }
+
+  .jungian-type-code {
+    display: inline-flex;
+    align-items: center;
+    min-height: 3rem;
+    border: 1px solid var(--color-ink-600);
+    border-radius: 999px;
+    padding: 0.35rem 1rem;
+    color: var(--color-hobun);
+    font-family: var(--font-mono);
+    font-size: clamp(1.25rem, 4vw, 1.75rem);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+  }
+
+  .jungian-type-glyph {
+    display: inline-block;
+    animation: jungian-glyph-reveal 650ms var(--ease-lumina) both;
+    animation-delay: calc(var(--jungian-delay, 0) * 1ms);
+  }
+
+  .jungian-axis-letter {
+    display: inline-grid;
+    min-width: 2.8rem;
+    min-height: 2.8rem;
+    place-items: center;
+    border: 1px solid var(--color-ink-600);
+    border-radius: 50%;
+    color: var(--color-hobun);
+    font-family: var(--font-mono);
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+
+  .jungian-axis-result.is-boundary .jungian-axis-letter {
+    border-color: var(--color-hwa);
+    color: var(--color-hwa);
+    animation: jungian-boundary-pulse 2.8s ease-in-out infinite;
+  }
+
+  .jungian-ci-band {
+    position: absolute;
+    top: -2px;
+    bottom: -2px;
+    min-width: 0.35rem;
+    border: 1px solid var(--color-hobun-dim);
+    background: color-mix(in srgb, var(--color-hobun) 18%, transparent);
+    transform-origin: center;
+    animation: jungian-ci-expand 850ms var(--ease-lumina) both;
+  }
+
+  .jungian-axis-marker {
+    position: absolute;
+    top: 50%;
+    width: 0.9rem;
+    height: 0.9rem;
+    border: 2px solid var(--color-ink-900);
+    border-radius: 50%;
+    background: var(--color-hobun);
+    box-shadow: 0 0 0 3px rgba(237, 230, 216, 0.16), 0 4px 16px rgba(0, 0, 0, 0.5);
+    transform: translate(-50%, -50%);
+    animation: jungian-marker-converge 750ms var(--ease-lumina) both;
+  }
+
+  .jungian-axis-result.is-boundary .jungian-axis-marker {
+    animation: jungian-marker-converge 750ms var(--ease-lumina) both, jungian-boundary-sway 4.5s ease-in-out 850ms infinite;
+  }
+
+  .survey-jungian-preview {
+    border-top: 1px solid var(--color-ink-800);
+    padding-top: 0.65rem;
+  }
+
+  .survey-axis-preview {
+    min-width: 0;
+  }
+
+  .survey-axis-track {
+    position: relative;
+    height: 0.3rem;
+    border-radius: 999px;
+    background: var(--color-ink-800);
+  }
+
+  .survey-axis-track::after {
+    position: absolute;
+    inset: -0.2rem auto -0.2rem 50%;
+    width: 1px;
+    background: var(--color-ink-600);
+    content: "";
+  }
+
+  .survey-axis-marker {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--color-hobun-dim);
+    transform: translate(-50%, -50%);
+    transition: transform 500ms var(--ease-lumina), background-color 300ms ease;
+  }
+
+  /* 홈의 스크롤 장면 — 기능마다 색온도만 바뀌고 글자 위계는 흔들리지 않는다. */
+  .home-flow-section {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .home-flow-section::before {
+    position: absolute;
+    z-index: -1;
+    top: -4rem;
+    right: -18%;
+    width: 74%;
+    height: calc(100% + 8rem);
+    border-radius: 999px;
+    pointer-events: none;
+    content: "";
+    opacity: 0.07;
+    filter: blur(70px);
+    transform: translate3d(0, 0, 0);
+  }
+
+  .home-flow-mandala::before,
+  .home-flow-saju::before {
+    background: var(--color-mok);
+  }
+
+  .home-flow-hub::before,
+  .home-flow-report::before {
+    left: -22%;
+    right: auto;
+    background: var(--color-to);
+  }
+
+  .home-flow-now::before {
+    background: var(--color-su);
+  }
+
+  .home-flow-trust::before {
+    background: var(--color-geum);
+  }
+
+  .mandala-live-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid rgba(237, 230, 216, 0.28);
+    padding: 0.45rem 0.7rem;
+    color: var(--color-hobun-faint);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+  }
+
+  .mandala-live-mark::first-letter {
+    color: var(--color-hwa);
+  }
+
+  .mandala-stage {
+    position: relative;
+    min-height: clamp(30rem, 68vw, 40rem);
+    overflow: clip;
+    border: 1px solid rgba(237, 230, 216, 0.24);
+    border-radius: 2rem;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(237, 230, 216, 0.11), transparent 18%),
+      radial-gradient(circle at 50% 50%, rgba(85, 128, 212, 0.1), transparent 55%),
+      linear-gradient(145deg, rgba(42, 37, 30, 0.92), rgba(11, 10, 8, 0.98));
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.025),
+      0 30px 90px -56px rgba(0, 0, 0, 0.98);
+  }
+
+  .mandala-stage::before,
+  .mandala-stage::after {
+    position: absolute;
+    inset: 8%;
+    border: 1px solid rgba(237, 230, 216, 0.12);
+    border-radius: 50%;
+    pointer-events: none;
+    content: "";
+  }
+
+  .mandala-stage::after {
+    inset: 27%;
+    border-color: rgba(237, 230, 216, 0.16);
+    box-shadow: 0 0 70px rgba(237, 230, 216, 0.06);
+  }
+
+  .mandala-rings {
+    position: absolute;
+    inset: 13%;
+    z-index: 0;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background:
+      conic-gradient(
+        from 12deg,
+        var(--color-mok),
+        var(--color-hwa) 20%,
+        var(--color-to) 40%,
+        var(--color-geum) 63%,
+        var(--color-su) 82%,
+        var(--color-mok)
+      ) border-box;
+    mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0.54;
+    animation: mandala-ring-breathe 12s ease-in-out infinite;
+  }
+
+  .mandala-3d-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.92;
+  }
+
+  .mandala-orbit {
+    position: absolute;
+    inset: var(--mandala-inset);
+    z-index: 4;
+    border: 1px solid rgba(237, 230, 216, 0.18);
+    border-radius: 50%;
+    pointer-events: none;
+    transform: rotate(var(--mandala-angle));
+    transform-origin: center;
+    animation: mandala-orbit-spin var(--mandala-duration) linear infinite;
+  }
+
+  .mandala-orbit-retrograde {
+    animation-direction: reverse;
+  }
+
+  .mandala-orbit-node {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) rotate(var(--mandala-counter-angle));
+    animation: mandala-node-counter var(--mandala-duration) linear infinite;
+  }
+
+  .mandala-orbit-retrograde .mandala-orbit-node {
+    animation-direction: reverse;
+  }
+
+  .mandala-node-link {
+    display: grid;
+    width: clamp(5.25rem, 13vw, 8.5rem);
+    grid-template-columns: 2.4rem 1fr;
+    gap: 0.55rem;
+    align-items: center;
+    border: 1px solid rgba(237, 230, 216, 0.28);
+    border-radius: 1rem;
+    padding: 0.45rem;
+    background: color-mix(in srgb, var(--color-ink-900) 78%, transparent);
+    color: var(--color-hobun);
+    box-shadow: 0 18px 34px -26px rgba(0, 0, 0, 0.98);
+    backdrop-filter: blur(12px);
+    transition:
+      transform var(--motion-state) var(--ease-lumina),
+      border-color var(--motion-state) var(--ease-lumina),
+      background-color var(--motion-state) var(--ease-lumina);
+  }
+
+  .mandala-node-link:hover,
+  .mandala-node-link:focus-visible {
+    border-color: var(--color-hobun);
+    background: color-mix(in srgb, var(--color-ink-800) 88%, transparent);
+    transform: translateY(-4px) scale(1.04);
+  }
+
+  .mandala-node-image {
+    position: relative;
+    display: block;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 0.65rem;
+    background: var(--color-ink-800);
+  }
+
+  .mandala-node-copy {
+    min-width: 0;
+  }
+
+  .mandala-node-planet,
+  .mandala-node-cta {
+    display: block;
+    overflow: hidden;
+    color: var(--color-hobun-faint);
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.05em;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mandala-node-title {
+    display: block;
+    margin-top: 0.18rem;
+    overflow: hidden;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mandala-node-tier {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    margin-top: 0.3rem;
+    transform: scale(0.78);
+    transform-origin: left center;
+  }
+
+  .mandala-node-tier > span {
+    white-space: nowrap;
+  }
+
+  .mandala-node-cta {
+    margin-top: 0.2rem;
+    transition: color var(--motion-state) var(--ease-lumina);
+  }
+
+  .mandala-node-link:hover .mandala-node-cta,
+  .mandala-node-link:focus-visible .mandala-node-cta {
+    color: var(--color-hobun);
+  }
+
+  .mandala-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 8;
+    display: flex;
+    width: clamp(8.5rem, 22vw, 12.5rem);
+    min-height: 9.5rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(237, 230, 216, 0.42);
+    border-radius: 50%;
+    padding: 1.2rem;
+    background:
+      radial-gradient(circle at 50% 36%, rgba(237, 230, 216, 0.14), transparent 56%),
+      rgba(18, 16, 13, 0.88);
+    box-shadow:
+      0 0 0 12px rgba(237, 230, 216, 0.025),
+      0 0 44px rgba(223, 168, 62, 0.14),
+      inset 0 0 32px rgba(237, 230, 216, 0.06);
+    transform: translate(-50%, -50%);
+    backdrop-filter: blur(10px);
+  }
+
+  .mandala-center-glyphs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.42rem;
+    text-align: center;
+  }
+
+  .mandala-center-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    align-items: center;
+  }
+
+  .mandala-evidence {
+    border-left: 2px solid var(--color-to);
+    padding-left: 0.8rem;
+    color: var(--color-hobun);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.6;
+  }
+
+  .mandala-print-summary {
+    display: none;
+  }
+
+  .now-record-grid,
+  .trust-grid,
+  .report-group-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .now-record-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .now-record-card {
+    min-height: 9.25rem;
+    border: 1px solid rgba(237, 230, 216, 0.2);
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+    background: rgba(30, 26, 21, 0.78);
+  }
+
+  .now-record-card dt {
+    color: var(--color-hobun-faint);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+  }
+
+  .now-record-card dd {
+    margin-top: 1.1rem;
+    color: var(--color-hobun);
+    font-size: clamp(1.15rem, 3vw, 1.65rem);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .now-record-card .now-record-meta {
+    display: block;
+    margin-top: 0.65rem;
+    padding: 0;
+    color: var(--color-hobun-dim);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    line-height: 1.45;
+  }
+
+  .trust-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .trust-card,
+  .report-group-card {
+    border-radius: 1.4rem;
+    background: var(--color-surface-light);
+    color: var(--color-ink-950);
+    box-shadow: 0 24px 64px -44px rgba(0, 0, 0, 0.95);
+  }
+
+  .trust-card {
+    min-height: 13rem;
+    padding: 1.5rem;
+  }
+
+  .report-group-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .report-group-card {
+    padding: 1.5rem;
+  }
+
+  @supports (animation-timeline: view()) {
+    .home-flow-section::before {
+      animation: home-tone-bloom linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 55%;
+    }
+  }
+
+  .portal-card {
+    transform: perspective(1200px)
+      rotateX(calc(var(--portal-y, 0) * -1.6deg))
+      rotateY(calc(var(--portal-x, 0) * 2.4deg));
+    transform-style: preserve-3d;
+  }
+
+  .time-dial-node {
+    transform: perspective(600px) rotateX(0deg);
+  }
+
+  .time-dial-node:hover,
+  .time-dial-node[aria-pressed="true"] {
+    transform: perspective(600px) rotateX(3deg) translateY(-2px);
+    box-shadow: 0 16px 24px -20px rgba(237, 230, 216, 0.8);
+  }
+
+  .number-trace-digit {
+    display: inline-grid;
+    min-width: 1.65rem;
+    min-height: 1.9rem;
+    place-items: center;
+    border: 1px solid rgba(237, 230, 216, 0.14);
+    background: rgba(237, 230, 216, 0.04);
+    animation: trace-digit-in 500ms var(--ease-lumina) both;
+  }
+
+  .number-trace-digit:nth-child(2n) {
+    animation-delay: 70ms;
+  }
+
+  .number-trace-digit:nth-child(3n) {
+    animation-delay: 140ms;
+  }
+
+  .number-trace-ring {
+    display: inline-grid;
+    min-width: 2rem;
+    min-height: 2rem;
+    place-items: center;
+    border: 1px solid rgba(209, 164, 106, 0.48);
+    border-radius: 999px;
+    animation: trace-ring-pulse 2.8s ease-in-out infinite;
+  }
+
+  .survey-factor-orb {
+    box-shadow: 0 0 0 4px rgba(237, 230, 216, 0.03);
+  }
+
+  .portal-image::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(115deg, transparent 30%, rgba(255, 248, 231, 0.25) 49%, transparent 67%);
+    transform: translateX(-115%);
+    transition: transform 700ms var(--ease-lumina);
+  }
+
+  .portal-card:hover .portal-image::after,
+  .portal-card:focus-visible .portal-image::after {
+    transform: translateX(115%);
+  }
+
+  .portal-image-wash {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(18, 16, 13, 0.08), rgba(18, 16, 13, 0.52));
+  }
+
+  .portal-arrow {
+    transition: transform var(--motion-state) var(--ease-lumina);
+  }
+
+  .portal-card:hover .portal-arrow,
+  .portal-card:focus-visible .portal-arrow {
+    transform: translate(3px, -3px);
+  }
+
+  .motion-safe-image-fallback {
+    background:
+      radial-gradient(circle at 50% 35%, rgba(237, 230, 216, 0.2), transparent 38%),
+      linear-gradient(145deg, var(--color-ink-800), var(--color-ink-950));
+  }
+
+  .result-cover {
+    animation: result-cover-in var(--motion-scene) var(--ease-lumina) both;
+  }
+
+  .result-cover-glow {
+    position: absolute;
+    top: -7rem;
+    right: 12%;
+    width: 19rem;
+    height: 19rem;
+    border-radius: 999px;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(18, 16, 13, 0.14), transparent 68%);
+    filter: blur(8px);
+  }
+
+  .result-cover-art {
+    transform: rotate(2.5deg);
+    transition: transform var(--motion-state) var(--ease-lumina);
+  }
+
+  .result-cover-art:hover {
+    transform: rotate(0deg) translateY(-5px) scale(1.02);
+  }
+
+  .chapter-nav {
+    position: sticky;
+    top: 0.75rem;
+    z-index: 30;
+    margin: 0 -0.25rem 1.5rem;
+    padding: 0.25rem;
+    background: color-mix(in srgb, var(--color-ink-900) 86%, transparent);
+    backdrop-filter: blur(14px);
+  }
+}
+
+/*
+  먹 번짐 — 화면 뒤에서 아주 느리게 도는 두 덩어리.
+  별이나 입자를 뿌리는 대신, 물에 푼 먹이 퍼지는 속도로 움직인다.
+*/
+@keyframes ink-drift-a {
+  0%,
+  100% {
+    transform: translate3d(-8%, -6%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(6%, 8%, 0) scale(1.18);
+  }
+}
+
+@keyframes ink-drift-b {
+  0%,
+  100% {
+    transform: translate3d(10%, 6%, 0) scale(1.12);
+  }
+  50% {
+    transform: translate3d(-6%, -8%, 0) scale(0.94);
+  }
+}
+
+/* 히어로의 여덟 글자 — 공중에 매달린 듯 아주 느리게 떠오르고 가라앉는다 */
+@keyframes glyph-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* 기(氣)의 순환 — 상생 고리를 한 바퀴 도는 데 18초 */
+@keyframes qi-orbit {
+  from {
+    offset-distance: 0%;
+  }
+  to {
+    offset-distance: 100%;
+  }
+}
+
+@keyframes mandala-orbit-spin {
+  from {
+    transform: rotate(var(--mandala-angle));
+  }
+  to {
+    transform: rotate(calc(var(--mandala-angle) + 360deg));
+  }
+}
+
+@keyframes mandala-node-counter {
+  from {
+    transform: translate(-50%, -50%) rotate(var(--mandala-counter-angle));
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(calc(var(--mandala-counter-angle) - 360deg));
+  }
+}
+
+@keyframes mandala-ring-breathe {
+  0%,
+  100% {
+    transform: scale(0.985) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.015) rotate(4deg);
+  }
+}
+
+@keyframes home-tone-bloom {
+  from {
+    transform: translate3d(0, 16px, 0) scale(0.84);
+  }
+  to {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes pin-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.35);
+  }
+}
+
+/*
+  스크롤 리빌.
+  지속시간을 적지 않았으므로 스크롤 타임라인을 모르는 브라우저에서는 0초짜리
+  애니메이션이 되어 곧바로 끝 상태(보이는 상태)에 놓인다. 내용이 숨겨진 채로
+  남을 수 있는 경로가 없다.
+*/
+/*
+  불투명도를 움직이지 않는다 — 위치만 움직인다.
+  animation-timeline: view() 는 스크롤해 들어오기 전까지 시작 프레임에 머무는데,
+  거기서 opacity 를 낮춰 두면 그 상태가 Lighthouse·크롤러·스크롤하지 않는 뷰어
+  모두에게 "진짜 대비"가 된다. 손으로 검산해 보니 opacity:0.4 인 hobun-faint 글자는
+  대비 1.78:1 까지 떨어져 있었다(WCAG AA 4.5:1 기준 미달) — 애니메이션 중간 상태가
+  실제 표시 상태였던 것이다. transform 만 움직이면 글자색은 언제나 완전한 값을
+  유지하므로 이런 경로 자체가 생기지 않는다.
+*/
+@keyframes reveal-rise {
+  from {
+    transform: translateY(22px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+/*
+  원국이 세워지는 순간.
+  자바스크립트로 하지 않는다 — useReducedMotion() 은 서버에서 언제나 false 라서
+  서버 HTML에 opacity:0 이 박히고, 그러면 JS가 늦거나 죽었을 때 여덟 글자가
+  통째로 사라진다. CSS로만 하면 그런 경로가 아예 없다.
+*/
+@keyframes pillar-stand {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes glyph-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.92) rotateX(-32deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 오행 고리 — 스크롤에 맞춰 그려진다 */
+@keyframes wheel-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/*
+  마디는 정보(오행별 수치·글자)를 담고 있어 opacity 를 움직이지 않는다 —
+  reveal-rise 와 같은 이유다. 크기만 움직여도 "돋아나는" 인상은 충분히 남는다.
+*/
+@keyframes wheel-pop {
+  from {
+    transform: scale(0.82);
+  }
+  to {
+    transform: none;
+  }
+}
+
+/* 타로 카드 — 뒤집히며 나타난다 */
+@keyframes card-flip-in {
+  from {
+    opacity: 0.5;
+    transform: rotateY(-90deg) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: rotateY(0deg) scale(1);
+  }
+}
+
+/* 정령 등장 — 인장이 새겨지고 그 안에서 몸이 돋는다 */
+@keyframes spirit-seal {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes spirit-body {
+  0% {
+    opacity: 0;
+    transform: scale(0.72) translateY(6px);
+  }
+  70% {
+    transform: scale(1.04) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes result-cover-in {
+  from {
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes jungian-marker-converge {
+  from {
+    transform: translate(-50%, -50%) scale(0.45);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes jungian-ci-expand {
+  from {
+    transform: scaleX(0.08);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes jungian-glyph-reveal {
+  from {
+    transform: translateY(0.45rem) rotateX(-24deg);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes jungian-boundary-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(217, 91, 65, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 0.35rem rgba(217, 91, 65, 0.12);
+  }
+}
+
+@keyframes jungian-boundary-sway {
+  0%,
+  100% {
+    margin-left: -0.15rem;
+  }
+  50% {
+    margin-left: 0.15rem;
+  }
+}
+
+@keyframes trace-digit-in {
+  from {
+    transform: translateY(8px) scale(0.88);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes trace-ring-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+@media (max-width: 639px) {
+  .mandala-stage {
+    min-height: 28rem;
+    border-radius: 1.35rem;
+  }
+
+  .mandala-stage::before {
+    inset: 4%;
+  }
+
+  .mandala-stage::after {
+    inset: 29%;
+  }
+
+  .mandala-rings {
+    inset: 11%;
+  }
+
+  .mandala-node-link {
+    width: 5.4rem;
+    grid-template-columns: 1.65rem 1fr;
+    gap: 0.35rem;
+    border-radius: 0.75rem;
+    padding: 0.32rem;
+  }
+
+  /* Keep the mobile hit areas stable while the decorative rings remain alive. */
+  .mandala-orbit,
+  .mandala-orbit-node {
+    animation: none;
+  }
+
+  /* 좁은 화면에서는 기능 이름이 곧 내비게이션이다 — 한 글자라도 더 읽히게
+     두 줄까지 허용하고, 보조 행은 잘리더라도 최소 가독 크기는 지킨다. */
+  .mandala-node-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 0.75rem;
+    white-space: normal;
+  }
+
+  .mandala-node-planet,
+  .mandala-node-cta {
+    font-size: 0.5625rem;
+  }
+
+  .mandala-node-tier {
+    margin-top: 0.12rem;
+    transform: scale(0.62);
+  }
+
+  .mandala-center {
+    width: 8rem;
+    min-height: 8.5rem;
+    padding: 0.8rem;
+  }
+
+  .mandala-center-glyphs {
+    gap: 0.2rem;
+  }
+
+  .mandala-center-column .font-hanja {
+    font-size: 1.25rem;
+  }
+
+  .now-record-grid,
+  .trust-grid,
+  .report-group-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .spirit-seal {
+    animation: spirit-seal 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .card-flip-in {
+    animation: card-flip-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+  }
+
+  .spirit-body {
+    animation: spirit-body 0.8s cubic-bezier(0.34, 1.4, 0.5, 1) 0.35s both;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .reveal {
+    animation: reveal-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 42%;
+  }
+
+  .pillar-stand {
+    animation: pillar-stand 0.55s ease-out both;
+  }
+
+  .glyph-rise {
+    animation: glyph-rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* 마디마다 --r0/--r1 로 등장 구간을 조금씩 어긋내 순서를 만든다. */
+  .wheel-line,
+  .wheel-node {
+    animation-timeline: view();
+    animation-range: entry var(--r0, 4%) entry var(--r1, 52%);
+  }
+
+  .wheel-line {
+    animation-name: wheel-draw;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+  }
+
+  .wheel-node {
+    animation-name: wheel-pop;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    animation-fill-mode: both;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+}
+
+/* 움직임 축소에서는 기가 도는 점을 아예 내리고, 나머지는 완성 상태로 둔다. */
+@media (prefers-reduced-motion: reduce) {
+  .qi-orbit {
+    display: none;
+  }
+
+  .ambient-orb,
+  .portal-card,
+  .result-cover,
+  .result-cover-art,
+  .jungian-axis-card,
+  .jungian-type-glyph,
+  .jungian-axis-letter,
+  .jungian-ci-band,
+  .jungian-axis-marker,
+  .tarot-hero-stage,
+  .tarot-reveal-back,
+  .mandala-rings,
+  .mandala-orbit,
+  .mandala-orbit-node,
+  .mandala-node-link {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .survey-axis-marker {
+    transition: none !important;
+  }
+
+  .mandala-orbit {
+    transform: rotate(var(--mandala-angle)) !important;
+  }
+
+  .mandala-orbit-node {
+    transform: translate(-50%, -50%) rotate(var(--mandala-counter-angle)) !important;
+  }
+}
+
+/*
+  인쇄 · PDF 저장.
+  화면 디자인을 그대로 지키되(먹빛 배경 포함), 움직임과 3D는 전부 눕힌다.
+  브라우저의 "PDF로 저장"이 이 규칙을 그대로 써서 A4 파일을 만든다.
+*/
+@page {
+  size: A4;
+  margin: 12mm;
+}
+
+@media print {
+  .progressive-block details,
+  .progressive-block details[open],
+  .progressive-method,
+  .progressive-method[open] {
+    display: block !important;
+  }
+
+  .progressive-block details > summary,
+  .progressive-method > summary {
+    display: none !important;
+  }
+
+  .progressive-block .progressive-method {
+    margin-top: 0.8rem !important;
+    border-left: 1px solid var(--color-ink-600);
+  }
+
+  .reveal,
+  .pillar-stand,
+  .glyph-rise,
+  .wheel-line,
+  .wheel-node,
+  .spirit-seal,
+  .spirit-body,
+  .card-flip-in,
+  .jungian-type-glyph,
+  .jungian-ci-band,
+  .jungian-axis-marker,
+  .jungian-axis-letter {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+
+  .qi-orbit,
+  .no-print,
+  .mandala-stage {
+    display: none !important;
+  }
+
+  .mandala-print-summary {
+    position: static;
+    display: block;
+    width: auto;
+    height: auto;
+    margin-top: 1rem;
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+    white-space: normal;
+  }
+
+  .mandala-print-summary p {
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+  }
+
+  .mandala-print-summary ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem 1rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.78rem;
+  }
+
+  /* 배경색을 살려야 디자인이 유지된다 */
+  html,
+  body {
+    background: #12100d !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body::before {
+    display: none; /* 한지 결은 인쇄에서 얼룩으로 보인다 */
+  }
+
+  /* 원근·깊이는 종이에서 의미가 없다 */
+  .scene {
+    perspective: none !important;
+  }
+
+  .preserve-3d {
+    transform-style: flat !important;
+    transform: none !important;
+  }
+
+  section,
+  figure,
+  .avoid-break {
+    break-inside: avoid;
+  }
+
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* 음수 마진으로 넓혀 둔 무대는 종이에서 페이지 밖으로 삐져나간다 */
+  .scene,
+  .print-scroll {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    overflow: visible !important;
+  }
+
+  .print-scroll > ol {
+    flex-wrap: wrap !important;
+  }
+
+  a[href]::after {
+    content: "";
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

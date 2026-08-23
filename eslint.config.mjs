@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // 생성물 — vitest 커버리지 리포트
+    "coverage/**",
   ]),
 ]);
 

@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
 
 # next.js
 /.next/
@@ -32,6 +34,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +42,19 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 브라우저 검증 산출물
+/.playwright-mcp
+/*.png
+/public/tarot/cards/*.png
+/public/horoscope/zodiac/*.png
+/public/saju/zodiac/*.png
+/public/numerology/numbers/*.png
+/public/psychometrics/factors/*.png
+/public/fonts/og/
+
+# 규준 산출용 원자료 — 라이선스 불명확, 요약 통계(data/norms*.json)만 커밋한다
+/raw/
+
+# 로컬 개발 로그
+*.log

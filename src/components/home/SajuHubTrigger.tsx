@@ -11,6 +11,7 @@ export function SajuHubTrigger({
   title,
   desc,
   tierBadge,
+  evidenceStatus,
   imageSrc,
   imageAlt,
   cta,
@@ -20,6 +21,7 @@ export function SajuHubTrigger({
   readonly title: string;
   readonly desc: string;
   readonly tierBadge: ReactNode;
+  readonly evidenceStatus?: ReactNode;
   readonly imageSrc: string;
   readonly imageAlt: string;
   readonly cta: string;
@@ -66,7 +68,10 @@ export function SajuHubTrigger({
             <p className="mt-2 max-w-[34rem] text-[15px] leading-relaxed text-ink-700/80">{desc}</p>
           </div>
           <div className="flex items-center justify-between gap-3">
-            {tierBadge}
+            <div className="flex flex-wrap items-center gap-2">
+              {tierBadge}
+              {evidenceStatus}
+            </div>
             <span className="font-mono text-xs tracking-[0.16em] text-ink-700/75 transition-transform duration-300 group-hover:translate-x-1">
               {cta}
             </span>

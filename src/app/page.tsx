@@ -8,8 +8,10 @@ import { SajuRevealProvider } from "@/components/home/SajuRevealContext";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { Disclaimer, TierBadge } from "@/components/ui/Chrome";
 import { SceneShell } from "@/components/ui/SceneShell";
+import { analysisDefinition } from "@/lib/analysisCatalog";
 import { buildMandalaModel } from "@/lib/mandalaModel";
 import { computeSaju, branchAt, stemAt } from "@engine/saju";
+import type { AnalysisKey } from "@engine/shared/evidence";
 
 /* 히어로의 여덟 글자는 지금 이 순간의 것이다. 시주는 두 시간마다 바뀌므로 1분 캐시로 충분하다. */
 export const revalidate = 60;
@@ -51,14 +53,27 @@ function momentPillars() {
   };
 }
 
-const REPORT_GROUPS = [
-  { key: "saju", itemKeys: ["chart", "cycles"] },
-  { key: "tarot", itemKeys: ["spread", "draw"] },
-  { key: "numerology", itemKeys: ["lifePath", "destiny"] },
-  { key: "psychometrics", itemKeys: ["factors", "percentile"] },
-  { key: "jungian", itemKeys: ["axes", "typeSummary"] },
-  { key: "horoscope", itemKeys: ["zodiac", "animal"] },
-] as const;
+const REPORT_GROUP_KEYS: readonly AnalysisKey[] = [
+  "saju",
+  "tarot",
+  "numerology",
+  "psychometrics",
+  "jungian",
+  "darktriad",
+  "attachment",
+  "horoscope",
+];
+
+const REPORT_ITEM_KEYS: Readonly<Partial<Record<AnalysisKey, readonly string[]>>> = Object.freeze({
+  saju: ["chart", "cycles"],
+  tarot: ["spread", "draw"],
+  numerology: ["lifePath", "destiny"],
+  psychometrics: ["factors", "percentile"],
+  jungian: ["axes", "typeSummary"],
+  darktriad: ["factors", "norms"],
+  attachment: ["dimensions", "quadrants"],
+  horoscope: ["zodiac", "animal"],
+});
 
 const TRUST_GROUPS = [
   { key: "scientific", titleKey: "trustScientificTitle", bodyKey: "trustScientificBody" },
@@ -182,21 +197,25 @@ export default async function Home() {
         <h2 id="report-heading" className="mt-3 text-[clamp(1.65rem,4vw,2.35rem)] leading-tight font-medium tracking-tight">{t("reportHeading")}</h2>
         <p className="mt-4 max-w-2xl text-base leading-relaxed text-hobun-dim">{t("reportIntro")}</p>
         <div className="report-group-grid mt-8">
-          {REPORT_GROUPS.map((group, index) => (
-            <article key={group.key} className="report-group-card">
-              <p className="font-mono text-xs tracking-[0.18em] text-ink-700/60">0{index + 1}</p>
-              <h3 className="mt-3 text-xl font-semibold text-ink-950">{t(`reportGroups.${group.key}.title`)}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-700/75">{t(`reportGroups.${group.key}.desc`)}</p>
-              <dl className="mt-5 space-y-4">
-                {group.itemKeys.map((itemKey) => (
-                  <div key={itemKey}>
-                    <dt className="text-xs font-semibold text-ink-900">{t(`reportGroups.${group.key}.items.${itemKey}.term`)}</dt>
-                    <dd className="mt-1 text-sm leading-relaxed text-ink-700/75">{t(`reportGroups.${group.key}.items.${itemKey}.desc`)}</dd>
-                  </div>
-                ))}
-              </dl>
-            </article>
-          ))}
+          {REPORT_GROUP_KEYS.map((key, index) => {
+            const definition = analysisDefinition(key);
+            const itemKeys = REPORT_ITEM_KEYS[key] ?? [];
+            return (
+              <article key={key} className="report-group-card">
+                <p className="font-mono text-xs tracking-[0.18em] text-ink-700/60">0{index + 1}</p>
+                <h3 className="mt-3 text-xl font-semibold text-ink-950">{t(definition.titleKey)}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-ink-700/75">{t(definition.descKey)}</p>
+                <dl className="mt-5 space-y-4">
+                  {itemKeys.map((itemKey) => (
+                    <div key={itemKey}>
+                      <dt className="text-xs font-semibold text-ink-900">{t(`reportGroups.${key}.items.${itemKey}.term`)}</dt>
+                      <dd className="mt-1 text-sm leading-relaxed text-ink-700/75">{t(`reportGroups.${key}.items.${itemKey}.desc`)}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </article>
+            );
+          })}
         </div>
       </section>
 

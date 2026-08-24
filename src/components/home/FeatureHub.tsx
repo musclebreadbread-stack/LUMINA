@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
+import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
 import { TierBadge } from "@/components/ui/Chrome";
-import { assetPath } from "@/lib/assets";
+import { analysisDefinition } from "@/lib/analysisCatalog";
 import { MANDALA_FEATURES } from "@/lib/mandalaModel";
 import { FeaturePortal } from "./FeaturePortal";
 import { SajuHubTrigger } from "./SajuHubTrigger";
@@ -9,6 +10,8 @@ export async function FeatureHub() {
   const t = await getTranslations("home");
   const saju = MANDALA_FEATURES.find((feature) => feature.key === "saju");
   if (!saju) throw new Error("Saju feature is missing from the home feature registry");
+  const sajuDefinition = analysisDefinition("saju");
+  const compatibility = analysisDefinition("compatibility");
   const linkCards = MANDALA_FEATURES.filter((feature) => feature.key !== "saju");
 
   return (
@@ -27,7 +30,8 @@ export async function FeatureHub() {
           glyph="四"
           title={t(saju.titleKey)}
           desc={t(saju.descKey)}
-          tierBadge={<TierBadge tier="cultural" tone="light" />}
+          tierBadge={<TierBadge tier={sajuDefinition.tier} tone="light" />}
+          evidenceStatus={<EvidenceStatusBadge status={sajuDefinition.evidence.validationStatus} tone="light" />}
           imageSrc={saju.imageSrc}
           imageAlt={t(saju.titleKey)}
           cta={t("portalOpen")}
@@ -35,25 +39,32 @@ export async function FeatureHub() {
         />
       
         {linkCards.map((card) => (
-          <FeaturePortal
-            key={card.key}
-            href={card.href}
-            title={t(card.titleKey)}
-            desc={t(card.descKey)}
-            imageSrc={card.imageSrc}
-            imageAlt={t(card.titleKey)}
-            tier={card.tier}
-            label={t("portalLabel")}
-            cta={t("portalCta")}
-          />
+          (() => {
+            const definition = analysisDefinition(card.key);
+            return (
+              <FeaturePortal
+                key={card.key}
+                href={definition.href}
+                title={t(definition.titleKey)}
+                desc={t(definition.descKey)}
+                imageSrc={card.imageSrc}
+                imageAlt={t(definition.titleKey)}
+                tier={definition.tier}
+                evidenceStatus={definition.evidence.validationStatus}
+                label={t("portalLabel")}
+                cta={t("portalCta")}
+              />
+            );
+          })()
         ))}
         <FeaturePortal
-          href="/compatibility"
-          title={t("hubCompatibilityTitle")}
-          desc={t("hubCompatibilityDesc")}
-          imageSrc={assetPath("saju/zodiac", "dragon")}
-          imageAlt={t("hubCompatibilityTitle")}
-          tier="cultural"
+          href={compatibility.href}
+          title={t(compatibility.titleKey)}
+          desc={t(compatibility.descKey)}
+          imageSrc={saju.imageSrc}
+          imageAlt={t(compatibility.titleKey)}
+          tier={compatibility.tier}
+          evidenceStatus={compatibility.evidence.validationStatus}
           label={t("portalLabel")}
           cta={t("portalCta")}
         />

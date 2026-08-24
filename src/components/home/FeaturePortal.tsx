@@ -1,6 +1,8 @@
 import Link from "next/link";
+import type { ValidationStatus } from "@engine/shared/evidence";
 import type { EvidenceTier } from "@engine/shared/tier";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
+import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
 import { TierBadge } from "@/components/ui/Chrome";
 import { PortalMotion } from "./PortalMotion";
 
@@ -11,6 +13,7 @@ interface Props {
   readonly imageSrc: string;
   readonly imageAlt: string;
   readonly tier: EvidenceTier;
+  readonly evidenceStatus?: ValidationStatus;
   readonly label: string;
   readonly cta: string;
   readonly featured?: boolean;
@@ -23,6 +26,7 @@ export async function FeaturePortal({
   imageSrc,
   imageAlt,
   tier,
+  evidenceStatus,
   label,
   cta,
   featured = false,
@@ -57,7 +61,10 @@ export async function FeaturePortal({
             <p className="mt-2 max-w-[34rem] text-[15px] leading-relaxed text-ink-700/80">{desc}</p>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <TierBadge tier={tier} tone="light" />
+            <div className="flex flex-wrap items-center gap-2">
+              <TierBadge tier={tier} tone="light" />
+              {evidenceStatus ? <EvidenceStatusBadge status={evidenceStatus} tone="light" /> : null}
+            </div>
             <span className="font-mono text-xs tracking-[0.16em] text-ink-700/75 transition-transform duration-300 group-hover:translate-x-1">
               {cta}
             </span>

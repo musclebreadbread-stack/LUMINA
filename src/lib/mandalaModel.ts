@@ -1,16 +1,22 @@
 import { Body, Illumination, MoonPhase } from "astronomy-engine";
 import { signOfLongitude, planetPosition, type PlanetKey } from "@engine/astro";
+import type { AnalysisKey } from "@engine/shared/evidence";
 import type { EvidenceTier } from "@engine/shared/tier";
 import { assetPath, mandalaTexturePath } from "./assets";
+import { analysisDefinition } from "./analysisCatalog";
 
 /** 홈 만다라에 올리는 현재 탐구 방법과 실제 천체의 대응표. */
-export const MANDALA_FEATURES = Object.freeze([
+interface MandalaVisualConfig {
+  readonly key: Exclude<AnalysisKey, "astro" | "compatibility">;
+  readonly imageSrc: string;
+  readonly textureSrc: string;
+  readonly planetKey: PlanetKey;
+  readonly orbitInset: number;
+}
+
+const MANDALA_VISUALS: readonly MandalaVisualConfig[] = Object.freeze([
   {
     key: "saju",
-    titleKey: "hubSajuTitle",
-    descKey: "hubSajuDesc",
-    href: "/saju",
-    tier: "cultural" as EvidenceTier,
     imageSrc: assetPath("saju/zodiac", "dragon"),
     textureSrc: mandalaTexturePath("saju"),
     planetKey: "sun" as PlanetKey,
@@ -18,10 +24,6 @@ export const MANDALA_FEATURES = Object.freeze([
   },
   {
     key: "tarot",
-    titleKey: "hubTarotTitle",
-    descKey: "hubTarotDesc",
-    href: "/tarot",
-    tier: "cultural" as EvidenceTier,
     imageSrc: assetPath("tarot/cards", "00"),
     textureSrc: mandalaTexturePath("tarot"),
     planetKey: "moon" as PlanetKey,
@@ -29,10 +31,6 @@ export const MANDALA_FEATURES = Object.freeze([
   },
   {
     key: "numerology",
-    titleKey: "hubNumerologyTitle",
-    descKey: "hubNumerologyDesc",
-    href: "/numerology",
-    tier: "cultural" as EvidenceTier,
     imageSrc: assetPath("numerology/numbers", "11"),
     textureSrc: mandalaTexturePath("numerology"),
     planetKey: "mercury" as PlanetKey,
@@ -40,10 +38,6 @@ export const MANDALA_FEATURES = Object.freeze([
   },
   {
     key: "psychometrics",
-    titleKey: "hubPsychometricsTitle",
-    descKey: "hubPsychometricsDesc",
-    href: "/psychometrics",
-    tier: "scientific" as EvidenceTier,
     imageSrc: assetPath("psychometrics/factors", "intellect"),
     textureSrc: mandalaTexturePath("psychometrics"),
     planetKey: "saturn" as PlanetKey,
@@ -51,10 +45,6 @@ export const MANDALA_FEATURES = Object.freeze([
   },
   {
     key: "jungian",
-    titleKey: "hubJungianTitle",
-    descKey: "hubJungianDesc",
-    href: "/psychometrics/types",
-    tier: "scientific" as EvidenceTier,
     imageSrc: assetPath("psychometrics/types", "intj"),
     textureSrc: mandalaTexturePath("psychometrics"),
     planetKey: "venus" as PlanetKey,
@@ -62,10 +52,6 @@ export const MANDALA_FEATURES = Object.freeze([
   },
   {
     key: "darktriad",
-    titleKey: "hubDarkTriadTitle",
-    descKey: "hubDarkTriadDesc",
-    href: "/darktriad",
-    tier: "scientific" as EvidenceTier,
     imageSrc: assetPath("psychometrics/factors", "intellect"),
     textureSrc: mandalaTexturePath("psychometrics"),
     planetKey: "mars" as PlanetKey,
@@ -73,10 +59,6 @@ export const MANDALA_FEATURES = Object.freeze([
   },
   {
     key: "attachment",
-    titleKey: "hubAttachmentTitle",
-    descKey: "hubAttachmentDesc",
-    href: "/attachment",
-    tier: "scientific" as EvidenceTier,
     imageSrc: assetPath("psychometrics/factors", "agreeableness"),
     textureSrc: mandalaTexturePath("psychometrics"),
     planetKey: "moon" as PlanetKey,
@@ -84,16 +66,25 @@ export const MANDALA_FEATURES = Object.freeze([
   },
   {
     key: "horoscope",
-    titleKey: "hubHoroscopeTitle",
-    descKey: "hubHoroscopeDesc",
-    href: "/horoscope",
-    tier: "cultural" as EvidenceTier,
     imageSrc: assetPath("horoscope/zodiac", "leo"),
     textureSrc: mandalaTexturePath("horoscope"),
     planetKey: "jupiter" as PlanetKey,
     orbitInset: 16,
   },
 ] as const);
+
+export const MANDALA_FEATURES = Object.freeze(
+  MANDALA_VISUALS.map((visual) => {
+    const definition = analysisDefinition(visual.key);
+    return Object.freeze({
+      ...visual,
+      titleKey: definition.titleKey,
+      descKey: definition.descKey,
+      href: definition.href,
+      tier: definition.tier,
+    });
+  }),
+);
 
 export type MandalaFeatureKey = (typeof MANDALA_FEATURES)[number]["key"];
 

@@ -6,13 +6,14 @@ import { Disclaimer } from "@/components/ui/Chrome";
 import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { AxisBar } from "@/components/attachment/AxisBar";
+import { AttachmentResultClient } from "@/components/attachment/AttachmentResultClient";
 import { QuadrantCard } from "@/components/attachment/QuadrantCard";
 import { buildAttachmentView } from "@/lib/attachmentModel";
 import { decodeAttachmentResponses } from "@/lib/attachmentCode";
 import { analysisDefinition } from "@/lib/analysisCatalog";
 
 interface ResultPageProps {
-  searchParams: Promise<{ r?: string }>;
+  searchParams: Promise<{ r?: string; run?: string }>;
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -28,6 +29,25 @@ export default async function AttachmentResultPage({ searchParams }: ResultPageP
   const t = await getTranslations("attachment");
   const locale = await getLocale();
   const evidence = analysisDefinition("attachment");
+
+  if (params.run) {
+    return (
+      <SceneShell tone="attachment">
+        <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
+          <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
+            <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">
+              LUMINA
+            </Link>
+            <div className="flex items-center gap-3">
+              <LocaleSwitcher />
+              <EvidenceStatusBadge status={evidence.evidence.validationStatus} />
+            </div>
+          </header>
+          <AttachmentResultClient runId={params.run} />
+        </main>
+      </SceneShell>
+    );
+  }
 
   // 응답 디코딩
   const responses = params.r ? decodeAttachmentResponses(params.r) : null;

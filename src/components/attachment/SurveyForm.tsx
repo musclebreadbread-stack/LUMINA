@@ -2,13 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { ECR_ITEMS, type LikertScale } from "@engine/attachment/items";
 import type { AttachmentResponse } from "@engine/attachment/scoring";
-import { encodeAttachmentResponses } from "@/lib/attachmentCode";
 import { saveDraft, loadDraft, clearDraft } from "@/lib/attachmentDraft";
+import { buildAttachmentView } from "@/lib/attachmentModel";
+import { createAssessmentRun } from "@/lib/assessmentRun";
+import { analysisDefinition } from "@/lib/analysisCatalog";
+import type { Locale } from "@/i18n/locale";
 
 export function SurveyForm() {
   const router = useRouter();
+  const locale = useLocale() as Locale;
+  const t = useTranslations("attachment");
   const [responses, setResponses] = useState<AttachmentResponse>(() => {
     return loadDraft() || {};
   });
@@ -42,9 +48,19 @@ export function SurveyForm() {
       return;
     }
 
+    const run = createAssessmentRun({
+      methodKey: "attachment",
+      instrumentVersion: analysisDefinition("attachment").evidence.instrumentVersion,
+      locale,
+      scoreSummary: buildAttachmentView(responses),
+    });
+    if (!run) {
+      window.alert(t("storageError"));
+      return;
+    }
+
     clearDraft();
-    const encoded = encodeAttachmentResponses(responses);
-    router.push(`/attachment/result?r=${encoded}`);
+    router.push(`/attachment/result?run=${encodeURIComponent(run.id)}`);
   };
 
   const currentItem = ECR_ITEMS[currentItemIndex];

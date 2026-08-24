@@ -13,6 +13,13 @@ describe("analysis catalog consumers", () => {
     }
   });
 
+  it("registers every catalog key in exactly one reference group", () => {
+    const groupKeys = REFERENCE_GROUPS.map((group) => group.key);
+
+    expect(new Set(groupKeys).size).toBe(groupKeys.length);
+    expect(groupKeys).toEqual(ANALYSIS_CATALOG.map((definition) => definition.key));
+  });
+
   it("does not expose a mandala node with a stale tier", () => {
     for (const node of MANDALA_FEATURES) {
       expect(node.tier).toBe(ANALYSIS_CATALOG.find((item) => item.key === node.key)?.tier);

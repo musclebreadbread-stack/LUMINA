@@ -84,4 +84,20 @@ describe("메시지 카탈로그 — ko/en 키 완전 일치", () => {
     walk(ko, en, "");
     expect(mismatches).toEqual([]);
   });
+
+  it("모든 ValidationStatus에 한글·영문 라벨이 있다", () => {
+    const statuses = [
+      "validatedTargetPopulation",
+      "validatedOtherPopulation",
+      "translationNotValidated",
+      "derived",
+      "experimental",
+    ] as const;
+
+    for (const catalog of [ko, en]) {
+      for (const status of statuses) {
+        expect(catalog.common.evidenceStatus[status].trim()).not.toBe("");
+      }
+    }
+  });
 });

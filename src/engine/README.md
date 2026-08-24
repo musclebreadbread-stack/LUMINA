@@ -16,6 +16,8 @@ horoscope/ 날짜별 하늘·일진 신호를 근거로 한 문화적 리딩 (�
 tarot/     결정론적 셔플·스프레드·정역방향 (계층 2)
 numerology/ 생애수·운명수 산술 (계층 2)
 psychometrics/ IPIP-50 응답 채점·신뢰도 계산 (계층 1의 척도 계산)
+attachment/  ECR-R-informed 애착 축의 탐색적 1–5 점수 계산
+darktriad/   SD3 기반 다크 트라이어드 탐색 점수 계산
 characters/ 오행 분포를 화면용 캐릭터 정의에 연결하는 데이터 계층
 synastry/  두 사주 프로필의 지지 합·충·삼합과 천간 오행 방향 비교 (계층 2)
 ```
@@ -40,6 +42,16 @@ synastry/  두 사주 프로필의 지지 합·충·삼합과 천간 오행 방�
 비공개 운세 화면에서는 출생 천체와 현재 천체의 도수 각도 추가한다.
 
 ---
+
+## Evidence metadata and public claims
+
+`src/engine/shared/evidence.ts` defines the evidence profile used by the web catalog.
+The profile records method category, validation status, target population, norm source,
+instrument version, license status, limitations, and supporting reference IDs.
+
+The `scientific` tier describes a measurement or score calculation, not a diagnosis,
+universal population claim, or guaranteed prediction. A route must show its validation
+status and relevant limits whenever the evidence is translated into a user-facing result.
 
 ## 2. `@engine/saju` — 사주팔자
 

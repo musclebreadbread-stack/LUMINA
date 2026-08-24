@@ -69,6 +69,7 @@ test.describe('Jungian Type Lens', () => {
     await expect(page.getByRole('img', { name: /유형을 상징하는 자기성찰 일러스트/ })).toBeVisible();
     await expect(page.getByText(/공식 MBTI® 검사가 아닙니다/)).toBeVisible();
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
+    await expect(page.locator('[data-evidence-status="derived"]').first()).toBeVisible();
   });
 
   test('keeps the same response code between Big Five and Jungian result links', async ({ page, context }) => {
@@ -86,7 +87,7 @@ test.describe('Jungian Type Lens', () => {
 
     await page.getByRole('link', { name: 'Return to the Big Five result', exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/psychometrics/result\\?r=${code}$`));
-    await page.getByRole('link', { name: 'View as an MBTI type →', exact: true }).click();
+    await page.getByRole('link', { name: 'View the Jungian Type Lens →', exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/psychometrics/types/result\\?r=${code}$`));
     await expect(page.getByRole('heading', { name: 'Energy direction', exact: true })).toBeVisible();
   });

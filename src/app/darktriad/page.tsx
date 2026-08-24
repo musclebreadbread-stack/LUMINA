@@ -3,8 +3,10 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { SurveyForm } from "@/components/darktriad/SurveyForm";
-import { Disclaimer, TierBadge } from "@/components/ui/Chrome";
+import { Disclaimer } from "@/components/ui/Chrome";
+import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
 import { SceneShell } from "@/components/ui/SceneShell";
+import { analysisDefinition } from "@/lib/analysisCatalog";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("darktriad");
@@ -16,6 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function DarkTriadPage() {
   const t = await getTranslations("darktriad");
+  const evidence = analysisDefinition("darktriad");
 
   return (
     <SceneShell tone="darktriad">
@@ -26,7 +29,7 @@ export default async function DarkTriadPage() {
           </Link>
           <div className="no-print flex items-center gap-3">
             <LocaleSwitcher />
-            <TierBadge tier="scientific" />
+            <EvidenceStatusBadge status={evidence.evidence.validationStatus} />
           </div>
         </header>
 

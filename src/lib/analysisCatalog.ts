@@ -135,7 +135,7 @@ export const ANALYSIS_CATALOG: readonly AnalysisDefinition[] = Object.freeze([
       normSource: "IPIP 공개 참고 표본(한국 대표 규준 아님)",
       instrumentVersion: "lumina-jungian-type-lens/2026-08",
       licenseStatus: "permission-required",
-      limitations: ["MBTI 공식 검사나 인증된 유형 판정이 아니며, Big Five 점수의 파생 요약입니다."],
+      limitations: ["공식 상표 검사나 인증된 유형 판정이 아니며, Big Five 점수의 파생 요약입니다."],
       referenceIds: ["jungian", "psychometrics"],
     }),
     durationMinutes: 10,

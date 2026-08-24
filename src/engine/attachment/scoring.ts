@@ -1,5 +1,6 @@
-import { ECR_ITEMS, scoreItem, getAxisItems, type AttachmentAxis, type LikertScale } from "./items";
+import { ECR_ITEMS, scoreItem, getAxisItems, type LikertScale } from "./items";
 
+/** Score the current exploratory two-axis item set; this is not official ECR-R scoring. */
 export interface AttachmentScores {
   readonly anxiety: AxisScore;
   readonly avoidance: AxisScore;
@@ -8,7 +9,6 @@ export interface AttachmentScores {
 export interface AxisScore {
   readonly rawSum: number;
   readonly mean: number;
-  readonly percentile?: number;
   readonly sampleSize?: number;
 }
 
@@ -17,7 +17,7 @@ export interface AttachmentResponse {
 }
 
 /**
- * ECR-R 채점
+ * Exploratory attachment-axis scoring informed by ECR-R dimensions.
  *
  * @param responses - itemId를 키로 하는 응답 객체 (1~5)
  * @returns anxiety와 avoidance 축의 점수

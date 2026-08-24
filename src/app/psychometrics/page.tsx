@@ -4,9 +4,11 @@ import { getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { SurveyForm } from "@/components/psychometrics/SurveyForm";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
-import { Disclaimer, TierBadge } from "@/components/ui/Chrome";
+import { Disclaimer } from "@/components/ui/Chrome";
+import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { assetPath } from "@/lib/assets";
+import { analysisDefinition } from "@/lib/analysisCatalog";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("psychometrics");
@@ -18,6 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function PsychometricsPage() {
   const t = await getTranslations("psychometrics");
+  const evidence = analysisDefinition("psychometrics");
 
   return (
     <SceneShell tone="psychometrics">
@@ -28,7 +31,7 @@ export default async function PsychometricsPage() {
         </Link>
         <div className="no-print flex items-center gap-3">
           <LocaleSwitcher />
-          <TierBadge tier="scientific" />
+          <EvidenceStatusBadge status={evidence.evidence.validationStatus} />
         </div>
       </header>
 

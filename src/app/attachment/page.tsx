@@ -1,10 +1,12 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
-import { TierBadge } from "@/components/ui/Chrome";
+import { Disclaimer } from "@/components/ui/Chrome";
+import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { SurveyForm } from "@/components/attachment/SurveyForm";
+import { analysisDefinition } from "@/lib/analysisCatalog";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("attachment");
@@ -16,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function AttachmentPage() {
   const t = await getTranslations("attachment");
-  const locale = await getLocale();
+  const evidence = analysisDefinition("attachment");
 
   return (
     <SceneShell tone="attachment">
@@ -27,7 +29,7 @@ export default async function AttachmentPage() {
           </Link>
           <div className="flex items-center gap-3">
             <LocaleSwitcher />
-            <TierBadge tier="scientific" />
+            <EvidenceStatusBadge status={evidence.evidence.validationStatus} />
           </div>
         </header>
 
@@ -80,6 +82,9 @@ export default async function AttachmentPage() {
           <div className="mt-8 text-sm text-hobun-dim space-y-2">
             <p>{t("footerNote1")}</p>
             <p>{t("footerNote2")}</p>
+          </div>
+          <div className="mt-8">
+            <Disclaimer tier={evidence.tier} />
           </div>
         </div>
       </main>

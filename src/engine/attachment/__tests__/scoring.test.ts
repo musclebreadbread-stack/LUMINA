@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { scoreECR, encodeResponses, decodeResponses, type AttachmentResponse } from "../scoring";
 import { classifyQuadrant } from "../quadrants";
-import { getPercentile } from "../norms";
 import { ECR_ITEMS, getAxisItems } from "../items";
 
 describe("ECR Engine", () => {
@@ -138,29 +137,4 @@ describe("ECR Engine", () => {
     });
   });
 
-  describe("percentile calculation", () => {
-    it("should return valid percentile for mean score", () => {
-      const percentile = getPercentile("anxiety", 2.92);
-      expect(percentile).toBeGreaterThanOrEqual(45);
-      expect(percentile).toBeLessThanOrEqual(55);
-    });
-
-    it("should return low percentile for low score", () => {
-      const percentile = getPercentile("anxiety", 1.0);
-      expect(percentile).toBeLessThan(10);
-    });
-
-    it("should return high percentile for high score", () => {
-      const percentile = getPercentile("anxiety", 5.0);
-      expect(percentile).toBeGreaterThan(90);
-    });
-
-    it("should clamp percentile between 1 and 99", () => {
-      const lowPercentile = getPercentile("anxiety", 0.1);
-      const highPercentile = getPercentile("anxiety", 10.0);
-
-      expect(lowPercentile).toBeGreaterThanOrEqual(1);
-      expect(highPercentile).toBeLessThanOrEqual(99);
-    });
-  });
 });

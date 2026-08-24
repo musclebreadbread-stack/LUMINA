@@ -6,7 +6,8 @@ import { MCCRAE_COSTA_1989, PITTENGER_1993, STEIN_SWAN_2019 } from "@engine/psyc
 import { AdSlot } from "@/components/ads/AdSlot";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { ShareBar } from "@/components/report/ShareBar";
-import { Disclaimer, Section, TierBadge } from "@/components/ui/Chrome";
+import { Disclaimer, Section } from "@/components/ui/Chrome";
+import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
 import { MethodNote } from "@/components/ui/MethodNote";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { ProgressiveBlock } from "@/components/ui/ProgressiveBlock";
@@ -16,6 +17,7 @@ import type { Locale } from "@/i18n/locale";
 import { decodeResponses } from "@/lib/psychometricsCode";
 import { buildJungianView, type JungianAxisView, type JungianView } from "@/lib/jungianModel";
 import { assetPath } from "@/lib/assets";
+import { analysisDefinition } from "@/lib/analysisCatalog";
 
 interface Query {
   readonly r?: string;
@@ -48,6 +50,7 @@ export default async function JungianResultPage({
     getLocale(),
   ]);
   const resolvedLocale = locale as Locale;
+  const evidence = analysisDefinition("jungian");
 
   if (!responses) {
     return (
@@ -83,6 +86,7 @@ export default async function JungianResultPage({
             imageAlt=""
             imageLabel={typeCode}
             tier="scientific"
+            evidenceStatus={evidence.evidence.validationStatus}
           />
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <span className="jungian-type-code" aria-label={t("typeCodeLabel", { code: typeCode })}>
@@ -320,12 +324,14 @@ function AxisResultCard({
 }
 
 function ReportHeader() {
+  const evidence = analysisDefinition("jungian");
+
   return (
     <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
       <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">LUMINA</Link>
       <div className="no-print flex items-center gap-3">
         <LocaleSwitcher />
-        <TierBadge tier="scientific" />
+        <EvidenceStatusBadge status={evidence.evidence.validationStatus} />
       </div>
     </header>
   );

@@ -35,5 +35,5 @@ export const TIER_META: Readonly<Record<EvidenceTier, TierMeta>> = Object.freeze
 
 /** 계층 2·3 결과에는 반드시 고지문이 붙어야 한다. */
 export function requiresDisclaimer(_tier: EvidenceTier): boolean {
-  return true;
+  return _tier === "scientific" || _tier === "cultural" || _tier === "entertainment";
 }

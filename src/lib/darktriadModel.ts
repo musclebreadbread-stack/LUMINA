@@ -15,22 +15,22 @@ const FACTOR_META: Readonly<Record<DarkTriadFactor, FactorMeta>> = {
     key: "machiavellianism",
     ko: "마키아벨리즘",
     en: "Machiavellianism",
-    descriptionKo: "전략적이고 계산적인 대인관계 스타일. 타인을 도구로 활용하려는 경향.",
-    descriptionEn: "Strategic and calculating interpersonal style. Tendency to use others as tools.",
+    descriptionKo: "대인관계에서 전략적으로 계획하고 계산하는 경향.",
+    descriptionEn: "Strategic interpersonal orientation and preference for calculated planning.",
   },
   narcissism: {
     key: "narcissism",
     ko: "나르시시즘",
     en: "Narcissism",
-    descriptionKo: "과장된 자아중심성과 인정 욕구. 자신의 중요성을 과대평가하는 경향.",
-    descriptionEn: "Grandiose self-centeredness and need for admiration. Tendency to overestimate one's importance.",
+    descriptionKo: "자기중심적 관심과 인정·칭찬에 대한 민감성 경향.",
+    descriptionEn: "Self-focused orientation and sensitivity to recognition or admiration.",
   },
   psychopathy: {
     key: "psychopathy",
     ko: "정신병질",
     en: "Psychopathy",
-    descriptionKo: "공감 결핍과 충동성. 타인의 고통에 무감각하고 위험을 추구하는 경향.",
-    descriptionEn: "Lack of empathy and impulsivity. Insensitivity to others' suffering and risk-seeking behavior.",
+    descriptionKo: "공감적 관심이 낮거나 충동·위험 선호가 높게 나타나는 경향.",
+    descriptionEn: "Lower empathic concern and greater impulsive or risk-oriented tendencies.",
   },
 };
 

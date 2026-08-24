@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { MCCRAE_COSTA_1989, PITTENGER_1993, STEIN_SWAN_2019 } from "@engine/psychometrics/citations";
-import { Disclaimer, TierBadge } from "@/components/ui/Chrome";
+import { Disclaimer } from "@/components/ui/Chrome";
+import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { MethodNote } from "@/components/ui/MethodNote";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
@@ -10,6 +11,7 @@ import { SceneShell } from "@/components/ui/SceneShell";
 import { JungianLandingActions } from "@/components/psychometrics/JungianLandingActions";
 import { assetPath } from "@/lib/assets";
 import type { Locale } from "@/i18n/locale";
+import { analysisDefinition } from "@/lib/analysisCatalog";
 
 const AXES = ["EI", "SN", "TF", "JP"] as const;
 const AXIS_IMAGE_POLES = {
@@ -30,6 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function JungianTypesPage() {
   const [t, locale] = await Promise.all([getTranslations("jungian"), getLocale()]);
   const resolvedLocale = locale as Locale;
+  const evidence = analysisDefinition("jungian");
 
   return (
     <SceneShell tone="psychometrics">
@@ -38,7 +41,7 @@ export default async function JungianTypesPage() {
           <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">LUMINA</Link>
           <div className="no-print flex items-center gap-3">
             <LocaleSwitcher />
-            <TierBadge tier="scientific" />
+            <EvidenceStatusBadge status={evidence.evidence.validationStatus} />
           </div>
         </header>
 
@@ -48,7 +51,7 @@ export default async function JungianTypesPage() {
               <div>
                 <div className="flex flex-wrap items-center gap-3">
                   <p className="font-mono text-[13px] tracking-wide text-ink-700/75">{t("kicker")}</p>
-                  <TierBadge tier="scientific" tone="light" />
+                  <EvidenceStatusBadge status={evidence.evidence.validationStatus} tone="light" />
                 </div>
                 <h1 className="mt-5 max-w-[18ch] text-[clamp(2rem,5.5vw,3.7rem)] leading-[1.04] font-semibold tracking-[-0.05em] text-ink-950">
                   {t("heroTitle")}

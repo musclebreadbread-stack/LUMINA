@@ -2,12 +2,14 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
-import { TierBadge } from "@/components/ui/Chrome";
+import { Disclaimer } from "@/components/ui/Chrome";
+import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { AxisBar } from "@/components/attachment/AxisBar";
 import { QuadrantCard } from "@/components/attachment/QuadrantCard";
 import { buildAttachmentView } from "@/lib/attachmentModel";
 import { decodeAttachmentResponses } from "@/lib/attachmentCode";
+import { analysisDefinition } from "@/lib/analysisCatalog";
 
 interface ResultPageProps {
   searchParams: Promise<{ r?: string }>;
@@ -25,6 +27,7 @@ export default async function AttachmentResultPage({ searchParams }: ResultPageP
   const params = await searchParams;
   const t = await getTranslations("attachment");
   const locale = await getLocale();
+  const evidence = analysisDefinition("attachment");
 
   // 응답 디코딩
   const responses = params.r ? decodeAttachmentResponses(params.r) : null;
@@ -39,7 +42,7 @@ export default async function AttachmentResultPage({ searchParams }: ResultPageP
             </Link>
             <div className="flex items-center gap-3">
               <LocaleSwitcher />
-              <TierBadge tier="scientific" />
+              <EvidenceStatusBadge status={evidence.evidence.validationStatus} />
             </div>
           </header>
 
@@ -75,7 +78,7 @@ export default async function AttachmentResultPage({ searchParams }: ResultPageP
           </Link>
           <div className="flex items-center gap-3">
             <LocaleSwitcher />
-            <TierBadge tier="scientific" />
+            <EvidenceStatusBadge status={evidence.evidence.validationStatus} />
           </div>
         </header>
 
@@ -119,6 +122,8 @@ export default async function AttachmentResultPage({ searchParams }: ResultPageP
               <p>{t("interpretationP3")}</p>
             </div>
           </div>
+
+          <Disclaimer tier={evidence.tier} />
 
           {/* 과학적 근거 */}
           <div className="border border-ink-700 rounded-xl p-6 space-y-4">

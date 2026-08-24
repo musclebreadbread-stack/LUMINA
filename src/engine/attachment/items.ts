@@ -1,5 +1,7 @@
 export type AttachmentAxis = "anxiety" | "avoidance";
 
+/** Current five-point item set is exploratory and is not the official ECR-R instrument. */
+
 export type LikertScale = 1 | 2 | 3 | 4 | 5;
 
 export interface ECRItem {
@@ -11,8 +13,8 @@ export interface ECRItem {
 }
 
 /**
- * Experiences in Close Relationships Scale (ECR-R)
- * Brennan, Clark & Shaver (1998)
+ * Exploratory attachment items informed by the ECR-R construct.
+ * This is not the official ECR-R instrument.
  *
  * 36문항: 불안(18문항) + 회피(18문항)
  * 5점 척도: 1(전혀 동의하지 않음) ~ 5(매우 동의함)

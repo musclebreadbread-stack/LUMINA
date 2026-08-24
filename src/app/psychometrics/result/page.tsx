@@ -8,13 +8,15 @@ import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { FactorBar } from "@/components/psychometrics/FactorBar";
 import { RetestComparison } from "@/components/psychometrics/RetestComparison";
 import { ShareBar } from "@/components/report/ShareBar";
-import { Disclaimer, Section, TierBadge } from "@/components/ui/Chrome";
+import { Disclaimer, Section } from "@/components/ui/Chrome";
+import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
 import { ResultCover } from "@/components/ui/ResultCover";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { MethodNote } from "@/components/ui/MethodNote";
 import { ProgressiveBlock } from "@/components/ui/ProgressiveBlock";
 import { decodeResponses } from "@/lib/psychometricsCode";
 import { buildBigFiveView } from "@/lib/psychometricsModel";
+import { analysisDefinition } from "@/lib/analysisCatalog";
 
 interface Query {
   readonly r?: string;
@@ -52,6 +54,7 @@ export default async function PsychometricsResultPage({
     getTranslations("psychometricsDeep"),
     getLocale(),
   ]);
+  const evidence = analysisDefinition("psychometrics");
 
   if (!responses) {
     return (
@@ -89,6 +92,7 @@ export default async function PsychometricsResultPage({
           imageAlt=""
           imageLabel={t("resultTitle")}
           tier="scientific"
+          evidenceStatus={evidence.evidence.validationStatus}
         />
         <p className="mt-3 font-mono text-[13px] text-hobun-faint">
           {t("itemCountLabel", { n: view.itemCount })}
@@ -172,6 +176,8 @@ export default async function PsychometricsResultPage({
 }
 
 function ReportHeader() {
+  const evidence = analysisDefinition("psychometrics");
+
   return (
     <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
       <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">
@@ -179,7 +185,7 @@ function ReportHeader() {
       </Link>
       <div className="no-print flex items-center gap-3">
         <LocaleSwitcher />
-        <TierBadge tier="scientific" />
+        <EvidenceStatusBadge status={evidence.evidence.validationStatus} />
       </div>
     </header>
   );

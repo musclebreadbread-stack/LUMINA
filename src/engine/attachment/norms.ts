@@ -1,5 +1,10 @@
 import type { AttachmentAxis } from "./items";
 
+/**
+ * Historical synthetic estimates retained for comparison during instrument replacement.
+ * They are not valid production norms for the current five-point exploratory implementation.
+ */
+
 export interface AxisNorms {
   readonly mean: number;
   readonly sd: number;

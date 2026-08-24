@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TIER_META, requiresDisclaimer, type EvidenceTier } from "@engine/shared/tier";
+import ko from "../../../../messages/ko.json";
+import en from "../../../../messages/en.json";
 
 const ALL_TIERS: readonly EvidenceTier[] = ["scientific", "cultural", "entertainment"];
 
@@ -13,7 +15,7 @@ describe("3계층 신뢰도 프레임워크", () => {
   });
 
   it("계층 2·3에는 고지문이 반드시 붙고, 계층 1에는 붙지 않는다", () => {
-    expect(requiresDisclaimer("scientific")).toBe(false);
+    expect(requiresDisclaimer("scientific")).toBe(true);
     expect(requiresDisclaimer("cultural")).toBe(true);
     expect(requiresDisclaimer("entertainment")).toBe(true);
   });
@@ -35,5 +37,21 @@ describe("3계층 신뢰도 프레임워크", () => {
     const keys = ALL_TIERS.flatMap((t) => [TIER_META[t].labelKey, TIER_META[t].disclaimerKey]);
     const nonNull = keys.filter((k): k is string => k !== null);
     expect(new Set(nonNull).size).toBe(nonNull.length);
+  });
+
+  it("모든 근거 상태에 ko/en 라벨이 있다", () => {
+    const statuses = [
+      "validatedTargetPopulation",
+      "validatedOtherPopulation",
+      "translationNotValidated",
+      "derived",
+      "experimental",
+    ] as const;
+
+    for (const catalog of [ko, en]) {
+      for (const status of statuses) {
+        expect(catalog.common.evidenceStatus[status].trim()).not.toBe("");
+      }
+    }
   });
 });

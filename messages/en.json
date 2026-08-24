@@ -11,7 +11,14 @@
     "tierEntertainment": "Tier 3 · Entertainment",
     "disclaimerCultural": "This interpretation is self-reflection content based on traditional symbolic systems, not a scientifically verified prediction. The calculations themselves follow fixed rules — solar terms, planetary positions, shuffle algorithms, and other method-specific logic — but the claim that the results predict life events has not been empirically confirmed.",
     "disclaimerEntertainment": "This content is entertainment drawn from a fixed bank of phrases, varied by date and zodiac sign or animal. It isn't based on actual planetary positions or personal data, and it isn't a prediction.",
-    "disclaimerScientific": "IPIP-50 is a personality trait scale made publicly available for academic research. It's meant to support self-understanding, not to replace medical diagnosis or clinical assessment.",
+    "disclaimerScientific": "This result is a self-understanding aid based on a specific scale and reference sample. Sampling, translation, and measurement error limit its scope; it is not a medical diagnosis, clinical assessment, or prediction of future events.",
+    "evidenceStatus": {
+      "validatedTargetPopulation": "Validated in the target population",
+      "validatedOtherPopulation": "Evidence from another population",
+      "translationNotValidated": "Translation validity not established",
+      "derived": "Derived summary of existing scores",
+      "experimental": "Experimental and exploratory"
+    },
     "share": "Share",
     "copyLink": "Copy Link",
     "copyLinkDone": "Link copied",

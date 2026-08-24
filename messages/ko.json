@@ -11,7 +11,14 @@
     "tierEntertainment": "계층 3 · 엔터테인먼트",
     "disclaimerCultural": "이 해석은 전통적 상징 체계에 기반한 자기성찰용 콘텐츠이며, 과학적으로 검증된 예측이 아닙니다. 계산 자체는 정해진 규칙(절기·천체 위치·셔플 알고리즘 등 기법마다 다른 근거)을 따르지만, 그 결과가 삶의 사건을 예측한다는 주장은 경험적으로 확인되지 않았습니다.",
     "disclaimerEntertainment": "이 콘텐츠는 정해진 문장 은행에서 날짜와 별자리·띠에 따라 다르게 골라 보여주는 엔터테인먼트입니다. 실제 천체 위치나 개인 데이터를 바탕으로 하지 않으며, 예측이 아닙니다.",
-    "disclaimerScientific": "IPIP-50은 학술 연구용으로 공개된 성격 특성 척도입니다. 자기 이해를 돕는 자료일 뿐, 의학적 진단이나 임상 평가를 대체하지 않습니다.",
+    "disclaimerScientific": "이 결과는 특정 척도와 참고 표본에 기반한 자기이해 자료입니다. 표본·번역·측정오차의 한계가 있으며, 의학적 진단이나 임상 평가와 미래 사건의 예측을 대체하지 않습니다.",
+    "evidenceStatus": {
+      "validatedTargetPopulation": "대상 집단에서 타당화됨",
+      "validatedOtherPopulation": "다른 집단의 근거를 참고함",
+      "translationNotValidated": "한국어 번역 타당도 미확인",
+      "derived": "기존 점수의 파생 요약",
+      "experimental": "실험적·탐색적 결과"
+    },
     "share": "공유하기",
     "copyLink": "링크 복사",
     "copyLinkDone": "링크를 복사했습니다",

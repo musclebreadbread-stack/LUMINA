@@ -1,5 +1,7 @@
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { TierBadge } from "@/components/ui/Chrome";
+import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
+import type { ValidationStatus } from "@engine/shared/evidence";
 import type { EvidenceTier } from "@engine/shared/tier";
 
 interface Props {
@@ -9,6 +11,7 @@ interface Props {
   readonly imageSrc?: string;
   readonly imageAlt?: string;
   readonly tier: EvidenceTier;
+  readonly evidenceStatus?: ValidationStatus;
   readonly imageLabel?: string;
 }
 
@@ -20,6 +23,7 @@ export async function ResultCover({
   imageSrc,
   imageAlt = "",
   tier,
+  evidenceStatus,
   imageLabel,
 }: Props) {
   return (
@@ -33,7 +37,11 @@ export async function ResultCover({
           </h1>
           <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-ink-800/85">{summary}</p>
           <div className="mt-6">
-            <TierBadge tier={tier} tone="light" />
+            {evidenceStatus ? (
+              <EvidenceStatusBadge status={evidenceStatus} tone="light" />
+            ) : (
+              <TierBadge tier={tier} tone="light" />
+            )}
           </div>
         </div>
 

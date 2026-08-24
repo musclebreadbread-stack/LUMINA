@@ -41,7 +41,7 @@ export function AxisBar({ axis, locale }: AxisBarProps) {
         />
       </div>
 
-      {/* 백분위와 원점수 */}
+      {/* 탐색 점수와 원점수 */}
       <div className="flex justify-between text-sm text-hobun-dim">
         <span>{locale === "ko" ? "탐색 점수" : "Exploratory score"}</span>
         <span>{locale === "ko" ? "원점수" : "Raw"}: {axis.rawSum} / 90</span>

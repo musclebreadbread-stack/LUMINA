@@ -19,7 +19,7 @@ psychometrics/ IPIP-50 응답 채점·신뢰도 계산 (계층 1의 척도 계�
 attachment/  ECR-R-informed 애착 축의 탐색적 1–5 점수 계산
 darktriad/   SD3 기반 다크 트라이어드 탐색 점수 계산
 characters/ 오행 분포를 화면용 캐릭터 정의에 연결하는 데이터 계층
-synastry/  두 사주 프로필의 지지 합·충·삼합과 천간 오행 방향 비교 (계층 2)
+synastry/compatibility/ 두 사주 프로필의 지지 합·충·삼합과 천간 오행 방향 비교 (계층 2)
 ```
 
 ---

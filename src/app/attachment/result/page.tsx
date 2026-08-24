@@ -125,7 +125,7 @@ export default async function AttachmentResultPage({ searchParams }: ResultPageP
 
           <Disclaimer tier={evidence.tier} />
 
-          {/* 과학적 근거 */}
+          {/* 참고 근거와 한계 */}
           <div className="border border-ink-700 rounded-xl p-6 space-y-4">
             <h2 className="text-xl font-semibold text-hobun">
               {t("scienceTitle")}

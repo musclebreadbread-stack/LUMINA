@@ -10,6 +10,9 @@ import {
   STEIN_SWAN_2019,
 } from "@engine/psychometrics/citations";
 import { HOROSCOPE_CITATIONS } from "@engine/horoscope/citations";
+import { DARK_TRIAD_CITATIONS } from "@engine/darktriad/citations";
+import { ATTACHMENT_CITATIONS } from "@engine/attachment/citations";
+import { SAJU_TRADITION_CITATIONS } from "@engine/saju/citations";
 
 export type ReferenceGroupKey =
   | "saju"
@@ -18,7 +21,10 @@ export type ReferenceGroupKey =
   | "numerology"
   | "psychometrics"
   | "jungian"
-  | "horoscope";
+  | "darktriad"
+  | "attachment"
+  | "horoscope"
+  | "compatibility";
 
 export interface ReferenceGroup {
   readonly key: ReferenceGroupKey;
@@ -35,5 +41,8 @@ export const REFERENCE_GROUPS: readonly ReferenceGroup[] = Object.freeze([
     key: "jungian" as const,
     citations: Object.freeze([MCCRAE_COSTA_1989, PITTENGER_1993, STEIN_SWAN_2019]),
   }),
+  Object.freeze({ key: "darktriad" as const, citations: DARK_TRIAD_CITATIONS }),
+  Object.freeze({ key: "attachment" as const, citations: ATTACHMENT_CITATIONS }),
   Object.freeze({ key: "horoscope" as const, citations: HOROSCOPE_CITATIONS }),
+  Object.freeze({ key: "compatibility" as const, citations: SAJU_TRADITION_CITATIONS }),
 ]);

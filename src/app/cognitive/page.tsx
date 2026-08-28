@@ -130,6 +130,7 @@ export default async function CognitivePage() {
                 setupRequired: t("setupRequired"),
                 signInRequired: t("setupRequired"),
                 starting: t("runStart"),
+                ineligible: t("deviceUnsupported"),
               }}
             />
           </div>

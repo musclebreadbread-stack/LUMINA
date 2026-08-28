@@ -34,14 +34,14 @@ describe("score release guard", () => {
     ).toThrow("approved norm version is required");
   });
 
-  it("returns a score only when eligibility, norm and score are present", () => {
-    expect(
+  it("keeps the score path closed while the approved registry is empty", () => {
+    expect(() =>
       scoreRun({
         releaseMode: "standardized",
         standardizationEligible: true,
         normVersion: score.normVersion,
         score,
       }),
-    ).toEqual({ status: "standardized_scored", score });
+    ).toThrow("approved norm version is required");
   });
 });

@@ -102,6 +102,7 @@ export function OptionContent({ option, locale, figureLabel, idPrefix, maxWidth 
 
 interface StandardizedStimulusProps {
   readonly stimulus: CognitiveStimulus;
+  readonly locale: Locale;
   readonly label: string;
   readonly idPrefix: string;
   readonly maxWidth?: number;
@@ -109,9 +110,9 @@ interface StandardizedStimulusProps {
 }
 
 /** 표준화 실행에서 쓰는 공개 자극 DTO 전용 렌더러. 정답·IRT 모수는 받지 않는다. */
-export function StandardizedStimulus({ stimulus, label, idPrefix, maxWidth, className }: StandardizedStimulusProps) {
+export function StandardizedStimulus({ stimulus, locale, label, idPrefix, maxWidth, className }: StandardizedStimulusProps) {
   if (stimulus.kind === "text") {
-    return <p className={className}>{stimulus.textKo}</p>;
+    return <p className={className}>{locale === "en" ? stimulus.textEn : stimulus.textKo}</p>;
   }
   if (stimulus.kind === "matrix") {
     return <MatrixBoard figure={stimulus} label={label} idPrefix={idPrefix} maxWidth={maxWidth} className={className} />;
@@ -148,5 +149,5 @@ export function StandardizedItemStimulus({
   readonly idPrefix: string;
   readonly maxWidth?: number;
 }) {
-  return <StandardizedStimulus stimulus={item.stimulus} label={label} idPrefix={idPrefix} maxWidth={maxWidth} />;
+  return <StandardizedStimulus stimulus={item.stimulus} locale={locale} label={label} idPrefix={idPrefix} maxWidth={maxWidth} />;
 }

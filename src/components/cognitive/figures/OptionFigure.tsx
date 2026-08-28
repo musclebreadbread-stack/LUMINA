@@ -1,5 +1,3 @@
-import type { CognitiveStimulus } from "@engine/cognitive-standardized/types";
-
 import { MatrixBoard } from "./MatrixBoard";
 import { SpatialSolid } from "./SpatialSolid";
 import type { OptionFigureProps } from "./contracts";

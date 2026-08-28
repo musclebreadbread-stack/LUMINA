@@ -62,7 +62,7 @@ describe("selectNextItem", () => {
     expect(result?.exposureRate).toBeLessThanOrEqual(filledGf.blueprint.maxExposureRate);
   });
 
-  it("selects only among tied maximum-information items using the supplied rng", () => {
+  it("selects among tied maximum-information items using the supplied rng", () => {
     const noMinimumBlueprint: Blueprint = {
       ...blueprint,
       minimumByDomain: { gf: 0, gc: 0, gv: 0, gwm: 0, gs: 0 },
@@ -84,6 +84,29 @@ describe("selectNextItem", () => {
 
     expect(first?.versionId).toBe("a");
     expect(second?.versionId).toBe("b");
+  });
+
+  it("randomizes within the information-ranked randomesque pool", () => {
+    const noMinimumBlueprint: Blueprint = {
+      ...blueprint,
+      minimumByDomain: { gf: 0, gc: 0, gv: 0, gwm: 0, gs: 0 },
+    };
+    const first = selectNextItem(
+      state({
+        blueprint: noMinimumBlueprint,
+        items: [item("a", "gc", 0), item("b", "gc", 0.6), item("c", "gc", -0.6)],
+        random: () => 0,
+      }),
+    );
+    const last = selectNextItem(
+      state({
+        blueprint: noMinimumBlueprint,
+        items: [item("a", "gc", 0), item("b", "gc", 0.6), item("c", "gc", -0.6)],
+        random: () => 0.99,
+      }),
+    );
+
+    expect(first?.versionId).not.toBe(last?.versionId);
   });
 
   it("returns null when every candidate is excluded", () => {

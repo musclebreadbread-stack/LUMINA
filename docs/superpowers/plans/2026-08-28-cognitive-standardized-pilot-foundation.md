@@ -224,7 +224,7 @@ export function itemInformation(
 }
 ```
 
-`selectNextItem`은 `Blueprint`의 영역 최소/최대 수, 최근 item version ID, 노출률, 현재 theta 정보량을 모두 필터한 뒤 최고 정보량 후보의 동률 집합에서만 시드 난수를 사용한다. 후보가 없으면 `null`을 반환하며, 임의의 제약 위반 문항으로 폴백하지 않는다.
+`selectNextItem`은 `Blueprint`의 영역 최소/최대 수, 최근 item version ID, 노출률, 현재 theta 정보량을 모두 필터한 뒤 정보량 상위 randomesque 후보(최대 5개)에서 서버 시드 난수를 사용한다. 후보가 없으면 `null`을 반환하며, 임의의 제약 위반 문항으로 폴백하지 않는다.
 
 - [ ] **Step 4: 파일럿 보류 결과 계약을 구현한다.**
 

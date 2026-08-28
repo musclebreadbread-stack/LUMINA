@@ -8,6 +8,7 @@ import type {
 } from "./types";
 
 const INFORMATION_TIE_EPSILON = 1e-10;
+const RANDOMESQUE_POOL_SIZE = 5;
 
 const DOMAINS: readonly StandardizedDomain[] = Object.freeze(["gf", "gc", "gv", "gwm", "gs"]);
 
@@ -49,10 +50,10 @@ function candidateItems(state: SelectionState): readonly InternalItem[] {
 }
 
 /**
- * 현재 theta에서 정보량이 가장 큰 문항을 고른다.
+ * 현재 theta에서 정보량이 높은 randomesque 후보 중 하나를 고른다.
  *
- * 영역 쿼터·최근 문항·노출률을 먼저 적용하고, 최고 정보량 동률 집합에서만
- * 서버 시드 기반 난수를 사용한다. 제약을 위반하는 임의 폴백은 하지 않는다.
+ * 영역 쿼터·최근 문항·노출률을 먼저 적용하고, 정보량 상위 randomesque 후보
+ * 집합에서 서버 시드 기반 난수를 사용한다. 제약을 위반하는 임의 폴백은 하지 않는다.
  */
 export function selectNextItem(state: SelectionState): InternalItem | null {
   if (!Number.isFinite(state.theta)) return null;
@@ -60,22 +61,18 @@ export function selectNextItem(state: SelectionState): InternalItem | null {
   const candidates = candidateItems(state);
   if (candidates.length === 0) return null;
 
-  let maximumInformation = -Infinity;
-  const best: InternalItem[] = [];
-
-  for (const candidate of candidates) {
-    const information = itemInformation(state.theta, candidate.parameters);
-    if (information > maximumInformation + INFORMATION_TIE_EPSILON) {
-      maximumInformation = information;
-      best.length = 0;
-      best.push(candidate);
-    } else if (Math.abs(information - maximumInformation) <= INFORMATION_TIE_EPSILON) {
-      best.push(candidate);
-    }
-  }
-
-  best.sort((left, right) => left.versionId.localeCompare(right.versionId));
+  const ranked = candidates
+    .map((candidate) => ({ candidate, information: itemInformation(state.theta, candidate.parameters) }))
+    .sort((left, right) => {
+      const informationDifference = right.information - left.information;
+      return Math.abs(informationDifference) <= INFORMATION_TIE_EPSILON
+        ? left.candidate.versionId.localeCompare(right.candidate.versionId)
+        : informationDifference;
+    });
+  const randomesque = ranked
+    .slice(0, RANDOMESQUE_POOL_SIZE)
+    .map(({ candidate }) => candidate);
   const randomValue = Math.min(1 - Number.EPSILON, Math.max(0, state.random()));
-  const selected = best[Math.floor(randomValue * best.length)];
+  const selected = randomesque[Math.floor(randomValue * randomesque.length)];
   return selected ?? null;
 }

@@ -79,6 +79,39 @@ function ageRow(age: number, norm: NormTable): AgeNormRow {
   return row;
 }
 
+function assertMonotone(values: readonly number[], label: string): void {
+  if (values.some((value) => !Number.isFinite(value))) throw new Error(`${label} must contain finite values`);
+  for (let index = 1; index < values.length; index += 1) {
+    if (values[index]! < values[index - 1]!) throw new Error(`${label} must be monotone`);
+  }
+}
+
+function validateNormTable(norm: NormTable): void {
+  if (norm.byAge.length === 0) throw new Error("norm table requires age rows");
+  const rows = [...norm.byAge].sort((left, right) => left.minimumAge - right.minimumAge);
+  let previousMaximum = 17;
+  for (const row of rows) {
+    if (!Number.isInteger(row.minimumAge) || !Number.isInteger(row.maximumAge) || row.minimumAge < 18 || row.maximumAge > 64 || row.minimumAge > row.maximumAge) {
+      throw new Error("norm age row is invalid");
+    }
+    if (row.minimumAge <= previousMaximum) throw new Error("norm age rows overlap");
+    if (row.minimumAge > previousMaximum + 1) throw new Error("norm age rows have a gap");
+    if (row.thetaToIq.length < 2) throw new Error("norm table requires at least two theta points");
+    if (row.iqToPercentile.length < 2) throw new Error("norm table requires at least two percentile points");
+    assertMonotone(row.thetaToIq, "theta-to-IQ values");
+    assertMonotone(row.iqToPercentile, "IQ-to-percentile values");
+    previousMaximum = row.maximumAge;
+  }
+  if (previousMaximum < 64) throw new Error("norm age rows do not cover the approved range");
+  if (norm.thetaGrid !== undefined) {
+    assertMonotone(norm.thetaGrid, "theta grid");
+    if (norm.thetaGrid.length < 2 || norm.thetaGrid.some((value, index) => index > 0 && value === norm.thetaGrid![index - 1])) {
+      throw new Error("theta grid must be strictly increasing");
+    }
+    if (rows.some((row) => row.thetaToIq.length !== norm.thetaGrid!.length)) throw new Error("theta grid and norm table length differ");
+  }
+}
+
 function interpolate(x: number, xs: readonly number[], ys: readonly number[]): number {
   if (xs.length !== ys.length || xs.length < 2) throw new Error("norm interpolation table is malformed");
   if (x <= xs[0]!) return ys[0]!;
@@ -125,6 +158,7 @@ export function assertNormCompatibility(input: NormConversionInput, norm: Approv
   if (!Number.isInteger(input.age) || input.age < 18 || input.age > 64) throw new Error("age is outside the approved norm range");
   finite(norm.iqPointsPerTheta, "IQ conversion scale");
   if (norm.iqPointsPerTheta <= 0) throw new Error("IQ conversion scale must be positive");
+  validateNormTable(norm);
   ageRow(input.age, norm);
 }
 

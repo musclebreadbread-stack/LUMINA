@@ -44,4 +44,14 @@ describe("approved norm conversion", () => {
   it("rejects an age outside the approved population", () => {
     expect(() => thetaToStandardizedScore({ theta: 0, sem: 0.3, age: 17, itemBankVersion: "pilot-v1", algorithmVersion: "cat-v1" }, approvedFixtureNorm)).toThrow("age is outside");
   });
+
+  it("rejects a norm table with overlapping age rows", () => {
+    expect(() => thetaToStandardizedScore({ theta: 0, sem: 0.3, age: 32, itemBankVersion: "pilot-v1", algorithmVersion: "cat-v1" }, {
+      ...approvedFixtureNorm,
+      byAge: [
+        approvedFixtureNorm.byAge[0]!,
+        { ...approvedFixtureNorm.byAge[0]!, minimumAge: 60, maximumAge: 64 },
+      ],
+    })).toThrow("norm age rows overlap");
+  });
 });

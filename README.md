@@ -38,6 +38,8 @@ pnpm fonts:prepare
 - `/psychometrics` — IPIP-50 성향검사와 URL 기반 결과
 - `/tarot` — 시드가 포함된 재현 가능한 타로 결과
 - `/compatibility` — 두 출생 프로필의 사주 합·충·오행 관계 비교
+- `/cognitive` — 서버 전용 문항은행 기반 인지능력 표준화 파일럿
+- `/cognitive/practice` — 점수 문항은행과 분리된 공개 연습 문항
 - `/characters` — 사주 분석으로 만난 오행 정령 도감
 - `/references`, `/glossary`, `/methodology` — 출처·용어·검증 방법 공개
 - `/privacy`, `/terms` — 운영 전 법률 검토가 필요한 정책 초안
@@ -46,8 +48,8 @@ pnpm fonts:prepare
 ## 구조와 데이터 경계
 
 - 엔진 함수는 현재 시각이나 브라우저 API를 직접 읽지 않고 입력으로 받습니다.
-- 프로필과 검사 초안은 브라우저 `localStorage`에만 저장됩니다. 공유 결과는 URL에 압축되어 포함됩니다.
-- 현재 저장소에는 Supabase 연결·마이그레이션·RLS 정책이 없습니다. DB를 추가할 때는 클라이언트에 `service_role` 키를 노출하지 않고 RLS를 먼저 설계해야 합니다.
+- 기존 프로필·탐색형 검사 초안은 브라우저 `localStorage`에 저장되고, 인지능력 표준화 파일럿의 실행·응답은 소유권이 확인된 Supabase 세션에 저장됩니다. 표준화 파일럿 결과는 URL에 넣지 않습니다.
+- 인지능력 파일럿은 Supabase 마이그레이션·RLS·server-only DAL을 포함하지만, 대상 프로젝트에 아직 적용하지 않았습니다. 적용 전 `docs/assessment/cognitive-supabase-vercel-setup.md`의 승인 게이트를 따르며 `service_role` 키를 클라이언트에 노출하지 않습니다.
 - 사주·점성술·타로·수비학·운세는 문화적 해석 또는 엔터테인먼트 계층입니다. IPIP-50은 영어권 온라인 공개 표본의 전체 집단 규준을 사용하며 한국인 인구 규준이나 의료 진단이 아닙니다.
 
 ## 운영 전 사람이 확인할 항목

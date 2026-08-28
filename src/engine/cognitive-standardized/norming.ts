@@ -5,7 +5,7 @@ export interface AgeNormRow {
   readonly maximumAge: number;
   /** A monotone table evaluated on the default theta grid (-4..4) unless thetaGrid is supplied. */
   readonly thetaToIq: readonly number[];
-  /** Optional IQ-indexed percentile table. Values are proportions or percentages. */
+  /** IQ-indexed percentile table. Values are proportions or percentages. */
   readonly iqToPercentile: readonly number[];
 }
 

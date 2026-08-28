@@ -108,4 +108,16 @@ describe("cognitive run lifecycle", () => {
     });
     expect(result.error).toBe("invalid_run");
   });
+
+  it("uses a server seed so separate runs can receive different tied items", async () => {
+    const firstDomains = await Promise.all(
+      ["a", "b", "c", "d"].map(async (seed) => {
+        const started = await createMemoryCognitiveRunStore({ items, blueprint, seed }).start(subject, validStart());
+        return started.nextItem?.domain;
+      }),
+    );
+
+    expect(firstDomains.every((domain) => domain !== undefined)).toBe(true);
+    expect(new Set(firstDomains).size).toBeGreaterThan(1);
+  });
 });

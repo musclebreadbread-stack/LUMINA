@@ -55,9 +55,9 @@ function validateParameters(item: ItemBankRecord): void {
   if (
     !Number.isFinite(parameters.guessing) ||
     parameters.guessing < 0 ||
-    parameters.guessing >= 1
+    parameters.guessing > 0.5
   ) {
-    throw new Error("guessing must be in the range [0, 1)");
+    throw new Error("guessing must be in the range [0, 0.5]");
   }
 
   const model = item.calibration?.model;

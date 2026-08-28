@@ -29,6 +29,15 @@ describe("cognitive item-bank validation", () => {
     ).toThrow("active items require calibrated parameters");
   });
 
+  it("rejects an implausibly high 3PL guessing parameter", () => {
+    expect(() =>
+      validateCalibratedItem({
+        ...fixtureItem,
+        parameters: { ...fixtureItem.parameters!, guessing: 0.51 },
+      }),
+    ).toThrow("guessing must be in the range [0, 0.5]");
+  });
+
   it("rejects duplicate option ids and an unknown correct option", () => {
     expect(() =>
       validateCalibratedItem({

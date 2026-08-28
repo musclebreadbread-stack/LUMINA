@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LUMINA cognitive score release manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "target_population", "item_bank_version", "algorithm_version", "evidence_hashes"],
+  "properties": {
+    "status": { "enum": ["blocked", "candidate", "approved"] },
+    "target_population": { "const": "ko-adults-18-64" },
+    "item_bank_version": { "type": "string", "minLength": 1 },
+    "algorithm_version": { "type": "string", "minLength": 1 },
+    "evidence_hashes": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "reasons": { "type": "array", "items": { "type": "string" } }
+  }
+}

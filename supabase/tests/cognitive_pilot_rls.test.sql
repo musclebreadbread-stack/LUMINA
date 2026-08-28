@@ -1,6 +1,6 @@
 begin;
 
-select plan(10);
+select plan(11);
 
 insert into auth.users (id, email)
 values
@@ -40,6 +40,14 @@ select throws_ok(
 select is_empty(
   $$ select * from private_cognitive.item_versions $$,
   'authenticated role cannot read private item versions'
+);
+select ok(
+  not has_table_privilege('authenticated', 'private_cognitive.item_versions', 'select'),
+  'authenticated role has no private table grant'
+);
+select ok(
+  has_schema_privilege('authenticated', 'private_cognitive', 'usage'),
+  'authenticated role can resolve the submission RPC without table access'
 );
 
 select set_config('request.jwt.claim.sub', '22222222-2222-2222-2222-222222222222', true);

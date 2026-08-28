@@ -1,0 +1,4 @@
+run_id,item_version_id,ordinal,submitted_option_id,scored_correct,submitted_at,consent_version,age_band,education_band,region_class,device_eligibility,recontact_token,item_bank_version,algorithm_version,split
+00000000-0000-4000-8000-000000000001,gf-001,1,gf-001:a,1,2026-08-28T00:00:00Z,cognitive-pilot-consent-v1,25-34,unreported,unreported,eligible,synthetic-token-1,cognitive-pilot-v1,cat-v1,development
+00000000-0000-4000-8000-000000000001,gc-001,2,gc-001:b,0,2026-08-28T00:00:04Z,cognitive-pilot-consent-v1,25-34,unreported,unreported,eligible,synthetic-token-1,cognitive-pilot-v1,cat-v1,development
+00000000-0000-4000-8000-000000000002,gf-001,1,gf-001:b,1,2026-08-28T00:00:00Z,cognitive-pilot-consent-v1,45-54,unreported,unreported,eligible,synthetic-token-2,cognitive-pilot-v1,cat-v1,holdout

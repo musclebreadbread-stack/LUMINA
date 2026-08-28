@@ -56,6 +56,10 @@ export function parseStartRunInput(input: unknown): StartRunInput {
   const consent = recordOf(value.consent);
   if (consent.operationalStorage !== true) throw new TypeError("operational storage consent is required");
   if (typeof consent.researchParticipation !== "boolean") throw new TypeError("invalid research consent");
+  const ageYears = value.ageYears;
+  if (ageYears !== undefined && (typeof ageYears !== "number" || !Number.isInteger(ageYears) || ageYears < 18 || ageYears > 64)) {
+    throw new TypeError("age must be an integer between 18 and 64");
+  }
 
   return {
     consent: {
@@ -63,6 +67,7 @@ export function parseStartRunInput(input: unknown): StartRunInput {
       researchParticipation: consent.researchParticipation,
     },
     capability: capability(value.capability),
+    ...(ageYears === undefined ? {} : { ageYears }),
   };
 }
 

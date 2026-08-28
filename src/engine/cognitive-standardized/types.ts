@@ -94,6 +94,8 @@ export interface StartRunInput {
     researchParticipation: boolean;
   }>;
   readonly capability: DeviceCapability;
+  /** Optional until the product collects an age-band consent field; without it IQ release remains withheld. */
+  readonly ageYears?: number;
 }
 
 export interface ScoreRunInput {

@@ -12,16 +12,18 @@ export interface ConsentChoice {
 interface ResearchConsentProps {
   readonly onContinue: (choice: ConsentChoice) => void;
   readonly locale?: Locale;
+  readonly disabled?: boolean;
+  readonly disabledReason?: string;
 }
 
-export function ResearchConsent({ onContinue, locale = "ko" }: ResearchConsentProps) {
+export function ResearchConsent({ onContinue, locale = "ko", disabled = false, disabledReason }: ResearchConsentProps) {
   const [operationalStorage, setOperationalStorage] = useState(false);
   const [researchParticipation, setResearchParticipation] = useState(false);
   const korean = locale === "ko";
 
   function submit(event: React.FormEvent<HTMLFormElement>): void {
     event.preventDefault();
-    if (!operationalStorage) return;
+    if (!operationalStorage || disabled) return;
     onContinue({ operationalStorage: true, researchParticipation });
   }
 
@@ -65,11 +67,16 @@ export function ResearchConsent({ onContinue, locale = "ko" }: ResearchConsentPr
       </label>
       <button
         type="submit"
-        disabled={!operationalStorage}
+        disabled={!operationalStorage || disabled}
         className="min-h-11 bg-hobun px-5 py-2 text-sm font-medium text-ink-900 transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {korean ? "계속" : "Continue"}
       </button>
+      {disabled && disabledReason !== undefined && (
+        <p role="alert" className="border-l border-hwa pl-3 text-sm leading-relaxed text-hobun">
+          {disabledReason}
+        </p>
+      )}
     </form>
   );
 }

@@ -1,0 +1,16 @@
+column_name,allowed_values,sensitivity,retention_class
+run_id,uuid,pseudonymous,analysis_window
+item_version_id,versioned-item-id,low,analysis_window
+ordinal,positive-integer,low,analysis_window
+submitted_option_id,option-id,pseudonymous,analysis_window
+scored_correct,0-or-1,low,analysis_window
+submitted_at,ISO-8601-timestamp,low,analysis_window
+consent_version,approved-consent-version,low,analysis_window
+age_band,18-24|25-34|35-44|45-54|55-64,quasi-identifying,analysis_window
+education_band,optional-predefined-band,quasi-identifying,analysis_window
+region_class,optional-predefined-class,quasi-identifying,analysis_window
+device_eligibility,eligible|ineligible,low,analysis_window
+recontact_token,random-recontact-token,pseudonymous,recontact_window
+item_bank_version,one-fixed-version,low,analysis_window
+algorithm_version,one-fixed-version,low,analysis_window
+split,development|holdout|retest,low,analysis_window

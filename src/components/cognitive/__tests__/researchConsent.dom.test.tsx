@@ -37,4 +37,26 @@ describe("ResearchConsent", () => {
     act(() => button!.click());
     expect(onContinue).toHaveBeenCalledWith({ operationalStorage: true, researchParticipation: false });
   });
+
+  it("keeps the action disabled when the device is outside the pilot protocol", () => {
+    const onContinue = vi.fn();
+    act(() =>
+      root.render(
+        <ResearchConsent
+          onContinue={onContinue}
+          locale="en"
+          disabled
+          disabledReason="Use a supported device."
+        />,
+      ),
+    );
+
+    const button = container.querySelector<HTMLButtonElement>("button[type='submit']");
+    const operational = container.querySelector<HTMLInputElement>("input[name='operationalStorage']");
+    act(() => operational!.click());
+    expect(button?.disabled).toBe(true);
+    expect(container.textContent).toContain("Use a supported device.");
+    act(() => button!.click());
+    expect(onContinue).not.toHaveBeenCalled();
+  });
 });

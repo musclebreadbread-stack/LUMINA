@@ -7,7 +7,7 @@ import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { SceneShell } from "@/components/ui/SceneShell";
 import type { Locale } from "@/i18n/locale";
 import { parseRunId } from "@/lib/cognitiveRunInput";
-import { scoreRun } from "@engine/cognitive-standardized/scoring";
+import { resolveScoreForRun } from "@/server/cognitive/norms";
 import { resumeCognitiveRun } from "@/server/cognitive/runs";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +30,9 @@ export default async function CognitiveRunResultPage({ params }: PageProps) {
   } catch {
     validRun = false;
   }
-  const result = scoreRun({ releaseMode: "pilot", standardizationEligible: false, normVersion: null, score: null });
+  const result = validRun
+    ? await resolveScoreForRun(parseRunId(rawRunId))
+    : Object.freeze({ status: "pilot_withheld" as const, score: null });
 
   return (
     <SceneShell tone="cognitive">

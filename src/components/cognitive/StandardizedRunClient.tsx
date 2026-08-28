@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import type { Locale } from "@/i18n/locale";
@@ -28,11 +28,17 @@ export function StandardizedRunClient({ initialRun, locale, labels }: Standardiz
   const [error, setError] = useState<string | null>(null);
   const startedAt = useRef<number | null>(null);
   const item = run.nextItem;
+  const assignmentId = item?.assignmentId;
 
-  if (item === null || run.status === "completed") {
-    router.push(`/cognitive/result/${run.runId}`);
-    return null;
-  }
+  useEffect(() => {
+    if (item === null || run.status === "completed") router.replace(`/cognitive/result/${run.runId}`);
+  }, [item, router, run.runId, run.status]);
+
+  useEffect(() => {
+    startedAt.current = assignmentId === undefined ? null : Date.now();
+  }, [assignmentId]);
+
+  if (item === null || run.status === "completed") return <p className="text-sm text-hobun-dim">{labels.invalid}</p>;
   const currentItem = item;
 
   async function submit(): Promise<void> {

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { Locale } from "@/i18n/locale";
-import { NORM_SOURCE, PSYCHOMETRIC_CITATIONS } from "@engine/psychometrics";
+import { NORM_SOURCE, PSYCHOMETRIC_CITATIONS, computeFactorScores } from "@engine/psychometrics";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { FactorBar } from "@/components/psychometrics/FactorBar";
@@ -17,6 +17,10 @@ import { ProgressiveBlock } from "@/components/ui/ProgressiveBlock";
 import { decodeResponses } from "@/lib/psychometricsCode";
 import { buildBigFiveView } from "@/lib/psychometricsModel";
 import { analysisDefinition } from "@/lib/analysisCatalog";
+import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
+import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
+import { bigFiveSummaryFromScores } from "@/lib/shareCode";
+import { toBigFiveSnapshot } from "@/lib/integratedPortrait/adapters";
 
 interface Query {
   readonly r?: string;
@@ -78,10 +82,15 @@ export default async function PsychometricsResultPage({
   const view = buildBigFiveView(responses);
   const resolvedLocale = locale as Locale;
 
+  const integratedSnapshot = toBigFiveSnapshot(
+    bigFiveSummaryFromScores(computeFactorScores(responses), resolvedLocale),
+  );
+
   return (
     <SceneShell tone="psychometrics">
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
         <ReportHeader />
+        <IntegratedResultRecorder snapshot={integratedSnapshot} />
 
       <div className="py-8 sm:py-10">
         <ResultCover
@@ -159,6 +168,8 @@ export default async function PsychometricsResultPage({
         }}
         citations={PSYCHOMETRIC_CITATIONS}
       />
+
+      <IntegratedReportEntry />
 
       <AdSlot slot="psychometrics-mid" label={tCommon("adLabel")} />
 

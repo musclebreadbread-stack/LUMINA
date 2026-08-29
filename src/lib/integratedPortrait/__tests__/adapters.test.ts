@@ -79,8 +79,13 @@ describe("integrated portrait adapters", () => {
   it("converts relative Big Five positions to bands without persisting scores", () => {
     const snapshot = toBigFiveSnapshot(bigFiveSummary);
     const extraversion = snapshot.signals.find((signal) => signal.constructId === "bigfive.extraversion");
+    const emotionalStability = snapshot.signals.find(
+      (signal) => signal.constructId === "bigfive.emotional-stability",
+    );
 
     expect(extraversion?.value).toEqual({ kind: "band", band: "low" });
+    expect(emotionalStability?.value).toEqual({ kind: "band", band: "mid" });
+    expect(snapshot.signals.every((signal) => /^[a-z0-9._-]+$/u.test(signal.constructId))).toBe(true);
     expect(JSON.stringify(snapshot)).not.toContain("tScore");
     expect(JSON.stringify(snapshot)).not.toContain("42");
   });
@@ -104,6 +109,7 @@ describe("integrated portrait adapters", () => {
     expect(JSON.stringify(attachment)).not.toContain("3.8");
     expect(JSON.stringify(eq)).not.toContain("totalRawSum");
     expect(JSON.stringify(eq)).not.toContain("123");
+    expect(eq.signals.some((signal) => signal.constructId === "eq.perception-of-emotion")).toBe(true);
   });
 
   it("stores only documented cultural categories", () => {

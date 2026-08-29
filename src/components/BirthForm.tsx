@@ -16,6 +16,7 @@ import {
 } from "@/lib/profile";
 import { encodeProfile } from "@/lib/share";
 import type { Locale } from "@/i18n/locale";
+import { markCompletionArrival } from "@/lib/completionCinematic";
 
 /**
  * 출생 정보 입력.
@@ -66,7 +67,8 @@ const fieldClass =
 
 const labelClass = "mb-2 block text-[13px] tracking-wide text-hobun-faint";
 
-export function BirthForm() {
+/** resultSuffix: saju 는 "/r/<encoded>", astro 는 "/r/<encoded>/astro" 로 갈라진다. */
+export function BirthForm({ resultSuffix = "" }: { readonly resultSuffix?: string } = {}) {
   const router = useRouter();
   const uid = useId();
   const t = useTranslations("birthForm");
@@ -104,7 +106,8 @@ export function BirthForm() {
       return;
     }
     saveProfile(profile);
-    router.push(`/r/${encodeProfile(profile)}`);
+    markCompletionArrival(resultSuffix === "/astro" ? "astro" : "saju");
+    router.push(`/r/${encodeProfile(profile)}${resultSuffix}`);
   }
 
   const timeUnknown = profile.hour === null;

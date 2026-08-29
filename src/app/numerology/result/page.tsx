@@ -11,6 +11,10 @@ import { ResultCover } from "@/components/ui/ResultCover";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { buildNumerologyView, formatNumerologyDate } from "@/lib/numerologyModel";
 import type { Locale } from "@/i18n/locale";
+import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
+import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
+import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
+import { toNumerologySnapshot } from "@/lib/integratedPortrait/adapters";
 
 interface Query {
   readonly year?: string;
@@ -91,10 +95,17 @@ export default async function NumerologyResultPage({
   }
 
   const dateLabel = formatNumerologyDate(view.date, locale);
+  const integratedSnapshot = toNumerologySnapshot({
+    locale,
+    lifePath: view.lifePath.value,
+    destinyPresent: view.destiny !== null,
+  });
 
   return (
     <SceneShell tone="numerology">
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
+        <ExplorationRecorder analysisKey="numerology" />
+        <IntegratedResultRecorder snapshot={integratedSnapshot} />
       <ReportHeader />
 
       <div className="py-8 sm:py-10">
@@ -138,6 +149,8 @@ export default async function NumerologyResultPage({
       <div id="calculation-numerology-calculation-record" className="mt-8">
         <MethodNote locale={locale} title={tCommon("methodNote")} block={view.method} />
       </div>
+
+      <IntegratedReportEntry />
 
       <AdSlot slot="numerology-mid" label={tCommon("adLabel")} />
 

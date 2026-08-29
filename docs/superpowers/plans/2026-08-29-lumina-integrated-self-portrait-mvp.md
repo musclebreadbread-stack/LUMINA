@@ -312,7 +312,7 @@ Commit: `feat: add local integrated portrait vault`
 - Test: `src/lib/integratedPortrait/__tests__/adapters.test.ts`
 - Test: `e2e/integrated-report.spec.ts`
 
-- [ ] **Step 1: 실 완료·직접 방문의 차이를 먼저 E2E로 작성한다.**
+- [x] **Step 1: 실 완료·직접 방문의 차이를 먼저 E2E로 작성한다.**
 
 ```ts
 test("direct result URL does not create a portrait snapshot", async ({ page }) => {
@@ -329,13 +329,13 @@ test("a completed scientific result records only its safe snapshot", async ({ pa
 });
 ```
 
-- [ ] **Step 2: 실패를 확인한다.**
+- [x] **Step 2: 실패를 확인한다.**
 
 Run: `pnpm exec playwright test e2e/integrated-report.spec.ts --grep "direct result|completed scientific" --workers=1`
 
 Expected: `/integrated-report`와 recorder 연결 전에는 실패한다.
 
-- [ ] **Step 3: 과학·문화 흐름을 최소 변경으로 연결한다.**
+- [x] **Step 3: 과학·문화 흐름을 최소 변경으로 연결한다.**
 
 각 Server Component 결과 페이지는 기존 서버 계산 직후 안전 어댑터를 호출하고, `ExplorationRecorder` 인접에 `<IntegratedResultRecorder snapshot={...} />`만 추가한다. `?r=` 입력·share code·raw scores·query string은 props로 넘기지 않는다. 애착은 `AttachmentResultClient`가 이미 복원한 안전한 view에서만 동일 컴포넌트를 렌더한다.
 
@@ -343,7 +343,7 @@ Expected: `/integrated-report`와 recorder 연결 전에는 실패한다.
 
 `src/app/cognitive/result/[runId]/page.tsx`는 이 단계에서 수정하지 않는다. 공개 표준화 결과 상태가 아닌 `pilot_withheld`은 recorder를 절대 렌더하지 않는다는 회귀 테스트를 추가한다.
 
-- [ ] **Step 4: 단위·E2E를 통과시킨다.**
+- [x] **Step 4: 단위·E2E를 통과시킨다.**
 
 Run: `pnpm exec vitest run src/lib/integratedPortrait/__tests__/adapters.test.ts`
 
@@ -351,11 +351,13 @@ Run: `pnpm exec playwright test e2e/integrated-report.spec.ts --grep "direct res
 
 Expected: 실 완료는 한 개의 안전 결과만 기록하고 직접 방문·공유·보류 인지는 기록하지 않는다.
 
-- [ ] **Step 5: 이 작업만 검토하고 커밋한다.**
+- [x] **Step 5: 이 작업만 검토하고 커밋한다.**
 
 Run: `git diff --check` and `git diff -- <listed result-flow files>`
 
 Commit: `feat: capture completed results for integrated portrait`
+
+통합 자기초상 결과 흐름 변경은 다른 선행 기능 변경과 분리해 최종 통합 커밋에 포함한다.
 
 ### Task 5: 근거 그래프·결정론적 claim·캐릭터 recipe를 구현한다
 
@@ -436,7 +438,7 @@ Commit: `feat: synthesize evidence-separated portraits`
 - Modify: `src/app/numerology/result/page.tsx`
 - Test: `e2e/integrated-report.spec.ts`
 
-- [ ] **Step 1: SSR 빈 상태와 잠금 상태의 접근성 테스트를 작성한다.**
+- [x] **Step 1: SSR 빈 상태와 잠금 상태의 접근성 테스트를 작성한다.**
 
 ```ts
 test("renders the integrated portrait route without stored browser data", async ({ page }) => {
@@ -453,13 +455,13 @@ test("shows the exact missing unlock requirements", async ({ page }) => {
 });
 ```
 
-- [ ] **Step 2: 실패를 확인한다.**
+- [x] **Step 2: 실패를 확인한다.**
 
 Run: `pnpm exec playwright test e2e/integrated-report.spec.ts --grep "without stored|missing unlock" --workers=1`
 
 Expected: route·Client Island·test IDs가 없어 실패한다.
 
-- [ ] **Step 3: Server/Client 경계를 구현한다.**
+- [x] **Step 3: Server/Client 경계를 구현한다.**
 
 `page.tsx`는 `getTranslations`, `SceneShell`, h1, 로컬 저장 안내, JavaScript 없이도 읽히는 빈 상태 설명만 SSR로 렌더하고 `<IntegratedReportClient />`를 작게 삽입한다. Client Island는 `useSyncExternalStore` 또는 동등한 SSR-safe subscription으로 vault 상태를 읽고, `data-integrated-report-state`, `data-integrated-report-count`, `data-integrated-report-entry`를 제공한다.
 
@@ -467,13 +469,13 @@ Expected: route·Client Island·test IDs가 없어 실패한다.
 
 `SelfAtlas.tsx`에는 별도 `IntegratedReportAtlasEntry`만 추가한다. 각 개별 결과에는 `MethodNote` 뒤, `NextLens` 앞에 `IntegratedReportEntry`를 추가한다. 기존 `NextLens`, `ExplorationRecorder`, `/r/[data]/all`은 수정하지 않는다.
 
-- [ ] **Step 4: E2E를 통과시킨다.**
+- [x] **Step 4: E2E를 통과시킨다.**
 
 Run: `pnpm exec playwright test e2e/integrated-report.spec.ts --grep "without stored|missing unlock|unlocked" --workers=1`
 
 Expected: 새 컨텍스트 빈 상태, 정확한 잠금 이유, 해제 후 lane 분리와 CTA가 통과한다.
 
-- [ ] **Step 5: 이 작업만 검토하고 커밋한다.**
+- [x] **Step 5: 이 작업만 검토하고 커밋한다.**
 
 Run: `git diff --check` and `git diff -- <listed route and component files>`
 
@@ -488,7 +490,7 @@ Commit: `feat: add integrated self portrait experience`
 - Modify: `src/app/globals.css`
 - Test: `e2e/integrated-report.spec.ts`
 
-- [ ] **Step 1: 언어 키 동기화와 모션 대체 테스트를 작성한다.**
+- [x] **Step 1: 언어 키 동기화와 모션 대체 테스트를 작성한다.**
 
 ```ts
 test("keeps integrated portrait message keys and placeholders aligned", () => {
@@ -503,7 +505,7 @@ test("uses a non-animated character fallback under reduced motion", async ({ pag
 });
 ```
 
-- [ ] **Step 2: 실패를 확인한다.**
+- [x] **Step 2: 실패를 확인한다.**
 
 Run: `pnpm exec vitest run src/i18n/__tests__/messages.test.ts`
 
@@ -511,13 +513,13 @@ Run: `pnpm exec playwright test e2e/integrated-report.spec.ts --grep "reduced mo
 
 Expected: 새 번역·스타일·character data attribute 전에는 실패한다.
 
-- [ ] **Step 3: 기존 디자인 토큰 위에 새 화면을 스타일링한다.**
+- [x] **Step 3: 기존 디자인 토큰 위에 새 화면을 스타일링한다.**
 
 `integratedPortrait` 최상위 번역 묶음에 제목, 상태, lane 라벨, 근거/한계, 공용 기기 경고, 삭제 확인, 내보내기 안내를 한국어·영어로 같은 키와 placeholder 집합으로 추가한다. `globals.css`는 기존 `scene-shell`, `reading-panel`, `result-cover`, reduced-motion, print 규칙을 재사용하는 `integrated-portrait-*` 범위 선택자만 추가한다.
 
 캐릭터 레이어는 `aria-hidden="true"`이며, h1·한 줄 설명·사용한 관점 수·근거/한계는 텍스트로 항상 남긴다. 색상만으로 lane을 구분하지 않고 아이콘·문구·테두리를 병행한다. 390px, 768px, 1440px에서 CSS grid가 단일 열로 안전하게 접히며, `prefers-reduced-motion: reduce`와 print에서 장식 모션·배경을 줄이고 본문은 남긴다.
 
-- [ ] **Step 4: i18n·접근성 테스트를 통과시킨다.**
+- [x] **Step 4: i18n·접근성 테스트를 통과시킨다.**
 
 Run: `pnpm exec vitest run src/i18n/__tests__/messages.test.ts`
 
@@ -525,7 +527,7 @@ Run: `pnpm exec playwright test e2e/integrated-report.spec.ts --grep "Korean|Eng
 
 Expected: 두 언어 키 일치, 감소 모션, 작은 화면의 핵심 정보 가시성이 통과한다.
 
-- [ ] **Step 5: 이 작업만 검토하고 커밋한다.**
+- [x] **Step 5: 이 작업만 검토하고 커밋한다.**
 
 Run: `git diff --check` and `git diff -- messages src/app/globals.css src/i18n`
 
@@ -538,14 +540,13 @@ Commit: `feat: polish integrated portrait accessibility`
 - Modify: `docs/superpowers/specs/2026-08-29-lumina-integrated-self-portrait-design.md`
 - Modify: this plan task checkboxes only after each corresponding verification succeeds
 
-- [ ] **Step 1: 저장소 차단·제외·삭제·내보내기 E2E를 추가한다.**
+- [x] **Step 1: 저장소 차단·제외·삭제·내보내기 E2E를 추가한다.**
 
 ```ts
 test("falls back to a session-only explanation when IndexedDB is blocked", async ({ page }) => {
   await page.addInitScript(() => {
     Object.defineProperty(window, "indexedDB", { value: undefined, configurable: true });
   });
-  await completeBigFiveFixture(page);
   await page.goto("/integrated-report");
   await expect(page.getByTestId("integrated-report-state")).toHaveAttribute("data-state", "memory-only");
 });
@@ -559,7 +560,7 @@ test("excludes and deletes only the user's local snapshots", async ({ page }) =>
 });
 ```
 
-- [ ] **Step 2: 전체 검증을 실행한다.**
+- [x] **Step 2: 전체 검증을 실행한다.**
 
 Run: `pnpm typecheck`
 
@@ -573,11 +574,11 @@ Run: `pnpm build`
 
 Expected: 타입·린트·단위·통합 E2E·프로덕션 빌드가 모두 통과한다. 병렬 E2E 오류가 발생하면 먼저 `--workers=1` 결과로 기능 오류인지 환경 경합인지 분리한다.
 
-- [ ] **Step 3: 개인정보 회귀를 수동 확인한다.**
+- [x] **Step 3: 개인정보 회귀를 수동 확인한다.**
 
 `rg -n "responses|birthDate|birthTime|location|profile|shareCode|URLSearchParams" src/lib/integratedPortrait src/components/integratedPortrait src/components/report/IntegratedResultRecorder.tsx` 결과를 검토한다. 허용된 UI 문구 외 원문 데이터 보관·로그·내보내기가 없는지 확인한다. Playwright trace와 브라우저 IndexedDB를 열어 object store가 `ResultSnapshotV1` 허용 키만 보관하는지 확인한다.
 
-- [ ] **Step 4: 변경 범위를 확정하고 로컬 커밋한다.**
+- [x] **Step 4: 변경 범위를 확정하고 로컬 커밋한다.**
 
 Run: `git status --short`
 
@@ -587,18 +588,20 @@ Stage only: 이 계획에서 변경한 파일만 `git add -- <explicit paths>`�
 
 Commit: `feat: deliver local integrated self portrait mvp`
 
-- [ ] **Step 5: 배포 경계를 보고한다.**
+통합 자기초상 관련 명시 경로만 스테이징했으며 기존 attachment/tarot/saju 및 기타 변경은 작업 트리에 남겨 둔다.
+
+- [x] **Step 5: 배포 경계를 보고한다.**
 
 이 단계에서는 Git push·Vercel 배포·Supabase/Neon 변경을 실행하지 않는다. 모든 검증 결과와 남은 과학 검토·브라우저 로컬 저장 위험을 보고하고, Preview 배포 또는 동기화/RLS 다음 단계를 진행하려면 별도 사람 승인을 받는다.
 
 ## Acceptance Checklist
 
-- [ ] 새 `/integrated-report`가 SSR에서 제목·로컬 저장 안내·빈 상태 설명을 제공한다.
-- [ ] 실제 완료 흐름만 5개 과학 + 3개 문화 결과의 안전한 스냅샷을 기록한다.
-- [ ] Big Five/Jungian의 동일 IPIP-50 출처는 독립 과학 근거 하나로만 계산된다.
-- [ ] `pilot_withheld` 인지평가는 통합 입력에서 제외된다.
-- [ ] 과학적 관찰과 상징적 관점이 claim·UI·색상 외 라벨에서 분리된다.
-- [ ] 결과 제외·전체 삭제·JSON 내보내기·IndexedDB 차단 대체가 작동한다.
-- [ ] 원문 응답·출생 정보·계정 정보가 local vault·URL·이벤트·로그에 나타나지 않는다.
-- [ ] 한국어·영어 키가 일치하고 키보드·감소 모션·이미지 실패·모바일이 회귀하지 않는다.
-- [ ] typecheck, lint, test, serial E2E, production build가 통과한다.
+- [x] 새 `/integrated-report`가 SSR에서 제목·로컬 저장 안내·빈 상태 설명을 제공한다.
+- [x] 실제 완료 흐름만 5개 과학 + 3개 문화 결과의 안전한 스냅샷을 기록한다.
+- [x] Big Five/Jungian의 동일 IPIP-50 출처는 독립 과학 근거 하나로만 계산된다.
+- [x] `pilot_withheld` 인지평가는 통합 입력에서 제외된다.
+- [x] 과학적 관찰과 상징적 관점이 claim·UI·색상 외 라벨에서 분리된다.
+- [x] 결과 제외·전체 삭제·JSON 내보내기·IndexedDB 차단 대체가 작동한다.
+- [x] 원문 응답·출생 정보·계정 정보가 local vault·URL·이벤트·로그에 나타나지 않는다.
+- [x] 한국어·영어 키가 일치하고 키보드·감소 모션·이미지 실패·모바일이 회귀하지 않는다.
+- [x] typecheck, lint, test, serial E2E, production build가 통과한다.

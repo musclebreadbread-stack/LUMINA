@@ -9,6 +9,10 @@ import { readAssessmentRun } from "@/lib/assessmentRun";
 import { AxisBar } from "@/components/attachment/AxisBar";
 import { QuadrantCard } from "@/components/attachment/QuadrantCard";
 import { ShareBar } from "@/components/report/ShareBar";
+import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
+import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
+import { attachmentSummaryFromView } from "@/lib/shareCode";
+import { toAttachmentSnapshot } from "@/lib/integratedPortrait/adapters";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -93,8 +97,11 @@ export function AttachmentResultClient({ runId }: { readonly runId: string }) {
     );
   }
 
+  const integratedSnapshot = toAttachmentSnapshot(attachmentSummaryFromView(view, locale));
+
   return (
     <div className="py-8 sm:py-12 space-y-12">
+      <IntegratedResultRecorder snapshot={integratedSnapshot} />
       <div className="text-center space-y-4">
         <h1 className="text-3xl sm:text-4xl font-bold text-hobun">{t("resultHeading")}</h1>
         <p className="text-lg text-hobun-dim">{t("resultSubheading")}</p>
@@ -146,6 +153,8 @@ export function AttachmentResultClient({ runId }: { readonly runId: string }) {
           {t("homeButton")}
         </Link>
       </div>
+
+      <IntegratedReportEntry />
 
       <ShareBar
         title={t("resultTitle")}

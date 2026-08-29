@@ -19,6 +19,10 @@ import { placeDisplayLabel } from "@/lib/profile";
 import { decodeProfile } from "@/lib/share";
 import type { Locale } from "@/i18n/locale";
 import type { HouseSystem, Modality, ZodiacElement } from "@engine/astro";
+import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
+import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
+import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
+import { toAstroSnapshot, type AstroSnapshotNote } from "@/lib/integratedPortrait/adapters";
 
 interface Query {
   readonly houses?: string;
@@ -122,6 +126,17 @@ export default async function AstroPage({
 
   const view = buildAstroView(profile, new Date(), selectedHouseSystem);
   const birthLabel = formatBirthLabel(view.birthLocalISO, view.timeUnknown, locale);
+  const integratedSnapshot = toAstroSnapshot({
+    locale,
+    sunSignIndex: view.bigThree.sun.signIndex,
+    moonSignIndex: view.bigThree.moon.signIndex,
+    risingSignIndex: view.bigThree.rising?.signIndex ?? null,
+    notes: view.notes.flatMap((note): readonly AstroSnapshotNote[] =>
+      note.key === "timeUnknown" || note.key === "moonSignAmbiguous" || note.key === "houseFallback"
+        ? [note.key]
+        : [],
+    ),
+  });
 
   const bigThree: readonly {
     readonly label: string;
@@ -158,6 +173,8 @@ export default async function AstroPage({
   return (
     <SceneShell>
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
+        <ExplorationRecorder analysisKey="astro" />
+        <IntegratedResultRecorder snapshot={integratedSnapshot} />
         <ReportHeader data={data} />
 
       <div className="py-10">
@@ -371,6 +388,7 @@ export default async function AstroPage({
         <div id="calculation-astro-house-system" className="mt-6">
           <MethodNote locale={locale} title={tCommon("methodNote")} block={view.explanations.method} />
         </div>
+        <IntegratedReportEntry />
       </Section>
 
       <Section index="05" title={t("sectionNotes")}>

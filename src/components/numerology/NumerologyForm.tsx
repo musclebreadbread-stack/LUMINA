@@ -9,6 +9,7 @@ import {
   hydrationStore,
   subscribeProfile,
 } from "@/lib/profile";
+import { markCompletionArrival } from "@/lib/completionCinematic";
 
 /**
  * 생년월일(필수) + 로마자 이름(선택)을 받아 결과 주소로 보낸다.
@@ -73,6 +74,7 @@ export function NumerologyForm() {
       day: String(Math.min(day, maxDay)),
     });
     if (name.trim()) params.set("name", name.trim());
+    markCompletionArrival("numerology");
     router.push(`/numerology/result?${params.toString()}`);
   }
 

@@ -1550,6 +1550,106 @@
     "retakeButton": "Retake test",
     "homeButton": "Home"
   },
+  "integratedPortrait": {
+    "headerBadge": "LOCAL ONLY",
+    "eyebrow": "07 / INTEGRATED SELF PORTRAIT",
+    "title": "Integrated Self Portrait",
+    "englishTitle": "Integrated Self Portrait",
+    "intro": "This page gathers only privacy-safe derived signals from completed analyses, keeping scientific observations and symbolic perspectives in separate lanes.",
+    "localOnlyNotice": "Only derived summaries are kept in this browser's IndexedDB. Raw responses, birth details, names, and account information never enter this vault or travel to a server.",
+    "noscript": "Turn on JavaScript to see completed results and the unlock state stored in this browser.",
+    "countLabel": "Latest results in this browser:",
+    "persistenceWarning": "Browser storage is unavailable, so results are kept only in this device session memory. On a shared device, it is safer not to save them.",
+    "states": {
+      "emptyTitle": "No completed results have been recorded yet",
+      "emptyBody": "When you finish an analysis, only a safe derived summary—not raw responses—is recorded in this browser. Opening a shared link or refreshing a result does not save it.",
+      "homeCta": "Choose an analysis",
+      "memoryTitle": "This browser can only keep a temporary copy",
+      "memoryBody": "IndexedDB is blocked, so results are kept in session memory only. They may disappear when this tab closes; on a shared device, choose not to save.",
+      "errorTitle": "The vault could not be read",
+      "errorBody": "The saved results could not be checked safely. Please try again in a moment.",
+      "retryCta": "Read again",
+      "lockedTitle": "A few more lenses are needed",
+      "lockedBody": "The integrated portrait opens after three distinct personal analyses and two distinct scientific provenance groups. The current counts are shown below without adding scores.",
+      "unlockedTitle": "Your current integrated portrait",
+      "unlockedBody": "Each observation stays within its source tool's scope. Scores are never collapsed into one intelligence or personality total."
+    },
+    "eligibility": {
+      "analysisLabel": "Personal analyses",
+      "analysisValue": "{count}",
+      "scientificLabel": "Scientific provenance groups",
+      "scientificValue": "{count}",
+      "remainingLabel": "Personal analyses remaining",
+      "missingAnalysis": "{count} more needed",
+      "remainingScientificLabel": "Scientific perspectives remaining",
+      "missingScientific": "{count} scientific perspective(s) more needed"
+    },
+    "hero": {
+      "eyebrow": "CURRENT SELF PORTRAIT / EXPLORATORY",
+      "title": "One scene made from several lenses",
+      "line": "This current portrait draws from {analyses} analyses and {perspectives} scientific provenance groups.",
+      "limit": "The character is a memory aid, not a visual translation of high or low scores or a measure of human worth. It is not for diagnosis, prediction, or placement."
+    },
+    "lanes": {
+      "scientificKicker": "EVIDENCE 01 / SCIENTIFIC",
+      "scientificTitle": "Scientific observations",
+      "scientificBody": "These signals come from published scales and exploratory self-report tools. Results that re-express the same IPIP-50 responses are not counted as independent evidence.",
+      "culturalKicker": "LENS 02 / SYMBOLIC",
+      "culturalTitle": "Symbolic perspectives",
+      "culturalBody": "Saju, astrology, and numerology stay outside scientific scores and remain prompts for reflection."
+    },
+    "bands": {
+      "low": "Lower within this scale",
+      "mid": "Middle range within this scale",
+      "high": "Higher within this scale"
+    },
+    "analysis": {
+      "saju": "Saju",
+      "astro": "Astrology",
+      "numerology": "Numerology",
+      "psychometrics": "Big Five personality test",
+      "jungian": "MBTI-style analysis",
+      "darktriad": "Dark Triad",
+      "attachment": "Attachment style test",
+      "eq": "Emotional intelligence (EQ) test"
+    },
+    "claim": {
+      "exploratory": "EXPLORATORY",
+      "singleSource": "A single-source observation beginning with the signal “{signal}”. It is not a conclusion made by adding another tool's score.",
+      "observation": "An observation signal was recorded.",
+      "symbolicSignal": "A symbolic signal was recorded.",
+      "unknownSource": "Source unavailable",
+      "none": "There are no observations to show in this lane yet.",
+      "details": "View basis and limits",
+      "limit": "This observation carries the source tool's scoring, sample, and translation limits. Treat it as a prompt to check in daily life, not a verdict about you."
+    },
+    "controls": {
+      "kicker": "VAULT / CONTROL",
+      "title": "Manage your records",
+      "body": "The latest result for each analysis is used in the portrait by default. You can exclude a result, delete the vault, or export the current derived summaries as JSON.",
+      "indexeddb": "IndexedDB local vault",
+      "memory": "Session memory vault",
+      "exclude": "Exclude result",
+      "export": "Export JSON",
+      "deleteAll": "Delete all",
+      "deleteConfirmLabel": "Confirm deleting all results",
+      "deleteConfirm": "Delete every saved result?",
+      "deleteConfirmCta": "Delete",
+      "cancel": "Cancel",
+      "privacyTitle": "Shared-device note",
+      "privacyBody": "The browser vault is not encrypted storage that protects against someone who can access this device and browser. Raw responses and birth details are not stored, but on a shared device choose not to save or delete everything after use.",
+      "operationError": "The request could not be completed. Please try again in a moment."
+    },
+    "entry": {
+      "kicker": "INTEGRATED SELF PORTRAIT",
+      "title": "See several results in one scene",
+      "body": "Bring completed analyses together by evidence lane using safe derived summaries. Raw responses and birth details are not stored on this page.",
+      "cta": "Open integrated portrait"
+    },
+    "atlas": {
+      "body": "There are {count} results in the integrated vault."
+    }
+  },
   "consent": {
     "ariaLabel": "Ad consent",
     "message": "This site may show ads and collect anonymous visit statistics to support its operation. If you consent, ads are based on your interests; if you decline, ads are shown without personalization — visit statistics are collected the same way either way.",

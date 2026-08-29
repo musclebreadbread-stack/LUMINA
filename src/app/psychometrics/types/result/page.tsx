@@ -26,6 +26,9 @@ import { assetPath } from "@/lib/assets";
 import { analysisDefinition } from "@/lib/analysisCatalog";
 import { encodeShareCode, jungianSummaryFromResult } from "@/lib/shareCode";
 import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
+import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
+import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
+import { toJungianSnapshot } from "@/lib/integratedPortrait/adapters";
 
 interface Query {
   readonly r?: string;
@@ -102,7 +105,9 @@ export default async function JungianResultPage({
   const typeCode = view.typeCode ?? "????";
   const typeTitle = t("resultTitle", { code: typeCode });
   const jungianResult = computeJungianLenses(computeFactorScores(responses), computeAspectScores(responses));
-  const shareCode = encodeShareCode(jungianSummaryFromResult(jungianResult, resolvedLocale));
+  const summary = jungianSummaryFromResult(jungianResult, resolvedLocale);
+  const shareCode = encodeShareCode(summary);
+  const integratedSnapshot = toJungianSnapshot(summary);
   const shareUrl = `/s/jungian/${shareCode}`;
   const chapters: readonly Chapter[] = [
     { id: "section-axes", label: t("chapterAxes") },
@@ -123,6 +128,7 @@ export default async function JungianResultPage({
     <SceneShell tone="psychometrics">
       <main className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
         <ExplorationRecorder analysisKey="jungian" />
+        <IntegratedResultRecorder snapshot={integratedSnapshot} />
         <ReportHeader derivedOverride={evidenceStatusOverride} />
 
         <div className="py-8 sm:py-10">
@@ -251,6 +257,8 @@ export default async function JungianResultPage({
             citations={[MCCRAE_COSTA_1989, PITTENGER_1993, STEIN_SWAN_2019]}
           />
         </div>
+
+        <IntegratedReportEntry />
 
         <NextLens analysisKey={evidence.key} id="section-next-lens" />
 

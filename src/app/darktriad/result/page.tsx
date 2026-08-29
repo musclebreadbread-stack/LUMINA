@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { Locale } from "@/i18n/locale";
+import { computeFactorScores } from "@engine/darktriad/scoring";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { FactorBar } from "@/components/darktriad/FactorBar";
 import { ShareBar } from "@/components/report/ShareBar";
@@ -13,6 +14,10 @@ import { MethodNote } from "@/components/ui/MethodNote";
 import { decodeResponses } from "@/lib/darktriadCode";
 import { buildDarkTriadView } from "@/lib/darktriadModel";
 import { analysisDefinition } from "@/lib/analysisCatalog";
+import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
+import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
+import { darkTriadSummaryFromScores } from "@/lib/shareCode";
+import { toDarkTriadSnapshot } from "@/lib/integratedPortrait/adapters";
 
 interface Query {
   readonly r?: string;
@@ -71,10 +76,15 @@ export default async function DarkTriadResultPage({
   const view = buildDarkTriadView(responses);
   const resolvedLocale = locale as Locale;
 
+  const integratedSnapshot = toDarkTriadSnapshot(
+    darkTriadSummaryFromScores(computeFactorScores(responses), resolvedLocale),
+  );
+
   return (
     <SceneShell tone="darktriad">
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
         <ReportHeader />
+        <IntegratedResultRecorder snapshot={integratedSnapshot} />
 
         <div className="py-8 sm:py-10">
           <ResultCover
@@ -106,6 +116,8 @@ export default async function DarkTriadResultPage({
           title={tCommon("methodNote")}
           citations={[]}
         />
+
+        <IntegratedReportEntry />
 
         <footer className="mt-16 space-y-8 border-t border-ink-700 pt-8">
           <ShareBar

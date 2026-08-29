@@ -35,6 +35,10 @@ import { decodeProfile } from "@/lib/share";
 import { placeDisplayLabel } from "@/lib/profile";
 import { TWELVE_STAGES, branchAt, stageEvidenceRef } from "@engine/saju";
 import type { Locale } from "@/i18n/locale";
+import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
+import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
+import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
+import { toSajuSnapshot } from "@/lib/integratedPortrait/adapters";
 
 export async function generateMetadata({
   params,
@@ -187,6 +191,13 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
   const minuteUnit = t("minuteUnit");
   const characterTagline = locale === "en" ? view.character.def.taglineEn : view.character.def.tagline;
   const yearPillar = view.pillars.find((pillar) => pillar.key === "year");
+  const integratedSnapshot = toSajuSnapshot({
+    locale,
+    dominantElement: view.elements.dominant,
+    dayMasterElement: view.dayMaster.element,
+    strength: view.strength.verdict,
+    timeUnknown: view.precision.timeUnknown,
+  });
   const chapters: readonly Chapter[] = [
     { id: "section-pillars", label: t("sectionPillars") },
     { id: "section-calc", label: t("sectionCalc") },
@@ -225,6 +236,8 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
       <div className="mb-12">
         <SpiritCard character={view.character} />
         <CollectionTracker characterId={view.character.def.id} />
+        <ExplorationRecorder analysisKey="saju" />
+        <IntegratedResultRecorder snapshot={integratedSnapshot} />
       </div>
 
       <Section id="section-pillars" index="01" title={t("sectionPillars")} aside={<>{t("pillarsAside")}</>}>
@@ -339,6 +352,7 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
             block={view.explanations.method}
           />
         </div>
+        <IntegratedReportEntry />
       </Section>
 
       <Section id="section-elements" index="03" title={t("sectionElements")} aside={<>{strengthLabel}</>}>

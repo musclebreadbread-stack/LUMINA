@@ -65,6 +65,11 @@ function observationSignal(constructId: string, code: string, limitationId: stri
   return signal(constructId, { kind: "observation", code }, limitationId, "observation.flag");
 }
 
+/** 공개 스냅샷 코드에는 대문자·원 타입 이름을 그대로 노출하지 않는다. */
+function constructCode(value: string): string {
+  return value.replace(/[A-Z]/gu, (letter) => `-${letter.toLowerCase()}`);
+}
+
 function draft(
   analysisKey: ResultSnapshotDraftV1["analysisKey"],
   locale: Locale,
@@ -90,7 +95,7 @@ function draft(
 
 export function toBigFiveSnapshot(summary: BigFiveSummaryV1): ResultSnapshotDraftV1 {
   const signals = summary.factors.map((factor) =>
-    bandSignal(`bigfive.${factor.factor}`, bandFromRelativePosition(factor.tScore), "limitation.psychometrics"),
+    bandSignal(`bigfive.${constructCode(factor.factor)}`, bandFromRelativePosition(factor.tScore), "limitation.psychometrics"),
   );
   return draft("psychometrics", summary.locale, signals);
 }
@@ -109,7 +114,7 @@ export function toJungianSnapshot(summary: JungianSummaryV1): ResultSnapshotDraf
 export function toDarkTriadSnapshot(summary: DarkTriadSummaryV1): ResultSnapshotDraftV1 {
   const signals = summary.subscales.map((subscale) =>
     bandSignal(
-      `darktriad.${subscale.subscale}`,
+      `darktriad.${constructCode(subscale.subscale)}`,
       bandFromRelativePosition(subscale.tScore),
       "limitation.darktriad-translation",
     ),
@@ -128,7 +133,7 @@ export function toAttachmentSnapshot(summary: AttachmentSummaryV1): ResultSnapsh
 
 export function toEqSnapshot(summary: EqSummaryV1): ResultSnapshotDraftV1 {
   const signals = summary.subscales.map((subscale) =>
-    bandSignal(`eq.${subscale.subscale}`, bandFromRelativePosition(subscale.tScore), "limitation.eq-self-report"),
+    bandSignal(`eq.${constructCode(subscale.subscale)}`, bandFromRelativePosition(subscale.tScore), "limitation.eq-self-report"),
   );
   return draft("eq", summary.locale, signals);
 }

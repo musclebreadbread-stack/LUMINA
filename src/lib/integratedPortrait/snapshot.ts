@@ -1,11 +1,44 @@
 import type { AnalysisKey } from "@engine/shared/evidence";
-import type { PortraitEligibility, ResultSnapshotV1 } from "./contracts";
+import type {
+  PortraitEligibility,
+  ResultSnapshotDraftV1,
+  ResultSnapshotV1,
+} from "./contracts";
 import { isSnapshotEligibleForPortrait } from "./registry";
 
 export const INTEGRATED_PORTRAIT_MINIMUMS = Object.freeze({
   analyses: 3,
   scientificProvenanceGroups: 2,
 });
+
+export interface SnapshotMaterializationInput {
+  readonly id: string;
+  readonly sourceAssessmentId: string;
+  readonly completedAt: string;
+}
+
+export function materializeSnapshot(
+  draft: ResultSnapshotDraftV1,
+  identity: SnapshotMaterializationInput,
+): ResultSnapshotV1 {
+  return Object.freeze({
+    ...draft,
+    id: identity.id,
+    sourceAssessmentId: identity.sourceAssessmentId,
+    completedAt: identity.completedAt,
+    signals: Object.freeze(
+      draft.signals.map((signal) =>
+        Object.freeze({
+          ...signal,
+          value: Object.freeze({ ...signal.value }),
+          descriptorIds: Object.freeze([...signal.descriptorIds]),
+          limitationIds: Object.freeze([...signal.limitationIds]),
+        }),
+      ),
+    ),
+    referenceIds: Object.freeze([...draft.referenceIds]),
+  });
+}
 
 function isMoreRecent(candidate: ResultSnapshotV1, current: ResultSnapshotV1): boolean {
   const completedAtOrder = candidate.completedAt.localeCompare(current.completedAt);

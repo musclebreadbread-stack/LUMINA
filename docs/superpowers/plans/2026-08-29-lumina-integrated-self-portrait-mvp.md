@@ -254,9 +254,9 @@ Commit: `feat: add safe integrated portrait adapters`
 - Create: `src/lib/integratedPortrait/vault.client.ts`
 - Create: `src/lib/integratedPortrait/__tests__/vault.test.ts`
 - Create: `src/components/report/IntegratedResultRecorder.tsx`
-- Test: `src/lib/__tests__/completionCinematic.test.ts`
+- Test: `src/components/report/__tests__/integratedResultRecorder.dom.test.tsx`
 
-- [ ] **Step 1: 저장소 선택·차단·완료 표식 흐름을 먼저 테스트한다.**
+- [x] **Step 1: 저장소 선택·차단·완료 표식 흐름을 먼저 테스트한다.**
 
 ```ts
 it("keeps only the latest selected snapshot per analysis without changing prior stored history", () => {
@@ -270,27 +270,27 @@ it("does not call the vault when there is no completion arrival marker", async (
 });
 ```
 
-- [ ] **Step 2: 실패를 확인한다.**
+- [x] **Step 2: 실패를 확인한다.**
 
 Run: `pnpm exec vitest run src/lib/integratedPortrait/__tests__/vault.test.ts src/lib/__tests__/completionCinematic.test.ts`
 
 Expected: browser vault와 recorder가 없어서 실패한다.
 
-- [ ] **Step 3: IndexedDB와 메모리 대체를 구현한다.**
+- [x] **Step 3: IndexedDB와 메모리 대체를 구현한다.**
 
-`vault.client.ts`는 `"use client"`를 두지 않는 일반 browser-only 모듈이지만 `window`가 없는 환경에서 IndexedDB를 열지 않는다. `openPortraitVault()`는 `lumina-integrated-portrait-v1` 데이터베이스의 `snapshots` object store와 `analysisKey`·`completedAt` 인덱스를 만든다. 공개 API는 `listSnapshots`, `upsertSnapshot`, `excludeSnapshot`, `deleteAllSnapshots`, `exportSnapshots`다.
+`vault.client.ts`는 `"use client"`를 두지 않는 일반 browser-only 모듈이지만 `window`가 없는 환경에서 IndexedDB를 열지 않는다. `listPortraitSnapshots()`가 `lumina-integrated-portrait-v1` 데이터베이스의 `snapshots` object store와 `analysisKey`·`completedAt` 인덱스를 lazily 만든다. 공개 API는 `listPortraitSnapshots`, `upsertPortraitSnapshot`, `excludePortraitSnapshot`, `deleteAllPortraitSnapshots`, `exportPortraitSnapshots`다.
 
 IndexedDB 접근 예외·보안 차단·용량 오류에는 검증된 스냅샷만 메모리 배열로 보관하고 `{ persistence: "memory" }`를 반환한다. `deleteAllSnapshots`는 현재 탭 메모리도 비운다. JSON 내보내기는 다운로드 실행 전 `validateSnapshot`을 다시 통과시킨 배열만 반환한다.
 
 `IntegratedResultRecorder`는 `"use client"`에서 `useEffect`로 동작한다. 전달된 후보를 먼저 검증하고 `consumeCompletionArrival(snapshot.analysisKey)`가 `true`일 때만 UUID를 생성해 저장한다. 렌더링은 `null`이고, 실패를 콘솔에 기록하지 않으며, 보관함 오류는 다음 `/integrated-report` 상태에서 사용자에게 안내한다.
 
-- [ ] **Step 4: 테스트를 통과시킨다.**
+- [x] **Step 4: 테스트를 통과시킨다.**
 
-Run: `pnpm exec vitest run src/lib/integratedPortrait/__tests__/vault.test.ts src/lib/__tests__/completionCinematic.test.ts`
+Run: `pnpm exec vitest run src/lib/integratedPortrait/__tests__/vault.test.ts src/components/report/__tests__/integratedResultRecorder.dom.test.tsx`
 
 Expected: 서버 렌더에서 browser API 미접근, 완료 표식 없는 방문 미저장, 차단 시 메모리 대체, 삭제·내보내기 유효성 검증이 통과한다.
 
-- [ ] **Step 5: 이 작업만 검토하고 커밋한다.**
+- [x] **Step 5: 이 작업만 검토하고 커밋한다.**
 
 Run: `git diff --check` and `git diff -- src/lib/integratedPortrait src/components/report/IntegratedResultRecorder.tsx`
 

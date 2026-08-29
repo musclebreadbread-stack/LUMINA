@@ -126,7 +126,7 @@ export interface SynthesisClaimV1 {
 - Create: `src/lib/integratedPortrait/snapshot.ts`
 - Test: `src/lib/integratedPortrait/__tests__/snapshot.test.ts`
 
-- [ ] **Step 1: 출처 중복과 잠금 실패를 먼저 테스트한다.**
+- [x] **Step 1: 출처 중복과 잠금 실패를 먼저 테스트한다.**
 
 ```ts
 it("does not count Big Five and Jungian as two scientific provenance groups", () => {
@@ -156,13 +156,13 @@ it("unlocks only with three analyses and two distinct scientific provenance grou
 });
 ```
 
-- [ ] **Step 2: 실패를 확인한다.**
+- [x] **Step 2: 실패를 확인한다.**
 
 Run: `pnpm exec vitest run src/lib/integratedPortrait/__tests__/snapshot.test.ts`
 
 Expected: 계약·레지스트리 모듈 부재로 실패한다.
 
-- [ ] **Step 3: 불변 계약과 허용 레지스트리를 구현한다.**
+- [x] **Step 3: 불변 계약과 허용 레지스트리를 구현한다.**
 
 `contracts.ts`는 `AnalysisKey` 기반 공개 타입만 내보낸다. `registry.ts`는 정확히 다음 MVP 항목만 `includeInPortrait: true`로 등록한다.
 
@@ -179,13 +179,13 @@ Expected: 계약·레지스트리 모듈 부재로 실패한다.
 
 `cognitive`는 레지스트리에 `includeInPortrait: false`, `reason: "pilot_withheld"`로만 명시하고, `getPortraitEligibility`의 입력에서 항상 제외한다. `snapshot.ts`는 유효한 스냅샷만 받고 분석 키별 최신 완료 결과를 고른 뒤 고유 `analysisKey`와 고유 과학 `provenanceGroup`을 각각 세어 `PortraitEligibility`을 반환한다.
 
-- [ ] **Step 4: 테스트를 통과시킨다.**
+- [x] **Step 4: 테스트를 통과시킨다.**
 
 Run: `pnpm exec vitest run src/lib/integratedPortrait/__tests__/snapshot.test.ts`
 
 Expected: 같은 IPIP-50 출처 중복, 재검사 최신 선택, 보류 인지평가 제외, 3+2 잠금 조건이 통과한다.
 
-- [ ] **Step 5: 이 작업만 검토하고 커밋한다.**
+- [x] **Step 5: 이 작업만 검토하고 커밋한다.**
 
 Run: `git diff --check` and `git diff -- src/lib/integratedPortrait`
 

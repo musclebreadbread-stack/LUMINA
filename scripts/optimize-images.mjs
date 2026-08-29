@@ -9,6 +9,7 @@ const GROUPS = [
   { directory: "public/saju/zodiac", maxWidth: 480, maxHeight: 720 },
   { directory: "public/numerology/numbers", maxWidth: 480, maxHeight: 720 },
   { directory: "public/psychometrics/factors", maxWidth: 640, maxHeight: 427 },
+  { directory: "public/psychometrics/types/axes", maxWidth: 1536, maxHeight: 1024 },
 ];
 
 const MANDALA_TEXTURES = [

@@ -63,3 +63,33 @@ export interface IntegrationAnalysisRegistration {
   readonly instrumentVersion: string;
   readonly referenceIds: readonly string[];
 }
+
+export type ClaimKind = "repetition" | "complement" | "tension" | "single-source";
+export type ClaimStatus = "supported" | "contextual" | "exploratory";
+
+export interface SynthesisClaimV1 {
+  readonly claimId: string;
+  readonly kind: ClaimKind;
+  readonly status: ClaimStatus;
+  readonly sourceSignalIds: readonly string[];
+  readonly counterSignalIds: readonly string[];
+  readonly interpretationKey: string;
+  readonly limitationIds: readonly string[];
+  readonly experimentKey?: string;
+}
+
+export interface SynthesisReportV1 {
+  readonly scientificClaims: readonly SynthesisClaimV1[];
+  readonly culturalObservations: readonly SynthesisClaimV1[];
+  readonly contextualClaims: readonly SynthesisClaimV1[];
+}
+
+export interface CharacterRecipeV1 {
+  readonly schemaVersion: 1;
+  readonly seed: string;
+  readonly backgroundLayer: string;
+  readonly frameLayer: string;
+  readonly accentLayer: string;
+  readonly motionVariant: string;
+  readonly fallback: boolean;
+}

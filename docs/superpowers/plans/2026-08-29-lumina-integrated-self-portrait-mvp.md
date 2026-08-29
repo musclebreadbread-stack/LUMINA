@@ -365,7 +365,7 @@ Commit: `feat: capture completed results for integrated portrait`
 - Test: `src/lib/integratedPortrait/__tests__/synthesis.test.ts`
 - Test: `src/lib/integratedPortrait/__tests__/character.test.ts`
 
-- [ ] **Step 1: 교차 해석 금지와 결정론을 먼저 테스트한다.**
+- [x] **Step 1: 교차 해석 금지와 결정론을 먼저 테스트한다.**
 
 ```ts
 it("never creates a supported claim from the same IPIP-50 provenance group", () => {
@@ -385,13 +385,13 @@ it("creates the same character recipe regardless of snapshot input order", () =>
 });
 ```
 
-- [ ] **Step 2: 실패를 확인한다.**
+- [x] **Step 2: 실패를 확인한다.**
 
 Run: `pnpm exec vitest run src/lib/integratedPortrait/__tests__/synthesis.test.ts src/lib/integratedPortrait/__tests__/character.test.ts`
 
 Expected: synthesis·character 모듈 부재로 실패한다.
 
-- [ ] **Step 3: 보수적 근거 그래프를 구현한다.**
+- [x] **Step 3: 보수적 근거 그래프를 구현한다.**
 
 `registry.ts`의 MVP comparison rule은 명시적으로 승인된 동일 구성개념·서로 다른 출처 그룹이 생기기 전까지 `not-comparable`을 기본값으로 한다. 따라서 현재 공개 UI는 다음만 생성한다.
 
@@ -403,13 +403,13 @@ Expected: synthesis·character 모듈 부재로 실패한다.
 
 `character.ts`는 정렬된 snapshot의 공개 `analysisKey`와 schema/rule 버전만 해시해 background, frame, accent, motion seed를 선택한다. 측정값·신호 코드와 캐릭터 모양의 의미 매핑을 만들지 않는다. 에셋 누락 시 `fallback` recipe를 반환한다.
 
-- [ ] **Step 4: 테스트를 통과시킨다.**
+- [x] **Step 4: 테스트를 통과시킨다.**
 
 Run: `pnpm exec vitest run src/lib/integratedPortrait/__tests__/synthesis.test.ts src/lib/integratedPortrait/__tests__/character.test.ts`
 
 Expected: 동일 출처 반복 차단, lane 분리, 입력 순서 독립성, `not-comparable` 차단이 통과한다.
 
-- [ ] **Step 5: 이 작업만 검토하고 커밋한다.**
+- [x] **Step 5: 이 작업만 검토하고 커밋한다.**
 
 Run: `git diff --check` and `git diff -- src/lib/integratedPortrait`
 

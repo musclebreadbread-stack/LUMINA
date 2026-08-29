@@ -33,6 +33,18 @@ export interface ResultSnapshotV1 {
   readonly referenceIds: readonly string[];
 }
 
+export interface ResultSnapshotDraftV1 {
+  readonly schemaVersion: typeof INTEGRATED_PORTRAIT_SCHEMA_VERSION;
+  readonly analysisKey: AnalysisKey;
+  readonly provenanceGroup: string;
+  readonly lane: ResultLane;
+  readonly instrumentVersion: string;
+  readonly scoringModelVersion: string;
+  readonly locale: "ko" | "en";
+  readonly signals: readonly ConstructSignalV1[];
+  readonly referenceIds: readonly string[];
+}
+
 export interface PortraitEligibility {
   readonly distinctAnalysisCount: number;
   readonly scientificProvenanceCount: number;

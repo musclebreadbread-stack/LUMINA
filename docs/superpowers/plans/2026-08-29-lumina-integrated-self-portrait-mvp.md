@@ -199,7 +199,7 @@ Commit: `feat: add integrated portrait snapshot contract`
 - Test: `src/lib/integratedPortrait/__tests__/adapters.test.ts`
 - Test: `src/lib/integratedPortrait/__tests__/validation.test.ts`
 
-- [ ] **Step 1: 금지 데이터와 규준 오용을 먼저 테스트한다.**
+- [x] **Step 1: 금지 데이터와 규준 오용을 먼저 테스트한다.**
 
 ```ts
 it("rejects a snapshot carrying a raw response or birth field", () => {
@@ -208,41 +208,41 @@ it("rejects a snapshot carrying a raw response or birth field", () => {
 });
 
 it("does not emit a standardized score from a share-code fallback", () => {
-  const snapshot = toBigFiveSnapshot(bigFiveWithFallbackTScore, input);
+  const snapshot = toBigFiveSnapshot(bigFiveWithFallbackTScore);
   expect(snapshot.signals).not.toContainEqual(expect.objectContaining({ value: expect.objectContaining({ standardizedScore: expect.any(Number) }) }));
 });
 ```
 
-- [ ] **Step 2: 실패를 확인한다.**
+- [x] **Step 2: 실패를 확인한다.**
 
 Run: `pnpm exec vitest run src/lib/integratedPortrait/__tests__/adapters.test.ts src/lib/integratedPortrait/__tests__/validation.test.ts`
 
 Expected: 어댑터·검증기가 없어서 실패한다.
 
-- [ ] **Step 3: 허용 목록 기반 어댑터를 구현한다.**
+- [x] **Step 3: 허용 목록 기반 어댑터를 구현한다.**
 
 각 어댑터는 기존 `shareCode.ts`의 파생 요약 또는 서버 결과 view에서 아래의 코드만 생성한다. 원문 응답·정수 점수·공유 코드·URL은 함수 인자나 반환값에 넣지 않는다.
 
 | 분석 | 허용 신호 |
 | --- | --- |
-| Big Five | `bigfive.extraversion`, `bigfive.agreeableness`, `bigfive.conscientiousness`, `bigfive.emotional-stability`, `bigfive.openness`의 `low/mid/high` |
-| Jungian | `jungian.attitude`, `jungian.perception`, `jungian.decision`, `jungian.lifestyle`의 범주 코드 |
+| Big Five | `bigfive.extraversion`, `bigfive.agreeableness`, `bigfive.conscientiousness`, `bigfive.emotionalStability`, `bigfive.intellect`의 `low/mid/high` |
+| Jungian | `jungian.ei`, `jungian.sn`, `jungian.tf`, `jungian.jp`, `jungian.at`, `jungian.vw`의 범주 코드 |
 | Dark Triad | `darktriad.machiavellianism`, `darktriad.narcissism`, `darktriad.psychopathy`의 `low/mid/high` |
 | 애착 | `attachment.style`, `attachment.anxiety`, `attachment.avoidance`의 범주·구간 코드 |
-| EQ | `eq.self-awareness`, `eq.self-regulation`, `eq.motivation`, `eq.empathy`, `eq.social-skills`의 `low/mid/high` |
+| EQ | `eq.perceptionOfEmotion`, `eq.managingOwnEmotions`, `eq.managingOthersEmotions`, `eq.utilisationOfEmotion`의 `low/mid/high` |
 | 사주 | 우세 오행, 일간 오행, 강약 판정, 시간 미상 여부 |
 | 점성 | 태양·달·상승궁의 부호 코드, 시간 미상·달 모호·하우스 대체 여부 |
 | 수비학 | 생명수, destiny 존재 여부의 범주 코드 |
 
 `validation.ts`는 정확한 최상위 키, 레지스트리 분석 키·lane·출처 그룹·버전, ISO 시각, 허용 construct ID·value 형태만 통과시킨다. `sourceAssessmentId`와 `id`는 원문을 해시하거나 URL을 복사하지 않고 recorder가 생성한 UUID 형식만 허용한다.
 
-- [ ] **Step 4: 테스트를 통과시킨다.**
+- [x] **Step 4: 테스트를 통과시킨다.**
 
 Run: `pnpm exec vitest run src/lib/integratedPortrait/__tests__/adapters.test.ts src/lib/integratedPortrait/__tests__/validation.test.ts`
 
 Expected: 8개 안전 fixture의 직렬화·역직렬화, 금지 필드 차단, fallback 점수 비저장, `pilot_withheld` 제외가 통과한다.
 
-- [ ] **Step 5: 이 작업만 검토하고 커밋한다.**
+- [x] **Step 5: 이 작업만 검토하고 커밋한다.**
 
 Run: `git diff --check` and `git diff -- src/lib/integratedPortrait`
 

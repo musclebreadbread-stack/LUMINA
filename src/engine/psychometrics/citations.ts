@@ -32,7 +32,7 @@ export const OPEN_PSYCHOMETRICS_DATA: Citation = Object.freeze({
   url: "https://openpsychometrics.org/_rawdata/",
 });
 
-/** The primary comparison paper behind the Jungian four-axis re-expression. */
+/** The primary comparison paper behind the MBTI-style four-axis interpretation. */
 export const MCCRAE_COSTA_1989: Citation = Object.freeze({
   authors: Object.freeze(["McCrae, R. R.", "Costa, P. T., Jr."]),
   year: 1989,
@@ -56,6 +56,15 @@ export const STEIN_SWAN_2019: Citation = Object.freeze({
   url: "https://doi.org/10.1111/spc3.12434",
 });
 
+/** The Neuroticism aspect structure (Withdrawal vs. Volatility) behind the VW axis. */
+export const DEYOUNG_QUILTY_PETERSON_2007: Citation = Object.freeze({
+  authors: Object.freeze(["DeYoung, C. G.", "Quilty, L. C.", "Peterson, J. B."]),
+  year: 2007,
+  title: "Between facets and domains: 10 aspects of the Big Five",
+  venue: "Journal of Personality and Social Psychology, 93(5), 880–896",
+  url: "https://doi.org/10.1037/0022-3514.93.5.880",
+});
+
 export const PSYCHOMETRIC_CITATIONS: readonly Citation[] = Object.freeze([
   GOLDBERG_1992,
   GOW_2005,
@@ -64,4 +73,5 @@ export const PSYCHOMETRIC_CITATIONS: readonly Citation[] = Object.freeze([
   MCCRAE_COSTA_1989,
   PITTENGER_1993,
   STEIN_SWAN_2019,
+  DEYOUNG_QUILTY_PETERSON_2007,
 ]);

@@ -1,8 +1,8 @@
 {
   "metaHome": {
-    "title": "LUMINA — Many ways to explore your inner world",
-    "description": "Explore different parts of yourself through Saju, astrology, tarot, numerology, Big Five, and daily readings. Calculations, symbolism, and psychometric evidence are kept distinct.",
-    "ogDescription": "Begin with Saju, tarot, personality, or a daily reading — no sign-up required."
+    "title": "LUMINA — A self-analysis platform of many lenses",
+    "description": "Psychological assessment (Big Five, emotional intelligence, attachment), a cognitive ability test, and Saju, astrology, tarot and numerology in one place. Every analysis carries the tier and validation status its evidence actually supports.",
+    "ogDescription": "From psychological assessment to cognitive ability and traditional interpretation — a self-analysis platform that says how much each lens can claim. No sign-up."
   },
   "common": {
     "brand": "LUMINA",
@@ -24,8 +24,17 @@
     "copyLinkDone": "Link copied",
     "savePdf": "Save as PDF",
     "restartDefault": "Re-enter",
+    "saveImage": "Save image",
+    "saveImageBusy": "Making image…",
+    "saveImageFailed": "Couldn't make the image",
     "readCopied": "Copied",
     "chapterNavLabel": "Report section navigation",
+    "nextLensKicker": "Next lens",
+    "nextLensTitle": "Where to look next",
+    "nextLensIntro": "One result only ever shows one face. Anything you haven't opened yet comes first — one path goes a layer deeper in the same family, the other crosses over to a different kind of knowing.",
+    "nextLensSibling": "Go one layer deeper in the same family.",
+    "nextLensCrossing": "Cross over to a different kind of knowing and compare.",
+    "nextLensCta": "Open it",
     "adLabel": "Advertisement",
     "unknownError": "Unknown error",
     "explanationDetails": "View detailed interpretation",
@@ -66,16 +75,16 @@
     "momentLabel": "The Saju of this exact moment",
     "clockCaption": "{clock} KST · Seoul time",
     "trueSolarCaption": "True solar time {time} ({sign}{minutes} min correction)",
-    "platformEyebrow": "LUMINA / INNER EXPLORATION",
+    "platformEyebrow": "LUMINA / SELF-ANALYSIS INSTRUMENT",
     "platformTitle1": "Explore the selves",
-    "platformTitle2": "you hold within.",
-    "platformBody": "Use precise calculation, symbolic systems, and psychometrics to examine the self you are becoming. The ways you can explore will continue to grow — begin where curiosity leads.",
+    "platformTitle2": "you hold, lens by lens.",
+    "platformBody": "Psychological assessment, a cognitive ability test, and the traditions of East and West — instead of claiming one answer, LUMINA sets different lenses side by side. Before any result, it says what evidence each lens stands on and where that evidence stops. No sign-up, and whatever you enter stays only in this browser.",
     "heroTitle1": "The moment you were born,",
     "heroTitle2": "calculated to the second.",
     "heroBody": "Solar terms are calculated directly from the sun's ecliptic longitude, not from a lookup table. True solar time is corrected using birthplace longitude and the equation of time, and historical standard-time changes — like Korea's UTC+8:30 in 1954 or daylight saving in 1988 — are factored in as they occurred. There's no sign-up, and anything you enter stays only in this browser.",
     "hubEyebrow": "Begin Your Exploration",
     "hubHeading": "Which part of yourself would you like to meet today?",
-    "hubIntro": "Trace the shape of a birth moment, sit with a question, notice repeated tendencies, or check the rhythm of today. LUMINA's methods of self-exploration will keep expanding.",
+    "hubIntro": "The lenses are sorted by the kind of knowing they offer instead of being mixed into one pile — validated instruments first, traditional interpretation after. Every card carries its tier and validation status.",
     "hubSajuTitle": "Saju",
     "hubSajuDesc": "Calculate your birth chart, elements, and life cycles from your exact birth date and time.",
     "hubAstroTitle": "Astrology",
@@ -84,18 +93,31 @@
     "hubTarotDesc": "Choose a spread and draw cards for this moment.",
     "hubNumerologyTitle": "Numerology",
     "hubNumerologyDesc": "Read tendencies in the numbers of your birth date.",
-      "hubPsychometricsTitle": "Personality Test",
-      "hubPsychometricsDesc": "Answer 50 questions to see five personality traits.",
-      "hubJungianTitle": "Jungian Type Lens (unofficial)",
-      "hubJungianDesc": "Re-express IPIP-50 responses on four axes and summarize them with an unofficial Jungian Type Lens.",
-      "hubDarkTriadTitle": "Dark Triad",
-      "hubDarkTriadDesc": "Explore three SD3 construct dimensions with a Korean validation limitation notice.",
-      "hubAttachmentTitle": "Attachment Style Test",
-      "hubAttachmentDesc": "Analyze patterns in intimate relationships along anxiety and avoidance dimensions.",
-      "hubHoroscopeTitle": "Today's Horoscope",
+    "hubPsychometricsTitle": "Personality Test",
+    "hubPsychometricsDesc": "Answer 50 questions to see five personality traits.",
+    "hubJungianTitle": "MBTI Type Analysis (unofficial)",
+    "hubJungianDesc": "Interpret IPIP-50 responses through four MBTI preference axes while showing continuous scores and boundary uncertainty.",
+    "hubDarkTriadTitle": "Dark Triad",
+    "hubDarkTriadDesc": "Explore three SD3 construct dimensions with a Korean validation limitation notice.",
+    "hubAttachmentTitle": "Attachment Style Test",
+    "hubAttachmentDesc": "Analyze patterns in intimate relationships along anxiety and avoidance dimensions.",
+    "hubEqTitle": "Emotional Intelligence (EQ) Test",
+    "hubEqDesc": "Look at self-reported tendencies for noticing and handling emotions with the 33-item SSEIT.",
+    "hubCognitiveTitle": "Cognitive Ability Exploration",
+    "hubCognitiveDesc": "Work through four ways of reasoning across 16 items in the ICAR formats. No IQ score is produced.",
+    "hubHoroscopeTitle": "Today's Horoscope",
     "hubHoroscopeDesc": "Check today's tone by zodiac sign or animal.",
     "hubCompatibilityTitle": "Two Profiles",
     "hubCompatibilityDesc": "Compare traditional Saju relationship signals side by side.",
+    "groupAssessmentTitle": "Psychological Assessment",
+    "groupAssessmentDesc": "Answer published self-report scales and read where you stand as a continuous score. Each card also names the population the instrument was validated in — and where the Korean translation has not been.",
+    "groupAbilityTitle": "Cognitive Ability",
+    "groupAbilityDesc": "Not self-report: you solve items that have right answers. Because no norm sample has ever answered these items, the result reports accuracy by domain and never an IQ score or a percentile.",
+    "groupTraditionTitle": "Traditions of East and West",
+    "groupTraditionDesc": "Saju, astrology and compatibility calculate a birth moment; tarot and numerology read symbols. Long-standing interpretive systems, used as a language for reflection rather than as prediction.",
+    "groupTodayTitle": "Today",
+    "groupTodayDesc": "A light read on the mood of the day. It does not predict the probability of anything happening to you.",
+    "hubExploredMark": "EXPLORED",
     "portalLabel": "INNER EXPLORATION",
     "portalCta": "Explore",
     "portalOpen": "Open input",
@@ -120,7 +142,17 @@
       "waningCrescent": "Waning crescent"
     },
     "hubFormPrompt": "Choose the “Saju” card above to open the input form here.",
-    "nowEyebrow": "03 / NOW",
+    "atlasEyebrow": "03 / SELF ATLAS",
+    "atlasHeading": "How many lenses have you looked through?",
+    "atlasBody": "LUMINA does not define a person with a single result. An outline only appears after several different lenses, so this atlas keeps a record of how far you have come.",
+    "atlasProgress": "You have explored {done} of {total}.",
+    "atlasNextLabel": "Next lens:",
+    "atlasNextCta": "Open {title}",
+    "atlasComplete": "You have looked through every lens once. Measuring again after some time may reveal a different outline.",
+    "atlasSlotExplored": "EXPLORED",
+    "atlasSlotOpen": "NOT YET",
+    "atlasPrivacy": "This atlas keeps only which analyses you have opened, in this browser. No scores, responses, or birth details are stored or sent to a server.",
+    "nowEyebrow": "04 / NOW",
     "nowHeading": "The present leaves a trace.",
     "nowBody": "Today's day pillar, true solar time, lunar phase, and Mercury's movement become one compact record. The source of each calculation stays visible.",
     "nowDayLabel": "Today's day pillar",
@@ -132,7 +164,7 @@
     "nowMercuryLabel": "Mercury",
     "nowMercuryValue": "{status}",
     "nowEvidence": "Basis: the day pillar comes from solar-term and stem-branch calculation; lunar and planetary data come from astronomical positions.",
-    "trustEyebrow": "04 / HOW TO READ",
+    "trustEyebrow": "05 / HOW TO READ",
     "trustHeading": "Fun and evidence share the same screen.",
     "trustBody": "LUMINA never blends every result into one kind of truth. Badges distinguish scientific measurement, cultural symbolism, and entertainment so you can choose how to read each result.",
     "trustScientificTitle": "Scientific",
@@ -141,28 +173,178 @@
     "trustCulturalBody": "Saju, tarot, and astrology offer long-lived symbolic systems as paths for reflection. Read them as reflection, not prediction.",
     "trustEntertainmentTitle": "Entertainment",
     "trustEntertainmentBody": "Daily horoscope content is designed to be light and enjoyable. Its entertainment purpose stays explicit.",
-    "reportEyebrow": "05 / WHAT YOU GET",
+    "reportEyebrow": "06 / WHAT YOU GET",
     "reportHeading": "Each method leaves a result in its own language.",
     "reportIntro": "Instead of making every page feel like Saju, this overview shows what each feature calculates and what kind of question it opens.",
     "reportGroups": {
-      "saju": { "title": "Saju", "desc": "Measure the structure of a birth moment.", "items": { "chart": { "term": "Chart & elements", "desc": "Eight characters, Ten Gods, and Five Elements" }, "cycles": { "term": "Cycles of time", "desc": "Solar-term record, Major Luck, and Annual Luck" } } },
-      "tarot": { "title": "Tarot", "desc": "Open a question through card symbolism.", "items": { "spread": { "term": "Spreads", "desc": "Single, three-card, and Celtic Cross layouts" }, "draw": { "term": "Direct draw", "desc": "A chosen position and upright or reversed card" } } },
-      "numerology": { "title": "Numerology", "desc": "Follow the numbers in a date and name.", "items": { "lifePath": { "term": "Life Path", "desc": "A recurring direction in the birth date" }, "destiny": { "term": "Destiny", "desc": "A symbolic reading of a name in numbers" } } },
-      "psychometrics": { "title": "Personality test", "desc": "Measure tendencies with validated items.", "items": { "factors": { "term": "Big Five", "desc": "Extraversion, agreeableness, conscientiousness, emotional stability, openness" }, "percentile": { "term": "Percentile report", "desc": "Continuous scores and a reflection prompt" } } },
-      "jungian": { "title": "Jungian Type Lens (unofficial)", "desc": "Read the same IPIP-50 responses as four continuous axes and a derived four-letter code.", "items": { "axes": { "term": "Four axes", "desc": "Continuous scores for energy, information, judgment, and lifestyle" }, "typeSummary": { "term": "Derived code", "desc": "A compact summary that keeps near-boundary axes open" } } },
-      "darktriad": { "title": "Dark Triad", "desc": "Explore three SD3 construct dimensions with explicit translation and factor-structure limits.", "items": { "factors": { "term": "Three constructs", "desc": "Machiavellianism, Narcissism, and Psychopathy continuous scores" }, "norms": { "term": "Reference limits", "desc": "Prior-sample evidence is not a Korean target-population norm" } } },
-      "attachment": { "title": "Attachment Style Test", "desc": "Analyze patterns in intimate relationships.", "items": { "dimensions": { "term": "Two dimensions", "desc": "Continuous scores for anxiety and avoidance" }, "quadrants": { "term": "Four quadrants", "desc": "Secure, anxious, avoidant, and fearful classifications" } } },
-      "horoscope": { "title": "Today's horoscope", "desc": "Check the tone of a day, lightly.", "items": { "zodiac": { "term": "Zodiac", "desc": "A daily line based on the Sun sign" }, "animal": { "term": "Chinese zodiac", "desc": "A daily texture through the twelve animals" } } }
+      "saju": {
+        "title": "Saju",
+        "desc": "Measure the structure of a birth moment.",
+        "items": {
+          "chart": {
+            "term": "Chart & elements",
+            "desc": "Eight characters, Ten Gods, and Five Elements"
+          },
+          "cycles": {
+            "term": "Cycles of time",
+            "desc": "Solar-term record, Major Luck, and Annual Luck"
+          }
+        }
+      },
+      "tarot": {
+        "title": "Tarot",
+        "desc": "Open a question through card symbolism.",
+        "items": {
+          "spread": {
+            "term": "Spreads",
+            "desc": "Single, three-card, and Celtic Cross layouts"
+          },
+          "draw": {
+            "term": "Direct draw",
+            "desc": "A chosen position and upright or reversed card"
+          }
+        }
+      },
+      "numerology": {
+        "title": "Numerology",
+        "desc": "Follow the numbers in a date and name.",
+        "items": {
+          "lifePath": {
+            "term": "Life Path",
+            "desc": "A recurring direction in the birth date"
+          },
+          "destiny": {
+            "term": "Destiny",
+            "desc": "A symbolic reading of a name in numbers"
+          }
+        }
+      },
+      "psychometrics": {
+        "title": "Personality test",
+        "desc": "Measure tendencies with validated items.",
+        "items": {
+          "factors": {
+            "term": "Big Five",
+            "desc": "Extraversion, agreeableness, conscientiousness, emotional stability, openness"
+          },
+          "percentile": {
+            "term": "Percentile report",
+            "desc": "Continuous scores and a reflection prompt"
+          }
+        }
+      },
+      "jungian": {
+        "title": "MBTI Type Analysis (unofficial)",
+        "desc": "Read the same IPIP-50 responses as four preference axes and an unofficial four-letter summary code.",
+        "items": {
+          "axes": {
+            "term": "Four preference axes",
+            "desc": "Continuous scores for energy, information, judgment, and lifestyle"
+          },
+          "typeSummary": {
+            "term": "MBTI summary code",
+            "desc": "A self-reflection summary that keeps near-boundary axes open"
+          }
+        }
+      },
+      "darktriad": {
+        "title": "Dark Triad",
+        "desc": "Explore three SD3 construct dimensions with explicit translation and factor-structure limits.",
+        "items": {
+          "factors": {
+            "term": "Three constructs",
+            "desc": "Machiavellianism, Narcissism, and Psychopathy continuous scores"
+          },
+          "norms": {
+            "term": "Reference limits",
+            "desc": "Prior-sample evidence is not a Korean target-population norm"
+          }
+        }
+      },
+      "attachment": {
+        "title": "Attachment Style Test",
+        "desc": "Analyze patterns in intimate relationships.",
+        "items": {
+          "dimensions": {
+            "term": "Two dimensions",
+            "desc": "Continuous scores for anxiety and avoidance"
+          },
+          "quadrants": {
+            "term": "Four quadrants",
+            "desc": "Secure, anxious, avoidant, and fearful classifications"
+          }
+        }
+      },
+      "eq": {
+        "title": "Emotional Intelligence (EQ) Test",
+        "desc": "Look at self-reported tendencies for noticing and handling emotions.",
+        "items": {
+          "factors": {
+            "term": "Total and four facets",
+            "desc": "Perception, managing own, managing others, and utilisation of emotion"
+          },
+          "experiments": {
+            "term": "One-week experiment",
+            "desc": "A small weekly try suggested for each facet"
+          }
+        }
+      },
+      "cognitive": {
+        "title": "Cognitive Ability Exploration",
+        "desc": "Work through reasoning items in four formats and see the rule behind each one.",
+        "items": {
+          "domains": {
+            "term": "Accuracy by format",
+            "desc": "Correct counts for series, matrix, verbal, and rotation"
+          },
+          "review": {
+            "term": "Item by item",
+            "desc": "Your answer, the correct answer, and the rule for every item"
+          }
+        }
+      },
+      "horoscope": {
+        "title": "Today's horoscope",
+        "desc": "Check the tone of a day, lightly.",
+        "items": {
+          "zodiac": {
+            "term": "Zodiac",
+            "desc": "A daily line based on the Sun sign"
+          },
+          "animal": {
+            "term": "Chinese zodiac",
+            "desc": "A daily texture through the twelve animals"
+          }
+        }
+      }
     },
     "sectionInput": "Birth Info",
     "sectionReport": "What's in the Report",
     "items": {
-      "pillars": { "term": "Saju Chart", "desc": "The eight characters of Heavenly Stems and Earthly Branches, Hidden Stems, the Twelve Growth Stages, and Void" },
-      "calc": { "term": "Calculation Record", "desc": "Solar term entry time, true solar time correction, and standard time offset" },
-      "elements": { "term": "Five Elements Distribution", "desc": "A simple count of the eight characters, plus a weighted count including Hidden Stems" },
-      "tenGods": { "term": "Ten Gods", "desc": "How the eight characters relate to the Day Master" },
-      "luck": { "term": "Major Luck", "desc": "100 years in ten-year cycles, including forward or reverse direction" },
-      "yearly": { "term": "Annual Luck", "desc": "This year's stem-branch and Ten Gods, based on the Start of Spring" }
+      "pillars": {
+        "term": "Saju Chart",
+        "desc": "The eight characters of Heavenly Stems and Earthly Branches, Hidden Stems, the Twelve Growth Stages, and Void"
+      },
+      "calc": {
+        "term": "Calculation Record",
+        "desc": "Solar term entry time, true solar time correction, and standard time offset"
+      },
+      "elements": {
+        "term": "Five Elements Distribution",
+        "desc": "A simple count of the eight characters, plus a weighted count including Hidden Stems"
+      },
+      "tenGods": {
+        "term": "Ten Gods",
+        "desc": "How the eight characters relate to the Day Master"
+      },
+      "luck": {
+        "term": "Major Luck",
+        "desc": "100 years in ten-year cycles, including forward or reverse direction"
+      },
+      "yearly": {
+        "term": "Annual Luck",
+        "desc": "This year's stem-branch and Ten Gods, based on the Start of Spring"
+      }
     },
     "prevResult": "Revisit Previous Result"
   },
@@ -342,6 +524,9 @@
   },
   "astro": {
     "navLabel": "Birth Chart",
+    "entryTitle": "My Result",
+    "newTitle": "Start a new Birth Chart calculation",
+    "newIntro": "Enter your birth information to calculate it in this browser, with no sign-up.",
     "risingGloss": "The first impression you give",
     "sunGloss": "How you show up outwardly",
     "moonGloss": "Your inner texture when alone",
@@ -474,7 +659,8 @@
     "reflectionLabel": "Reflection prompt",
     "iconographyLabel": "Visual motif",
     "revealHint": "Choose a position first, then meet the symbol of this moment. The result is already fixed in the link.",
-    "revealCta": "Reveal the Cards"
+    "revealCta": "Reveal the Cards",
+    "ogFooterNotice": "Symbolic self-reflection, not a prediction — the same seed always draws the same cards."
   },
   "numerology": {
     "kicker": "Life Path · Destiny",
@@ -534,82 +720,206 @@
     "resultTitle": "Personality Test Result",
     "itemCountLabel": "IPIP-50 · {n} items",
     "sectionFactors": "The Five Factors",
+    "provisionalMean": "Provisional mean {value}",
+    "allAnswered": "All items answered",
     "factorsAside": "Position on a 0–100 scale",
     "meanLabel": "Mean {mean} / 5.0",
     "scaleNote": "The dot is the raw-score position on this scale (0–100); the band is the 95% reference interval based on measurement error. The percentile and T-score compare this response pattern with an English-language public reference sample — not a Korean norm or a diagnosis.",
     "reliabilityNote": "Reliability alpha is the factor-level internal-consistency value published in the official IPIP table. SEM expresses that error in raw-score units. Neither reliability nor the reference interval is a diagnosis or a forecast.",
-      "brokenLink": "This link's result couldn't be read.",
-      "restartCta": "Retake Test",
-      "openJungian": "View the Jungian Type Lens →",
-      "jungianPreviewTitle": "Jungian Type Lens axis preview",
-      "jungianPreviewNote": "A provisional position that moves as you answer",
-      "jungianAxes": {
-        "EI": { "label": "Energy direction", "negative": "I Introversion", "positive": "E Extraversion" },
-        "SN": { "label": "Information direction", "negative": "S Sensing", "positive": "N Intuition" },
-        "TF": { "label": "Judgment direction", "negative": "T Thinking", "positive": "F Feeling" },
-        "JP": { "label": "Life direction", "negative": "J Judging", "positive": "P Perceiving" }
+    "brokenLink": "This link's result couldn't be read.",
+    "restartCta": "Retake Test",
+    "openJungian": "View the MBTI Type Analysis →",
+    "jungianPreviewTitle": "MBTI preference-axis preview",
+    "jungianPreviewNote": "A provisional position that updates as you answer",
+    "jungianAxes": {
+      "EI": {
+        "label": "Energy preference",
+        "negative": "I Introversion",
+        "positive": "E Extraversion"
       },
-      "factors": {
-      "extraversion": { "label": "Extraversion", "low": "A tendency to draw energy from time alone", "high": "A tendency to draw energy from being around people" },
-      "agreeableness": { "label": "Agreeableness", "low": "A tendency to judge things directly and independently", "high": "A tendency to consider others' perspectives first" },
-      "conscientiousness": { "label": "Conscientiousness", "low": "A tendency to stay flexible and spontaneous", "high": "A tendency to plan ahead and build structure" },
-      "emotionalStability": { "label": "Emotional Stability", "low": "A tendency to feel emotional ups and downs more often", "high": "A tendency to stay relatively steady through emotional swings" },
-      "intellect": { "label": "Openness", "low": "A preference for the familiar and the concrete", "high": "A tendency to enjoy new ideas and abstract concepts" }
+      "SN": {
+        "label": "Information preference",
+        "negative": "S Sensing",
+        "positive": "N Intuition"
+      },
+      "TF": {
+        "label": "Judgment preference",
+        "negative": "T Thinking",
+        "positive": "F Feeling"
+      },
+      "JP": {
+        "label": "Lifestyle preference",
+        "negative": "J Judging",
+        "positive": "P Perceiving"
+      },
+      "AT": {
+        "label": "Identity preference",
+        "negative": "T Turbulent",
+        "positive": "A Assertive"
+      },
+      "VW": {
+        "label": "Emotional-expression preference",
+        "negative": "W Withdrawal",
+        "positive": "V Volatility"
+      }
+    },
+    "factors": {
+      "extraversion": {
+        "label": "Extraversion",
+        "low": "A tendency to draw energy from time alone",
+        "high": "A tendency to draw energy from being around people"
+      },
+      "agreeableness": {
+        "label": "Agreeableness",
+        "low": "A tendency to judge things directly and independently",
+        "high": "A tendency to consider others' perspectives first"
+      },
+      "conscientiousness": {
+        "label": "Conscientiousness",
+        "low": "A tendency to stay flexible and spontaneous",
+        "high": "A tendency to plan ahead and build structure"
+      },
+      "emotionalStability": {
+        "label": "Emotional Stability",
+        "low": "A tendency to feel emotional ups and downs more often",
+        "high": "A tendency to stay relatively steady through emotional swings"
+      },
+      "intellect": {
+        "label": "Openness",
+        "low": "A preference for the familiar and the concrete",
+        "high": "A tendency to enjoy new ideas and abstract concepts"
+      }
     }
   },
   "jungian": {
-    "metaTitle": "Jungian Type Lens (unofficial)",
-    "metaDescription": "Re-express IPIP-50 Big Five responses on four continuous axes and summarize them with an unofficial derived type code.",
+    "metaTitle": "MBTI Type Analysis (unofficial)",
+    "metaDescription": "Interpret IPIP-50 Big Five responses through four MBTI preference axes while showing continuous scores, boundary uncertainty, and a 16-type summary code.",
+    "evidenceStatusOverride": "MBTI-style interpretation from Big Five",
     "brokenLink": "This link's result couldn't be read.",
-    "kicker": "JUNGIAN TYPE LENS · DERIVED FROM IPIP-50",
-    "heroTitle": "Same answers, your type",
-    "heroBody": "Your completed IPIP-50 Big Five responses are re-read as four continuous axes following comparison literature (McCrae & Costa, 1989), then summarized as one of 16 derived codes. Continuous positions are the primary result; the code is a self-reflection prompt, not a verdict.",
-    "startTest": "Start the 50 items",
-    "openSavedResult": "Open saved Jungian Type Lens result",
-    "retakeTest": "Retake and compare",
-    "whySameItems": "Why reuse the same items?",
-    "axesKicker": "01 / FOUR CONTINUOUS AXES",
-    "axesTitle": "Follow the gradient, not a border",
-    "axesBody": "The poles are different directions, not ranks. When a score is near the center, the letter stays ? instead of forcing a categorical claim onto a continuous response.",
-    "methodKicker": "02 / METHOD & LIMITS",
-    "methodTitle": "A type is a summary, not a verdict",
-    "methodBody": "This screen does not measure a new construct. It linearly re-expresses existing IPIP-50 factor scores. Continuous scores are primary; the four-letter code is a compact format for sharing and remembering. This is an unofficial Jungian Type Lens derived from Big Five scores.",
-    "sourceMethod": "The axis correspondences refer to NEO-PI self-report comparisons reported by McCrae and Costa (1989), not to a user's personal correlation or a new norm. Critiques by Pittenger (1993) and Stein & Swan (2019) are included so the limits of type theory remain visible.",
+    "kicker": "MBTI TYPE ANALYSIS · IPIP-50 REFERENCE INTERPRETATION",
+    "heroTitle": "The MBTI pattern in your answers",
+    "heroBody": "Answer 50 items to trace four preference axes—E/I, S/N, T/F, and J/P—from your five-factor scores. The result walks you through each letter, continuous score, boundary uncertainty, and type profile, then leaves you with a small experiment question for the present moment.",
+    "startTest": "Start with 50 items",
+    "openSavedResult": "Open saved MBTI analysis result",
+    "retakeTest": "Retake and compare another moment",
+    "whySameItems": "How does the MBTI analysis work?",
+    "axesKicker": "01 / FOUR MBTI PREFERENCE AXES",
+    "axesTitle": "Four letters, four directions",
+    "chapterAxes": "Four axes",
+    "axesBody": "E/I, S/N, T/F, and J/P describe different preferences, not ranks or fixed identities. Start with the continuous score and its 95% reference interval; a near-midpoint axis stays ? so the interpretation does not overclaim.",
+    "methodKicker": "02 / MBTI METHOD & LIMITS",
+    "methodTitle": "Calculation method, literature, and limits",
+    "methodBody": "This screen does not administer new official MBTI items. It linearly maps existing IPIP-50 Big Five factor scores onto four preference axes using correspondence patterns reported in McCrae & Costa (1989). Continuous scores and 95% reference intervals come first; a four-letter code is added only when the axis clears its boundary. Near the midpoint, the letter remains ?.",
+    "methodStepsTitle": "The MBTI analysis flow",
+    "methodSteps": {
+      "answer": {
+        "title": "Answer the items",
+        "body": "Respond to 50 statements from your recent experience. There is no right answer or better type."
+      },
+      "map": {
+        "title": "Trace four preferences",
+        "body": "Existing Big Five scores are interpreted across E/I, S/N, T/F, and J/P, with continuous positions and reference intervals kept visible."
+      },
+      "reflect": {
+        "title": "Turn the code into an experiment",
+        "body": "Use the closest type code as a starting prompt, then test its strengths, cautions, and one small action in your current context."
+      }
+    },
+    "sourceMethod": "The axis correspondences refer to NEO-PI self-report comparisons reported by McCrae and Costa (1989), not to a user's personal correlation or a new norm. Critiques by Pittenger (1993) and Stein & Swan (2019) are included so the limits of MBTI-style type claims remain visible.",
     "sourcesTitle": "Comparison papers and limits",
-    "trademarkNotice": "MBTI is a registered trademark of The Myers & Briggs Foundation; this service is not an official MBTI® assessment. This result reinterprets IPIP-50 responses into four axes and a 16-type code using correlation structure described in academic literature.",
+    "trademarkNotice": "MBTI® is a registered trademark of The Myers & Briggs Foundation. LUMINA is not an official MBTI® assessment, item set, or norm; this unofficial analysis interprets IPIP-50 responses across four preference axes and a 16-code summary using correspondence patterns described in academic literature.",
     "openBigFive": "Open the Big Five result",
     "openMethodology": "Read the methodology",
     "backHome": "Back home",
-    "resultMetaTitle": "Jungian Type Lens result",
-    "resultMetaDescription": "A derived four-letter code with four continuous axis scores from IPIP-50 responses.",
-    "resultKicker": "JUNGIAN TYPE LENS / RESULT",
-    "resultTitle": "{code} type result",
-    "resultHero": "{code} summarizes your current response pattern. The per-type nickname and profile below are prompts for self-reflection, not a verdict.",
-    "typeCodeLabel": "Summary code {code}",
-    "certaintyLabel": "Reference certainty at the least decisive axis: {percent}%",
-    "axesAside": "Continuous score · 95% reference interval",
+    "resultMetaTitle": "MBTI Type Analysis result",
+    "resultMetaDescription": "Continuous scores and a four-letter MBTI-style summary code interpreted from IPIP-50 responses.",
+    "resultKicker": "MBTI TYPE ANALYSIS / RESULT",
+    "resultTitle": "{code} MBTI pattern",
+    "resultHero": "{code} compresses the four preference directions that are clearest in this response pattern. The nickname and profile below are prompts for observing your current behavior and choosing a next experiment, not a verdict.",
+    "typeCodeLabel": "MBTI summary code {code}",
+    "certaintyLabel": "Reference certainty at the closest boundary: {percent}%",
+    "resultReadingKicker": "RESULT READING GUIDE",
+    "resultReadingTitle": "Read the four axes before the four letters",
+    "resultReadingBody": "1) Check each axis score and its 95% reference interval, 2) compare both poles wherever ? appears, then 3) bring the profile's strengths, cautions, and experiment question into your present context. This is a map of today's responses, not a fixed identity.",
+    "axesAside": "Four continuous scores · 95% reference intervals",
     "axisLetterLabel": "{axis} axis summary letter {pole}",
     "axisScaleLabel": "{axis} axis continuous score",
     "zScoreLabel": "Standardized score z = {z}",
     "ci95AxisLabel": "95% reference interval {low}–{high}",
     "correlationBasisLabel": "Literature correspondence reference r = {r}",
-    "axisBoundaryNotice": "This axis is close to its midpoint, so no letter was forced. Read both poles as observation prompts, not as a ranking.",
-    "boundaryNote": "? does not mean the result is incomplete. It is a guardrail against using an arbitrary cut point to overstate a continuous response pattern.",
-    "typeSectionTitle": "Your Jungian Type Lens summary",
-    "typeSectionAside": "Per-type summary · non-deterministic",
-    "typeImageAlt": "A self-reflection illustration for the {code} type",
-    "typeImageNote": "Use this image as a flexible visual prompt, not as a fixed identity.",
-    "typeNicknameLabel": "Type nickname",
-    "typeKeywordsLabel": "Type keywords",
+    "axisBoundaryNotice": "This axis is close to its midpoint, so no letter was forced. Read both poles—such as E and I—as observation prompts, not a ranking.",
+    "boundaryNote": "? does not mean the result is incomplete. It is a guardrail against using an arbitrary cut point to overstate a continuous response pattern. When a boundary appears, try both preferences in context before deciding what fits.",
+    "typeSectionTitle": "Your MBTI interpretation",
+    "typeSectionAside": "Type code + preferences + experiment prompt",
+    "typeImageAlt": "A self-reflection illustration for the {code} MBTI pattern",
+    "typeImageNote": "Use this image as a flexible visual prompt for a pattern that can shift with context, not as a fixed identity.",
+    "typeNicknameLabel": "MBTI pattern nickname",
+    "typeKeywordsLabel": "MBTI pattern keywords",
     "boundaryTypeSummary": "At least one axis is close to the midpoint, so the full code remains open.",
-    "boundaryTypeDetail": "Start with the continuous positions of all four axes. If a result changes, the item responses and present context may have changed; that alone is not evidence that your personality changed.",
-    "methodTitle": "Calculation, literature, and limits",
-    "openBigFiveResult": "Return to the Big Five result",
+    "boundaryTypeDetail": "Start with the continuous positions of all four axes. If a result changes, the item responses, present context, or uncertainty near a boundary may have changed; that alone is not evidence that your personality changed.",
+    "openBigFiveResult": "Open the original Big Five result",
     "jungianAxes": {
-      "EI": { "label": "Energy direction", "description": "A continuous direction from inward recovery toward social activation.", "negative": "I · Introversion", "positive": "E · Extraversion" },
-      "SN": { "label": "Information direction", "description": "A continuous direction from concrete experience toward patterns and possibilities.", "negative": "S · Sensing", "positive": "N · Intuition" },
-      "TF": { "label": "Judgment direction", "description": "A continuous direction from criteria and consistency toward interpersonal consideration.", "negative": "T · Thinking", "positive": "F · Feeling" },
-      "JP": { "label": "Life direction", "description": "A continuous direction from structured closure toward keeping options open.", "negative": "J · Judging", "positive": "P · Perceiving" }
+      "EI": {
+        "label": "Energy preference",
+        "description": "A continuous direction from recovering inwardly toward gaining energy through people and activity.",
+        "negative": "I · Introversion",
+        "positive": "E · Extraversion"
+      },
+      "SN": {
+        "label": "Information preference",
+        "description": "A continuous direction from concrete observation toward patterns, possibilities, and new perspectives.",
+        "negative": "S · Sensing",
+        "positive": "N · Intuition"
+      },
+      "TF": {
+        "label": "Judgment preference",
+        "description": "A continuous direction from foregrounding criteria and logic toward including people and relationships in the decision.",
+        "negative": "T · Thinking",
+        "positive": "F · Feeling"
+      },
+      "JP": {
+        "label": "Lifestyle preference",
+        "description": "A continuous direction from structure and closure toward keeping options open and adjusting to new information.",
+        "negative": "J · Judging",
+        "positive": "P · Perceiving"
+      },
+      "AT": {
+        "label": "Identity preference",
+        "description": "A continuous direction from calm self-assurance under stress toward closer, more frequent self-monitoring. This is an original extension not part of official MBTI.",
+        "negative": "T · Turbulent",
+        "positive": "A · Assertive"
+      },
+      "VW": {
+        "label": "Emotional-expression preference",
+        "description": "A contrast between outward signals (irritability, mood swings) and inward signals (worry, low mood) when emotion is unsettled — whichever tends to surface more.",
+        "negative": "W · Withdrawal-leaning",
+        "positive": "V · Volatility-leaning"
+      }
+    },
+    "correlationBasisUnavailable": "This axis is an original extension with no published correlation reference.",
+    "sectionStrengthsTitle": "Strengths and growth edges",
+    "sectionStrengthsAside": "Strengths relatively often reported for this combination, alongside points worth watching.",
+    "sectionRelationshipsTitle": "Relationships and communication",
+    "sectionRelationshipsAside": "Tendencies in how close relationships are communicated with and conflict is handled.",
+    "sectionWorkTitle": "Work and collaboration style",
+    "sectionWorkAside": "Work environments and collaboration styles that may fit. Not a career recommendation.",
+    "sectionGrowthTitle": "Growth roadmap and self-experiments",
+    "sectionGrowthAside": "Questions to answer for yourself. There is no correct answer.",
+    "growthPromptsLabel": "Self-experiment questions",
+    "benefitsTitle": "What this analysis can do for you",
+    "benefits": {
+      "selfUnderstanding": {
+        "title": "Deeper self-understanding",
+        "body": "Six continuous axes and boundary markers turn your tendencies into something to observe, not declare."
+      },
+      "relationships": {
+        "title": "Better relationships",
+        "body": "Get a starting point for understanding how people with different preferences communicate and handle conflict."
+      },
+      "work": {
+        "title": "Exploring how you work",
+        "body": "Explore work environments and collaboration styles that may fit — as questions, not a career recommendation."
+      }
     }
   },
   "darktriad": {
@@ -618,7 +928,14 @@
     "kicker": "Dark Triad · SD3 exploratory",
     "heroTitle": "Exploring the darker side of personality",
     "heroBody": "Uses the Short Dark Triad items by Jones & Paulhus (2014) as an exploratory reference. Answer 27 questions to see continuous construct scores. The Korean wording and three-factor structure require further target-population validation; scores are not a clinical or moral judgment.",
+    "heroImageAlt": "An illustrated map of the three Dark Triad constructs",
+    "visualGuideTitle": "Three constructs, seen through images",
+    "visualGuideBody": "A score does not define a person. Each image is a metaphor for understanding one possible tendency.",
+    "factorImageAlt": "An illustration representing {factor}",
+    "resultImageAlt": "An illustration representing the three Dark Triad constructs",
     "sectionFactors": "Three Traits",
+    "provisionalMean": "Provisional mean {value}",
+    "allAnswered": "All items answered",
     "factorsAside": "Continuous scores",
     "scaleNote": "Scores range from 9 to 45. Retained reference distributions are not Korean target-population norms. High scores are not a diagnosis, moral label, or prediction.",
     "reliabilityNote": "Published internal-consistency values are reference evidence from prior samples, not a guarantee of reliability for this Korean implementation.",
@@ -649,13 +966,211 @@
     "itemResponseTitle": "Item responses",
     "itemStrongTitle": "Strongly agreed items",
     "itemWeakTitle": "Weakly agreed items",
-    "itemResponseFormat": "Response {response} → Scored {scoreed}",
+    "itemResponseFormat": "Response {response} → Scored {scored}",
     "reverseScored": "Reverse-scored",
     "midpointCaution": "Midpoint response rate is {rate}%. Results may be unstable due to many undecided items.",
     "factors": {
-      "machiavellianism": { "label": "Machiavellianism" },
-      "narcissism": { "label": "Narcissism" },
-      "psychopathy": { "label": "Psychopathy" }
+      "machiavellianism": {
+        "label": "Machiavellianism"
+      },
+      "narcissism": {
+        "label": "Narcissism"
+      },
+      "psychopathy": {
+        "label": "Psychopathy"
+      }
+    }
+  },
+  "eq": {
+    "metaTitle": "Emotional Intelligence (EQ) Test",
+    "metaDescription": "Explore how you notice, regulate, and use emotions with the 33-item SSEIT. It is a self-report trait scale rather than an ability test, and the Korean translation is not separately validated.",
+    "kicker": "Emotional intelligence · SSEIT self-report",
+    "heroTitle": "How you handle your emotions",
+    "heroBody": "Uses the 33 SSEIT items from Schutte et al. (1998) to look at how strongly you report noticing, regulating, and using emotions. The total score is the headline measure; the four subscales are supporting signals that start a conversation.",
+    "selfReportNotice": "This is not an ability test that measures emotional intelligence through performance. It is a self-report scale in which you describe how you usually see yourself, so a score reflects current self-perception rather than proven skill.",
+    "heroImageAlt": "An illustration of the four facets of emotional intelligence",
+    "visualGuideTitle": "Four facets, seen through images",
+    "visualGuideBody": "A score does not define a person. Each image is a metaphor for one tendency, and dedicated illustrations are still in preparation.",
+    "factorImageAlt": "An illustration representing {factor}",
+    "resultImageAlt": "An illustration representing the four facets of emotional intelligence",
+    "sectionFactors": "Total score and four facets",
+    "provisionalMean": "Provisional mean {value}",
+    "allAnswered": "All items answered",
+    "factorsAside": "Total + subscales",
+    "totalLabel": "Total score (SSEIT)",
+    "totalNormNote": "The total-score percentile is estimated by assuming a normal distribution over the Schutte et al. (1998) sample (N = 346, M = 124.78, SD = 13.00). It is not an empirical percentile table.",
+    "scaleNote": "The total ranges from 33 to 165. Subscales have different item counts, so each is shown as a relative position within its own theoretical range. A high score is not a diagnosis or proof of ability.",
+    "reliabilityNote": "Published internal-consistency values are reference evidence from prior samples, not a guarantee of reliability for this Korean implementation.",
+    "subscaleNormUnavailable": "No subscale norms (shown as raw score)",
+    "normUnavailable": "No norms",
+    "methodBody": "All 33 items are scored 1-5, and only items 5, 28, and 33 are reverse-scored. The total is standardized against the published summary statistics in Schutte et al. (1998); subscales follow the four-factor solution of Ciarrochi et al. (2001) but have no published norms, so they appear only as raw scores and relative scale positions.",
+    "itemCountLabel": "{n} items",
+    "brokenLink": "Couldn't read this link's result.",
+    "restartCta": "Retake test",
+    "resultTitle": "Emotional Intelligence Result",
+    "resultMetaDescription": "SSEIT total and four subscale scores, with an explicit self-report limitation notice.",
+    "scale1": "Strongly disagree",
+    "scale2": "Disagree",
+    "scale3": "Neutral",
+    "scale4": "Agree",
+    "scale5": "Strongly agree",
+    "submit": "View results",
+    "unansweredWarning": "{n} items still unanswered. Answer all to see your results.",
+    "shareTitle": "Emotional Intelligence Result",
+    "retakeCta": "Retake test",
+    "meanLabel": "Mean {mean}",
+    "rawSumLabel": "Raw score {score} / {max}",
+    "tScoreLabel": "T-score {score}",
+    "percentileLabel": "Percentile {n}",
+    "normSample": "Sample {n} respondents",
+    "reliabilityLabel": "α = {alpha}",
+    "ci95Label": "95% CI [{low}, {high}]",
+    "lowEnd": "Low",
+    "highEnd": "High",
+    "itemResponseTitle": "Item responses",
+    "itemStrongTitle": "Strongly agreed items",
+    "itemWeakTitle": "Weakly agreed items",
+    "itemResponseFormat": "Response {response} → Scored {scored}",
+    "reverseScored": "Reverse-scored",
+    "midpointCaution": "Midpoint response rate is {rate}%. Results may be unstable due to many undecided items.",
+    "sectionExperiments": "A one-week everyday experiment",
+    "experimentsAside": "One small try per facet",
+    "experimentsIntro": "These four are not prescriptions but small observation experiments you can run for a week. A lower score is not something to fix; the point is to see for yourself, in daily life, what the items were actually asking about.",
+    "experimentsFooterNotice": "These are reference results from a self-report scale and do not replace counseling or treatment. If a suggestion does not fit you, it is fine to stop.",
+    "factors": {
+      "perceptionOfEmotion": {
+        "label": "Perception of Emotion",
+        "blurb": "Noticing emotional cues in faces, voices, and your own experience.",
+        "experimentTitle": "Name one moment a day",
+        "experimentBody": "Once a day, recall a moment that moved you and write down one word for the feeling. After a week, just skim whether the same word repeats or similar situations recur."
+      },
+      "managingOwnEmotions": {
+        "label": "Managing Own Emotions",
+        "blurb": "Steadying your mood and continuing to try when things get hard.",
+        "experimentTitle": "Write down one time it went well",
+        "experimentBody": "Pick one moment this week when you got stuck and then started moving again, and write one line about what helped. Next time something similar happens, read that line first."
+      },
+      "managingOthersEmotions": {
+        "label": "Managing Others' Emotions",
+        "blurb": "Attending to how others feel and to the emotional tone of a relationship.",
+        "experimentTitle": "One specific compliment",
+        "experimentBody": "Once this week, tell someone close to you specifically what you appreciated. Note how you felt afterwards rather than tracking their reaction."
+      },
+      "utilisationOfEmotion": {
+        "label": "Utilisation of Emotion",
+        "blurb": "Using shifts in mood as material for judgment, ideas, and motivation.",
+        "experimentTitle": "Attach one task to your best hour",
+        "experimentBody": "Choose the single hour of the day when you usually feel best, and move one postponed task into it. Check only whether that hour actually helped, not how the task turned out."
+      }
+    }
+  },
+  "cognitive": {
+    "standardizedKicker": "Standardized cognitive ability pilot",
+    "standardizedTitle": "A careful estimate of how you reason",
+    "standardizedBody": "This research instrument samples fluid reasoning, verbal knowledge, visual-spatial ability, working memory and processing speed. It uses randomized items and a server-side adaptive design.",
+    "pilotNotice": "This pilot records responses for validation. Until a Korean adult norm is approved, no IQ, percentile, subscore or answer key is shown.",
+    "researchNotice": "Participation is voluntary. Operational storage is required to resume an anonymous run; research use is optional.",
+    "practiceLink": "Try public practice items",
+    "setupRequired": "The research pilot could not load its protected data store or item bank. Please try again shortly.",
+    "runStart": "Start pilot",
+    "runResume": "Resume pilot",
+    "runSubmit": "Submit answer",
+    "runProgress": "{answered} / {total}",
+    "runInvalid": "This run is no longer available. Start a new pilot.",
+    "pilotResultTitle": "Pilot participation recorded",
+    "pilotResultBody": "Your responses were recorded for instrument validation. A standardized IQ estimate will appear only after Korean adult norms, reliability, fairness and independent review are approved.",
+    "pilotResultCta": "Return to cognitive pilot",
+    "legacyNotice": "This old response link is read-only and cannot produce a standardized score. Start the protected pilot instead.",
+    "deviceReady": "Device conditions are ready for the pilot.",
+    "deviceUnsupported": "Processing-speed data is withheld on this device; use a keyboard, pointer and larger viewport for the full protocol.",
+    "metaTitle": "Cognitive Ability Exploration (not the IQ test you may be looking for)",
+    "metaDescription": "Twenty original LUMINA items sample fluid reasoning, verbal knowledge, visual-spatial ability, working memory and processing speed. Items are drawn adaptively from a protected bank; no IQ or percentile is shown until a Korean adult norm is approved.",
+    "kicker": "Cognitive ability exploration · 20-item scientific pilot",
+    "heroTitle": "The way you work a problem",
+    "heroBody": "The pilot samples fluid reasoning, verbal knowledge, visual-spatial ability, working memory and processing speed. Each run draws different items at random while the server adapts selection; results remain withheld from IQ conversion until an approved norm exists.",
+    "heroImageAlt": "An illustration of five cognitive domains",
+    "notAnIqTitle": "This is not an IQ test",
+    "notAnIqBody": "Clinical intelligence tests such as the WAIS and the Stanford-Binet are proprietary and are administered one person at a time by a trained examiner. Rebuilding one on a web page is not possible. This page is not a substitute for those tests; it is an exploration in which you work through items in the same formats and look at the grain of your own thinking.",
+    "noScoreNotice": "The result currently shows no IQ score, percentile, standard score or rank. Items must first be calibrated on a Korean adult sample, then pass independent validation, fairness review and norm approval before conversion has a defensible basis.",
+    "provenanceBody": "The items are original LUMINA content informed by the CHC ability taxonomy and ICAR format literature (Condon & Revelle, 2014). We do not copy public research norms; this bank requires its own sample calibration and validation.",
+    "durationLabel": "About {minutes} min",
+    "itemCountLabel": "{n} items",
+    "formatsTitle": "Public practice-format preview",
+    "formatsBody": "This gallery previews four public practice formats. The live pilot draws separate items from a protected five-domain CHC bank using randomized and adaptive selection.",
+    "domainImageAlt": "An illustration representing the {domain} format",
+    "unaidedNotice": "The answer key is downloaded to your browser along with the page — with no backend there is nowhere else to keep it. That is why this result only means something to you if you worked through it unaided.",
+    "resultTitle": "Cognitive Ability Exploration Result",
+    "resultMetaDescription": "Accuracy in each of the four formats, with the rule behind every item. No norm sample exists, so no percentile and no IQ-equivalent are given.",
+    "resultSummary": "How many items you answered correctly in each of the four formats, together with the rule each item was actually asking about.",
+    "resultImageAlt": "An illustration representing the four reasoning formats",
+    "brokenLink": "Couldn't read this link's result.",
+    "restartCta": "Go to the items",
+    "retakeCta": "Try again",
+    "shareTitle": "Cognitive Ability Exploration Result",
+    "overallAccuracy": "{correct} of {total} items correct · {percent}% overall accuracy",
+    "sectionDomains": "Accuracy by format",
+    "domainsAside": "Four formats · four items each",
+    "domainsIntro": "The four accuracies are laid over one shape. A wide or narrow figure is not the size of an ability; it is a picture of which formats sat easily in your hands across these sixteen items.",
+    "domainAccuracy": "{correct} of {total} · {percent}%",
+    "coarseResolutionNote": "With only four items per format, accuracy can take just five values: 0, 25, 50, 75, and 100. One item is worth 25 percentage points, so the ordering between formats flips easily by chance alone.",
+    "sectionReview": "Item by item",
+    "reviewAside": "16 items · the rule behind each",
+    "reviewIntroResult": "This is the part of the page worth staying with. All sixteen items are opened up again, each with the rule it was asking about. Even for the items you answered correctly, reading the rule tends to change how the next one looks.",
+    "itemCorrect": "Correct",
+    "itemIncorrect": "Incorrect",
+    "yourAnswer": "Your answer",
+    "yourAnswerCorrect": "Your answer (correct)",
+    "correctAnswer": "Correct answer",
+    "ruleLabel": "Rule",
+    "sectionLimits": "Limits of this result",
+    "limitsAside": "Before you read it",
+    "methodBody": "The sixteen items are scored only as right or wrong, giving a correct count and accuracy per format and overall. There is no reverse scoring, no weighting, and no time penalty. Time is recorded but is never used in scoring and is never placed in a share link.",
+    "citationScopeNote": "The works below are the source of the item formats this assessment follows, not the source of the items themselves. The norms and validity evidence from that research therefore do not carry over to this result.",
+    "elapsedResultNote": "{minutes} min {seconds} s recorded in this browser — a value that was never used in scoring.",
+    "limitations": {
+      "item1": "The items are written by LUMINA in the four ICAR item formats (Condon & Revelle, 2014); they are not ICAR's own items.",
+      "item2": "No norm sample has ever answered these items, so no percentile or IQ-equivalent can be given — only per-format and overall accuracy are reported.",
+      "item3": "Sixteen items are far too few for a stable ability estimate.",
+      "item4": "This is a self-exploration prompt rather than a clinical intelligence test, and the result only means anything if it was taken unaided."
+    },
+    "domainsLabel": "Four item formats",
+    "itemLabel": "Item {n}",
+    "optionsLabel": "Options",
+    "recommendedTime": "Suggested {seconds}s",
+    "timingNote": "The suggested time is guidance only. There is no limit and no automatic submission, and how long you take is never scored.",
+    "previous": "Previous item",
+    "next": "Next item",
+    "toReview": "Review answers",
+    "reviewTitle": "Review before submitting",
+    "reviewIntro": "All sixteen items appear on one screen before you submit. While you are here you can change any answer.",
+    "backToItems": "Back to the items",
+    "submit": "View results",
+    "unansweredWarning": "{n} item(s) are still blank. Every item needs an answer before the result can be shown.",
+    "unansweredMark": "Not answered",
+    "elapsedItem": "{seconds}s spent here",
+    "elapsedNotMeasured": "No time recorded",
+    "elapsedTotal": "{minutes} min {seconds} s recorded so far",
+    "matrixStimulusAlt": "A three-by-three grid of figures with one cell left blank and marked by a question mark. Work out the rule from the other eight cells and choose the figure that belongs in the blank.",
+    "rotationStimulusAlt": "A solid figure built from joined cubes. Choose the option that shows the same figure after nothing but rotation.",
+    "matrixOptionAlt": "Option {n} figure",
+    "rotationOptionAlt": "Option {n} solid figure",
+    "domains": {
+      "letterNumberSeries": {
+        "label": "Letter and number series",
+        "blurb": "Find the next place in a line where letters and numbers advance by separate rules."
+      },
+      "matrixReasoning": {
+        "label": "Matrix reasoning",
+        "blurb": "Read what the rows and columns of a 3x3 grid each change, then fill the blank."
+      },
+      "verbalReasoning": {
+        "label": "Verbal reasoning",
+        "blurb": "Weigh the relations carried by words and sentences and choose what follows."
+      },
+      "threeDimensionalRotation": {
+        "label": "Three-dimensional rotation",
+        "blurb": "Turn a cube figure in your head and find the option that is the same solid."
+      }
     }
   },
   "horoscope": {
@@ -664,23 +1179,26 @@
     "heroTitle2": "or a zodiac animal.",
     "heroBody": "The day changes over at your own local midnight. Nothing is stored on a server — it's calculated fresh, right there.",
     "sectionPick": "Choose",
-      "tabZodiac": "Zodiac Sign",
+    "tabZodiac": "Zodiac Sign",
     "tabChinese": "Zodiac Animal",
-      "previewLabel": "Selection preview",
-      "recommendedSign": "Saved profile",
-      "systemZodiac": "Zodiac Sign",
+    "previewLabel": "Selection preview",
+    "recommendedSign": "Saved profile",
+    "systemZodiac": "Zodiac Sign",
     "systemChinese": "Zodiac Animal",
     "sectionToday": "Today",
     "moodLabel": "Mood",
     "relationshipLabel": "Relationships",
     "workLabel": "Tasks",
     "tipLabel": "Tip",
+    "elementAffinityLabel": "Today's Element",
+    "elementAffinityBody": "Today's day branch is {branch} ({hanja}) — the {element} element is active.",
     "otherSigns": "See other signs and animals",
     "brokenLink": "This result couldn't be read.",
     "emptyBody": "No birth info has been entered yet.",
     "cannotCompute": "This value can't be calculated.",
     "resultTitleSuffix": "Today's Fortune",
-    "metaDescription": "Pick a zodiac sign or a zodiac animal to see a short glimpse of today."
+    "metaDescription": "Pick a zodiac sign or a zodiac animal to see a short glimpse of today.",
+    "ogFooterNotice": "A general sign profile, not personalized — today's actual reading updates daily on the site."
   },
   "horoscopeReading": {
     "sectionEvidence": "Calculation basis",
@@ -766,7 +1284,7 @@
     "tarot": "Tarot · symbolic tradition",
     "numerology": "Numerology · number tradition",
     "psychometrics": "Personality test · psychometrics",
-    "jungian": "Jungian Type Lens (unofficial) · Big Five re-expression",
+    "jungian": "MBTI Type Analysis (unofficial) · Big Five reference interpretation",
     "horoscope": "Daily reading · sky and day-pillar calculation",
     "note": "The relevant references are repeated inside detailed result blocks. Sources with URLs can be opened in the original publication or repository."
   },
@@ -775,18 +1293,54 @@
     "title": "Glossary",
     "intro": "Short explanations for technical terms used in calculated values and interpretations. The evidence tier is kept visible so definitions are not mistaken for validated predictions.",
     "items": {
-      "evidenceRef": { "term": "Evidence reference", "definition": "An internal link from an interpretation sentence to the calculation value it uses. It does not automatically prove the interpretation true, but broken links can be tested." },
-      "tenGod": { "term": "Ten Gods", "definition": "Traditional Saju vocabulary that expresses the Five-Element and polarity relationship between the Day Master and another character through ten roles." },
-      "growthStage": { "term": "Twelve Growth Stages", "definition": "Traditional Saju vocabulary that reads the relationship between a Day Master's stem and a branch through a twelve-stage life-cycle metaphor. Illness and Death are not medical or lifespan predictions." },
-      "trueSolar": { "term": "True solar time", "definition": "A time value adjusted from standard clock time by birthplace longitude and the equation of time to approximate the Sun's apparent position." },
-      "house": { "term": "House", "definition": "A symbolic sector in an astrology chart, dividing the zodiac into twelve areas from the Ascendant and birthplace." },
-      "aspect": { "term": "Aspect", "definition": "A calculated relationship that checks whether the ecliptic separation between two bodies is close to a reference angle such as conjunction, square, or trine." },
-      "tScore": { "term": "T-score", "definition": "A standardized score based on a norm sample's mean and standard deviation. LUMINA uses a mean of 50 and standard deviation of 10." },
-      "percentile": { "term": "Percentile", "definition": "A 1–99 position showing where a raw response score falls in the reference distribution. It is not a Korean population norm." },
-      "sem": { "term": "Standard error of measurement (SEM)", "definition": "An estimate of how much a score may vary across repeated measurement of the same trait, based on reliability and standard deviation." },
-      "masterNumber": { "term": "Master Number", "definition": "A numerology rule that keeps 11, 22, and 33 as distinct symbols instead of reducing them to one digit." },
-      "jungianAxis": { "term": "Jungian Type Lens axes", "definition": "Four continuous directions that re-express existing Big Five scores without new items; a compact code summarizes the directions while preserving boundary uncertainty." },
-      "typeBoundary": { "term": "Boundary ?", "definition": "A marker used when an axis is close to its midpoint, so an arbitrary letter is not forced. It preserves continuity rather than indicating a missing result." }
+      "evidenceRef": {
+        "term": "Evidence reference",
+        "definition": "An internal link from an interpretation sentence to the calculation value it uses. It does not automatically prove the interpretation true, but broken links can be tested."
+      },
+      "tenGod": {
+        "term": "Ten Gods",
+        "definition": "Traditional Saju vocabulary that expresses the Five-Element and polarity relationship between the Day Master and another character through ten roles."
+      },
+      "growthStage": {
+        "term": "Twelve Growth Stages",
+        "definition": "Traditional Saju vocabulary that reads the relationship between a Day Master's stem and a branch through a twelve-stage life-cycle metaphor. Illness and Death are not medical or lifespan predictions."
+      },
+      "trueSolar": {
+        "term": "True solar time",
+        "definition": "A time value adjusted from standard clock time by birthplace longitude and the equation of time to approximate the Sun's apparent position."
+      },
+      "house": {
+        "term": "House",
+        "definition": "A symbolic sector in an astrology chart, dividing the zodiac into twelve areas from the Ascendant and birthplace."
+      },
+      "aspect": {
+        "term": "Aspect",
+        "definition": "A calculated relationship that checks whether the ecliptic separation between two bodies is close to a reference angle such as conjunction, square, or trine."
+      },
+      "tScore": {
+        "term": "T-score",
+        "definition": "A standardized score based on a norm sample's mean and standard deviation. LUMINA uses a mean of 50 and standard deviation of 10."
+      },
+      "percentile": {
+        "term": "Percentile",
+        "definition": "A 1–99 position showing where a raw response score falls in the reference distribution. It is not a Korean population norm."
+      },
+      "sem": {
+        "term": "Standard error of measurement (SEM)",
+        "definition": "An estimate of how much a score may vary across repeated measurement of the same trait, based on reliability and standard deviation."
+      },
+      "masterNumber": {
+        "term": "Master Number",
+        "definition": "A numerology rule that keeps 11, 22, and 33 as distinct symbols instead of reducing them to one digit."
+      },
+      "jungianAxis": {
+        "term": "MBTI preference axes",
+        "definition": "Four continuous preference directions—E/I, S/N, T/F, and J/P—that interpret existing Big Five scores without official MBTI items; boundary uncertainty remains visible as ?."
+      },
+      "typeBoundary": {
+        "term": "Boundary ?",
+        "definition": "A marker used when an axis is close to its midpoint, so an arbitrary letter is not forced. It preserves continuity rather than indicating a missing result."
+      }
     }
   },
   "methodologyPage": {
@@ -799,7 +1353,7 @@
     "dayCases": "Daily pillar: all 73,414 days from 1900-01-01 through 2100-12-31 matched lunar-javascript with zero mismatches",
     "norms": "Big Five: aggregate norms built from 551,607 quality-filtered rows out of 1,015,341 public IPIP records",
     "determinism": "Tarot and numerology: deterministic reproducibility tests for seeded shuffle and digit/letter-value arithmetic",
-    "jungian": "Jungian Type Lens: unit tests fix the linear re-expression of existing IPIP-50 scores, four axis directions, boundary behavior, derived profiles, and their literature basis",
+    "jungian": "MBTI Type Analysis: unit tests fix the linear reference interpretation of existing IPIP-50 scores, four preference axes, boundary behavior, type profiles, and their literature basis",
     "limitsHeading": "Limits of interpretation",
     "limitsBody": "Saju, astrology, tarot, and numerology use calculated inputs, but their symbolic sentences do not provide empirical validation that future events can be predicted. The Big Five norm is also an English-language online public sample, not a Korean population norm.",
     "notYet": "The 8,030 astrology comparisons use a five-day grid, so they do not guarantee an exhaustive error check for every instant. The Big Five norm is an English-language public sample without age- or gender-stratified norms.",
@@ -846,6 +1400,13 @@
     "kicker": "LUMINA / TWO PROFILES",
     "title": "Compare two profiles",
     "body": "Enter two birth profiles to see traditional Saju branch relations and Day Master element directions side by side. No profile is stored on a server.",
+    "heroImageAlt": "An illustration of two Saju charts and flowing Five Element currents",
+    "visualGuideTitle": "See the relationship currents",
+    "visualGuideBody": "Compatibility is not a fixed score. It is a symbolic map of ease and adjustment that can appear when two people meet.",
+    "toneImageAlt": "An illustration representing a {tone} relationship current",
+    "resultImageAlt": "An illustration of two Saju currents meeting",
+    "profileImageAlt": "Symbolic zodiac illustration for {profile}: {zodiac}",
+    "toneSectionKicker": "LUMINA / RELATIONSHIP CURRENT",
     "sectionInput": "Enter two profiles",
     "personA": "Profile A",
     "personB": "Profile B",
@@ -922,12 +1483,50 @@
     "kicker": "ECR-R informed · exploratory 36 items",
     "heroTitle": "What's your attachment style?",
     "heroDescription": "Discover the patterns you show in intimate relationships. We analyze your attachment style along two dimensions: anxiety and avoidance.",
+    "heroImageAlt": "An illustrated map of attachment patterns with two stones and four paths",
+    "visualGuideTitle": "Four patterns, seen through images",
+    "visualGuideBody": "A style is not a fixed identity. It is a pattern that can shift through relationship experiences.",
+    "styleImageAlt": "An illustration representing the {style} attachment pattern",
+    "axisImageAlt": "An illustration explaining the {axis} axis",
+    "resultImageAlt": "An illustration representing attachment style and its two axes",
+    "styles": {
+      "secure": {
+        "label": "Secure"
+      },
+      "anxious": {
+        "label": "Anxious"
+      },
+      "avoidant": {
+        "label": "Avoidant"
+      },
+      "fearful": {
+        "label": "Fearful"
+      }
+    },
     "aboutTitle": "What is an attachment style test?",
     "aboutDescription": "Attachment theory describes how relationship experiences can shape patterns in adult intimacy. This exploratory measure is informed by ECR-R concepts and currently reviews its Korean wording, five-point scale, reverse-scoring, and norms. It reports two dimensions: anxiety (worry about abandonment) and avoidance (discomfort with closeness).",
     "timeLabel": "Time required",
     "timeValue": "About 5 minutes",
     "itemsLabel": "Number of questions",
     "itemsValue": "36 questions",
+    "scale1": "Strongly disagree",
+    "scale2": "Disagree",
+    "scale3": "Neutral",
+    "scale4": "Agree",
+    "scale5": "Strongly agree",
+    "sectionAxes": "Two axes",
+    "axes": {
+      "anxiety": {
+        "label": "Anxiety"
+      },
+      "avoidance": {
+        "label": "Avoidance"
+      }
+    },
+    "provisionalMean": "Provisional mean {value}",
+    "allAnswered": "All items answered",
+    "unansweredWarning": "{n} items still unanswered. Answer all to see your results.",
+    "submit": "View results",
     "footerNote1": "※ This test is a tool for self-reflection and does not replace clinical diagnosis.",
     "footerNote2": "※ Results are stored only in this browser and are never sent to a server.",
     "resultTitle": "Attachment Style Results",
@@ -953,9 +1552,55 @@
   },
   "consent": {
     "ariaLabel": "Ad consent",
-    "message": "This site may show ads to support its operation. If you consent, ads are based on your interests; if you decline, ads are shown without personalization.",
+    "message": "This site may show ads and collect anonymous visit statistics to support its operation. If you consent, ads are based on your interests; if you decline, ads are shown without personalization — visit statistics are collected the same way either way.",
     "learnMore": "View Privacy Policy",
     "accept": "Accept",
     "reject": "Decline"
+  },
+  "share": {
+    "kicker": "SHARED RESULT",
+    "summaryOnlyNotice": "This page shows a summary someone else shared with you. Item-level responses and detailed subscale breakdowns aren't available or appropriate here.",
+    "ctaTitle": "Curious what your own pattern looks like?",
+    "ctaBody": "This summary was generated from someone else's answers. Take the same analysis yourself to see your own continuous scores and boundary axes.",
+    "ctaButton": "Try {title} yourself",
+    "backHome": "Back to LUMINA",
+    "invalidTitle": "This shared link isn't valid",
+    "invalidBody": "The code in this link is missing or damaged. Ask the sender for a fresh link, or take the analysis yourself.",
+    "limitationLabel": "Known limitation",
+    "jungian": {
+      "metaTitle": "{code} · a shared MBTI-style summary",
+      "metaDescription": "A summary someone shared from LUMINA's MBTI-style analysis: continuous axis scores mapped to the {code} pattern, derived from Big Five responses.",
+      "heroKicker": "SHARED MBTI-STYLE SUMMARY",
+      "heroTitle": "{code} pattern",
+      "heroBody": "Someone shared this MBTI-style summary computed from their IPIP-50 Big Five responses. The four letters compress four continuous preference axes — a boundary axis stays \"?\" instead of forcing a letter.",
+      "axesTitle": "Four preference axes",
+      "footerNotice": "Derived from Big Five · not the official MBTI® instrument"
+    },
+    "fallback": {
+      "metaTitle": "A shared {title} result · LUMINA",
+      "metaDescription": "This link carries a summary from LUMINA's {title} analysis.",
+      "heroKicker": "SHARED RESULT",
+      "heroTitle": "A shared {title} result",
+      "heroBody": "This link carries a summary from LUMINA's {title} analysis. Open the full analysis to see your own result.",
+      "footerNotice": "Summary only · open the full analysis for details"
+    },
+    "bigfive": {
+      "footerNotice": "Evidence from an English-language reference sample · not Korean-normed"
+    },
+    "darktriad": {
+      "footerNotice": "Not a clinical diagnosis or moral judgment — Korean research hasn't replicated the original three-factor structure."
+    },
+    "attachment": {
+      "footerNotice": "This implementation doesn't match the official ECR-R items, 7-point scale, or reverse-scoring rules — shown as experimental only."
+    },
+    "eq": {
+      "footerNotice": "Self-report trait measure, not an ability test · Korean wording is an unvalidated translation"
+    },
+    "cognitive": {
+      "footerNotice": "16 items written by LUMINA in ICAR formats · no norm sample, so no percentile and no IQ-equivalent · not a clinical IQ test",
+      "correctLabel": "Items answered correctly",
+      "accuracyLabel": "{percent}% overall accuracy",
+      "domainsHeading": "Accuracy by format"
+    }
   }
 }

@@ -3,7 +3,7 @@ import {
   axisExplanation,
   typeExplanation,
   mbtiTypeProfile,
-  type TypeProfile,
+  type TypeVariantProfile,
 } from "@engine/psychometrics/jungianExplanations";
 import {
   computeJungianLenses,
@@ -13,6 +13,7 @@ import {
   type JungianPole,
 } from "@engine/psychometrics/jungian";
 import { computeFactorScores, type ResponseMap } from "@engine/psychometrics/scoring";
+import { computeAspectScores } from "@engine/psychometrics/aspects";
 import type { ExplanationBlock, LocalizedText } from "@engine/shared/explanation";
 import { assetPath } from "./assets";
 
@@ -31,8 +32,8 @@ export interface JungianView {
   readonly typeCode: string | null;
   readonly typeCertainty: number;
   readonly typeExplanation: ExplanationBlock | null;
-  /** 유형별 별명·키워드. 경계 코드(?)일 때는 null. */
-  readonly typeProfile: TypeProfile | null;
+  /** 유형별 콘텐츠(별명·키워드·요약·강점·관계·진로·성장). 경계 코드(?)일 때는 null. */
+  readonly typeProfile: TypeVariantProfile | null;
   readonly typeImageSrc: string | null;
 }
 
@@ -59,6 +60,8 @@ const DEFAULT_AXIS_POLES: Readonly<Record<JungianAxis, JungianPole>> = Object.fr
   SN: "S",
   TF: "T",
   JP: "J",
+  AT: "T",
+  VW: "W",
 });
 
 function axisImageName(axis: JungianAxis, pole: AxisScore["pole"]): string {
@@ -66,9 +69,15 @@ function axisImageName(axis: JungianAxis, pole: AxisScore["pole"]): string {
   return `${axis.toLowerCase()}-${resolvedPole.toLowerCase()}`;
 }
 
+/** The type illustration set only covers the 16 base preference codes — strip the "-AV"/"-AW"/"-TV"/"-TW" suffix. */
+function baseCodeOf(fullCode: string): string {
+  return fullCode.split("-")[0] ?? fullCode;
+}
+
 export function buildJungianView(responses: ResponseMap): JungianView {
   const factorScores = computeFactorScores(responses);
-  const result = computeJungianLenses(factorScores);
+  const aspectScores = computeAspectScores(responses);
+  const result = computeJungianLenses(factorScores, aspectScores);
   const axes = result.axes.map((axis) => {
     const labels = labelsFor(axis.axis);
     return Object.freeze({
@@ -89,7 +98,7 @@ export function buildJungianView(responses: ResponseMap): JungianView {
     typeExplanation: complete ? typeExplanation(result.typeCode!) : null,
     typeProfile: complete ? mbtiTypeProfile(result.typeCode!) : null,
     typeImageSrc: complete
-      ? assetPath("psychometrics/types", result.typeCode!.toLowerCase())
+      ? assetPath("psychometrics/types", baseCodeOf(result.typeCode!).toLowerCase())
       : null,
   });
 }

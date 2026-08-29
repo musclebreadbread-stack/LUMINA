@@ -55,5 +55,95 @@
     "available": false,
     "groupCount": 0,
     "note": "The source file did not provide age and gender columns; only aggregate norms were emitted."
+  },
+  "aspectGate": {
+    "alphaThreshold": 0.7,
+    "correlationThreshold": 0.3,
+    "aspectAlphas": {
+      "withdrawal": 0.780665,
+      "volatility": 0.834074
+    },
+    "aspectAlphaPasses": {
+      "withdrawal": true,
+      "volatility": true
+    },
+    "contrastVsEmotionalStabilityCorrelation": -0.129775,
+    "correlationPasses": true,
+    "itemDiscriminant": [
+      {
+        "column": "EST2",
+        "aspect": "withdrawal",
+        "ownAspectCorrelation": 0.55122,
+        "otherAspectCorrelation": 0.457266,
+        "discriminates": true
+      },
+      {
+        "column": "EST4",
+        "aspect": "withdrawal",
+        "ownAspectCorrelation": 0.452864,
+        "otherAspectCorrelation": 0.316905,
+        "discriminates": true
+      },
+      {
+        "column": "EST1",
+        "aspect": "withdrawal",
+        "ownAspectCorrelation": 0.619502,
+        "otherAspectCorrelation": 0.591686,
+        "discriminates": true
+      },
+      {
+        "column": "EST3",
+        "aspect": "withdrawal",
+        "ownAspectCorrelation": 0.585439,
+        "otherAspectCorrelation": 0.475368,
+        "discriminates": true
+      },
+      {
+        "column": "EST10",
+        "aspect": "withdrawal",
+        "ownAspectCorrelation": 0.57546,
+        "otherAspectCorrelation": 0.550022,
+        "discriminates": true
+      },
+      {
+        "column": "EST5",
+        "aspect": "volatility",
+        "ownAspectCorrelation": 0.473632,
+        "otherAspectCorrelation": 0.388856,
+        "discriminates": true
+      },
+      {
+        "column": "EST6",
+        "aspect": "volatility",
+        "ownAspectCorrelation": 0.674935,
+        "otherAspectCorrelation": 0.568789,
+        "discriminates": true
+      },
+      {
+        "column": "EST7",
+        "aspect": "volatility",
+        "ownAspectCorrelation": 0.68609,
+        "otherAspectCorrelation": 0.526856,
+        "discriminates": true
+      },
+      {
+        "column": "EST8",
+        "aspect": "volatility",
+        "ownAspectCorrelation": 0.706581,
+        "otherAspectCorrelation": 0.558616,
+        "discriminates": true
+      },
+      {
+        "column": "EST9",
+        "aspect": "volatility",
+        "ownAspectCorrelation": 0.634947,
+        "otherAspectCorrelation": 0.502973,
+        "discriminates": true
+      }
+    ],
+    "itemDiscriminantAllPass": true,
+    "interAspectCorrelation": 0.657884,
+    "contrastStandardDeviation": 0.827183,
+    "overallPass": true
   }
 }

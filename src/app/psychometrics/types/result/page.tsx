@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { CSSProperties } from "react";
+import { computeJungianLenses } from "@engine/psychometrics/jungian";
+import { computeFactorScores } from "@engine/psychometrics/scoring";
+import { computeAspectScores } from "@engine/psychometrics/aspects";
 import { MCCRAE_COSTA_1989, PITTENGER_1993, STEIN_SWAN_2019 } from "@engine/psychometrics/citations";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
+import { NextLens } from "@/components/report/NextLens";
 import { ShareBar } from "@/components/report/ShareBar";
+import { ChapterNav, type Chapter } from "@/components/ui/ChapterNav";
 import { Disclaimer, Section } from "@/components/ui/Chrome";
 import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
 import { MethodNote } from "@/components/ui/MethodNote";
@@ -18,9 +24,13 @@ import { decodeResponses } from "@/lib/psychometricsCode";
 import { buildJungianView, type JungianAxisView, type JungianView } from "@/lib/jungianModel";
 import { assetPath } from "@/lib/assets";
 import { analysisDefinition } from "@/lib/analysisCatalog";
+import { encodeShareCode, jungianSummaryFromResult } from "@/lib/shareCode";
+import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
 
 interface Query {
   readonly r?: string;
+  /** "?s=<code>"로 들어온 단축 공유 링크 — 있으면 곧장 /s/jungian/<code>로 리다이렉트한다. */
+  readonly s?: string;
 }
 
 export async function generateMetadata({
@@ -28,12 +38,30 @@ export async function generateMetadata({
 }: {
   searchParams: Promise<Query>;
 }): Promise<Metadata> {
-  const t = await getTranslations("jungian");
-  await searchParams;
+  const { r } = await searchParams;
+  const [t, locale] = await Promise.all([getTranslations("jungian"), getLocale()]);
+  const responses = r ? decodeResponses(r) : null;
+
+  if (!responses) {
+    return {
+      title: t("resultMetaTitle"),
+      description: t("resultMetaDescription"),
+      robots: { index: false, follow: false },
+    };
+  }
+
+  // 기존 "?r=" 긴 링크도 카카오톡·X에 붙였을 때 실제 삽화 카드가 뜨도록, 여기서도
+  // 같은 요약 코드를 다시 계산해 og:image를 그 공유 페이지로 돌린다.
+  const jungianResult = computeJungianLenses(computeFactorScores(responses), computeAspectScores(responses));
+  const code = encodeShareCode(jungianSummaryFromResult(jungianResult, locale as Locale));
+
   return {
     title: t("resultMetaTitle"),
     description: t("resultMetaDescription"),
     robots: { index: false, follow: false },
+    openGraph: {
+      images: [{ url: `/s/jungian/${code}/opengraph-image`, width: 1200, height: 630, alt: "LUMINA" }],
+    },
   };
 }
 
@@ -42,7 +70,8 @@ export default async function JungianResultPage({
 }: {
   searchParams: Promise<Query>;
 }) {
-  const { r } = await searchParams;
+  const { r, s } = await searchParams;
+  if (s) redirect(`/s/jungian/${s}`);
   const responses = r ? decodeResponses(r) : null;
   const [t, tCommon, locale] = await Promise.all([
     getTranslations("jungian"),
@@ -51,12 +80,13 @@ export default async function JungianResultPage({
   ]);
   const resolvedLocale = locale as Locale;
   const evidence = analysisDefinition("jungian");
+  const evidenceStatusOverride = t("evidenceStatusOverride");
 
   if (!responses) {
     return (
       <SceneShell tone="psychometrics">
         <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
-          <ReportHeader />
+          <ReportHeader derivedOverride={evidenceStatusOverride} />
           <div className="py-24 text-center">
             <p className="text-sm text-hobun-dim">{t("brokenLink")}</p>
             <Link href="/psychometrics?to=types" className="mt-6 inline-block rounded-full bg-hobun px-6 py-3 text-sm font-semibold text-ink-900">
@@ -71,11 +101,29 @@ export default async function JungianResultPage({
   const view = buildJungianView(responses);
   const typeCode = view.typeCode ?? "????";
   const typeTitle = t("resultTitle", { code: typeCode });
+  const jungianResult = computeJungianLenses(computeFactorScores(responses), computeAspectScores(responses));
+  const shareCode = encodeShareCode(jungianSummaryFromResult(jungianResult, resolvedLocale));
+  const shareUrl = `/s/jungian/${shareCode}`;
+  const chapters: readonly Chapter[] = [
+    { id: "section-axes", label: t("chapterAxes") },
+    { id: "section-type", label: t("typeSectionTitle") },
+    ...(view.typeProfile
+      ? [
+          { id: "section-strengths", label: t("sectionStrengthsTitle") },
+          { id: "section-relationships", label: t("sectionRelationshipsTitle") },
+          { id: "section-work", label: t("sectionWorkTitle") },
+          { id: "section-growth", label: t("sectionGrowthTitle") },
+        ]
+      : []),
+    { id: "section-method", label: t("methodTitle") },
+    { id: "section-next-lens", label: tCommon("nextLensKicker") },
+  ];
 
   return (
     <SceneShell tone="psychometrics">
       <main className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
-        <ReportHeader />
+        <ExplorationRecorder analysisKey="jungian" />
+        <ReportHeader derivedOverride={evidenceStatusOverride} />
 
         <div className="py-8 sm:py-10">
           <ResultCover
@@ -87,6 +135,8 @@ export default async function JungianResultPage({
             imageLabel={typeCode}
             tier="scientific"
             evidenceStatus={evidence.evidence.validationStatus}
+            evidenceStatusOverride={evidenceStatusOverride}
+            completionAnalysisKey={evidence.key}
           />
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <span className="jungian-type-code" aria-label={t("typeCodeLabel", { code: typeCode })}>
@@ -103,9 +153,16 @@ export default async function JungianResultPage({
             <span className="text-sm text-hobun-dim">{t("certaintyLabel", { percent: Math.round(view.typeCertainty * 100) })}</span>
           </div>
           <p className="mt-4 border-l border-ink-600 pl-4 text-sm leading-relaxed text-hobun-faint">{t("trademarkNotice")}</p>
+          <aside className="mt-6 rounded-[1.25rem] border border-ink-700 bg-ink-950/65 p-5" aria-labelledby="mbti-result-reading-title">
+            <p className="font-mono text-[12px] tracking-[0.16em] text-hobun-faint">{t("resultReadingKicker")}</p>
+            <h2 id="mbti-result-reading-title" className="mt-2 text-lg font-medium text-hobun">{t("resultReadingTitle")}</h2>
+            <p className="mt-3 text-sm leading-relaxed text-hobun-dim">{t("resultReadingBody")}</p>
+          </aside>
         </div>
 
-        <Section index="01" title={t("axesTitle")} aside={t("axesAside")}>
+        <ChapterNav chapters={chapters} label={tCommon("chapterNavLabel")} />
+
+        <Section id="section-axes" index="01" title={t("axesTitle")} aside={t("axesAside")}>
           <div className="grid gap-5 lg:grid-cols-2">
             {view.axes.map((axis) => (
               <AxisResultCard
@@ -120,7 +177,7 @@ export default async function JungianResultPage({
           <p className="mt-6 text-sm leading-relaxed text-hobun-faint">{t("boundaryNote")}</p>
         </Section>
 
-        <Section index="02" title={t("typeSectionTitle")} aside={t("typeSectionAside")}>
+        <Section id="section-type" index="02" title={t("typeSectionTitle")} aside={t("typeSectionAside")}>
           {view.typeExplanation ? (
             <div>
               {view.typeProfile ? (
@@ -154,12 +211,48 @@ export default async function JungianResultPage({
           )}
         </Section>
 
-        <MethodNote
-          locale={resolvedLocale}
-          title={t("methodTitle")}
-          method={{ ko: t("methodBody"), en: t("methodBody") }}
-          citations={[MCCRAE_COSTA_1989, PITTENGER_1993, STEIN_SWAN_2019]}
-        />
+        {view.typeProfile ? (
+          <>
+            <Section id="section-strengths" index="03" title={t("sectionStrengthsTitle")} aside={t("sectionStrengthsAside")}>
+              <p className="text-base leading-relaxed text-hobun">
+                {resolvedLocale === "en" ? view.typeProfile.strengths.en : view.typeProfile.strengths.ko}
+              </p>
+            </Section>
+
+            <Section id="section-relationships" index="04" title={t("sectionRelationshipsTitle")} aside={t("sectionRelationshipsAside")}>
+              <p className="text-base leading-relaxed text-hobun">
+                {resolvedLocale === "en" ? view.typeProfile.relationships.en : view.typeProfile.relationships.ko}
+              </p>
+            </Section>
+
+            <Section id="section-work" index="05" title={t("sectionWorkTitle")} aside={t("sectionWorkAside")}>
+              <p className="text-base leading-relaxed text-hobun">
+                {resolvedLocale === "en" ? view.typeProfile.work.en : view.typeProfile.work.ko}
+              </p>
+            </Section>
+
+            <Section id="section-growth" index="06" title={t("sectionGrowthTitle")} aside={t("sectionGrowthAside")}>
+              <ul className="space-y-3" aria-label={t("growthPromptsLabel")}>
+                {view.typeProfile.growth.map((prompt, index) => (
+                  <li key={index} className="border-l border-ink-600 pl-4 text-base leading-relaxed text-hobun">
+                    {resolvedLocale === "en" ? prompt.en : prompt.ko}
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          </>
+        ) : null}
+
+        <div id="section-method" className="scroll-mt-24">
+          <MethodNote
+            locale={resolvedLocale}
+            title={t("methodTitle")}
+            method={{ ko: t("methodBody"), en: t("methodBody") }}
+            citations={[MCCRAE_COSTA_1989, PITTENGER_1993, STEIN_SWAN_2019]}
+          />
+        </div>
+
+        <NextLens analysisKey={evidence.key} id="section-next-lens" />
 
         <AdSlot slot="jungian-mid" label={tCommon("adLabel")} />
 
@@ -176,6 +269,10 @@ export default async function JungianResultPage({
             title={`${typeTitle} · LUMINA`}
             restartHref="/psychometrics?to=types"
             restartLabel={t("retakeTest")}
+            shareUrl={shareUrl}
+            shareText={t("resultHero", { code: typeCode })}
+            imageCard={{ kind: "jungian", code: shareCode }}
+            analysisKey={evidence.key}
           />
           <Disclaimer tier="scientific" />
         </footer>
@@ -301,7 +398,11 @@ function AxisResultCard({
           <div className="mt-4 grid gap-2 text-xs text-hobun-faint sm:grid-cols-2">
             <span>{t("zScoreLabel", { z: axis.zScore.toFixed(2) })}</span>
             <span>{t("ci95AxisLabel", { low: axis.ci95[0].toFixed(0), high: axis.ci95[1].toFixed(0) })}</span>
-            <span className="sm:col-span-2">{t("correlationBasisLabel", { r: axis.correlationBasis.toFixed(3) })}</span>
+            <span className="sm:col-span-2">
+              {axis.correlationBasis === null
+                ? t("correlationBasisUnavailable")
+                : t("correlationBasisLabel", { r: axis.correlationBasis.toFixed(3) })}
+            </span>
           </div>
         </div>
       </div>
@@ -323,7 +424,7 @@ function AxisResultCard({
   );
 }
 
-function ReportHeader() {
+function ReportHeader({ derivedOverride }: { readonly derivedOverride: string }) {
   const evidence = analysisDefinition("jungian");
 
   return (
@@ -331,7 +432,7 @@ function ReportHeader() {
       <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">LUMINA</Link>
       <div className="no-print flex items-center gap-3">
         <LocaleSwitcher />
-        <EvidenceStatusBadge status={evidence.evidence.validationStatus} />
+        <EvidenceStatusBadge status={evidence.evidence.validationStatus} derivedOverride={derivedOverride} />
       </div>
     </header>
   );

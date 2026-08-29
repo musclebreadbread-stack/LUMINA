@@ -1,8 +1,8 @@
 {
   "metaHome": {
-    "title": "LUMINA — 내면을 탐구하는 여러 가지 방법",
-    "description": "사주·점성술·타로·수비학·Big Five·오늘의 운세로 내 안의 여러 모습을 탐구해 보세요. 계산과 상징, 심리측정의 근거를 구분해 보여 줍니다.",
-    "ogDescription": "사주부터 타로·성향검사까지, 나를 탐구할 출발점을 골라 가입 없이 시작하세요."
+    "title": "LUMINA — 여러 렌즈로 나를 분석하는 자기 탐구 플랫폼",
+    "description": "심리 평가(Big Five·정서지능·애착), 인지능력 탐색, 사주·점성술·타로·수비학까지 한 곳에서 살펴봅니다. 각 분석이 어떤 근거 위에 서 있는지 계층과 검증 상태로 구분해 표시합니다.",
+    "ogDescription": "심리 평가부터 인지능력 탐색, 전통 해석까지 — 렌즈마다 근거의 무게를 밝히는 자기 분석 플랫폼. 가입 없이 시작하세요."
   },
   "common": {
     "brand": "LUMINA",
@@ -24,8 +24,17 @@
     "copyLinkDone": "링크를 복사했습니다",
     "savePdf": "PDF로 저장",
     "restartDefault": "다시 입력",
+    "saveImage": "이미지 저장",
+    "saveImageBusy": "이미지 만드는 중…",
+    "saveImageFailed": "이미지를 만들지 못했습니다",
     "readCopied": "복사됨",
     "chapterNavLabel": "리포트 섹션 이동",
+    "nextLensKicker": "다음 렌즈",
+    "nextLensTitle": "여기서 이어서 볼 것",
+    "nextLensIntro": "한 번의 결과로 보이는 면은 한 면뿐입니다. 아직 열어 보지 않은 탐구를 먼저 골라, 같은 계열에서 한 겹 더 들어가는 길과 다른 방식으로 건너가는 길을 하나씩 놓았습니다.",
+    "nextLensSibling": "같은 계열에서 한 겹 더 들어가 봅니다.",
+    "nextLensCrossing": "다른 종류의 앎으로 건너가 대조해 봅니다.",
+    "nextLensCta": "열어 보기",
     "adLabel": "광고",
     "unknownError": "알 수 없는 오류",
     "explanationDetails": "세부 해석 보기",
@@ -66,16 +75,16 @@
     "momentLabel": "지금 이 순간의 사주",
     "clockCaption": "{clock} KST · 서울 기준",
     "trueSolarCaption": "진태양시 {time} ({sign}{minutes}분 보정)",
-    "platformEyebrow": "LUMINA / INNER EXPLORATION",
+    "platformEyebrow": "LUMINA / SELF-ANALYSIS INSTRUMENT",
     "platformTitle1": "내 안의 여러 나를,",
-    "platformTitle2": "천천히 탐구합니다.",
-    "platformBody": "계산과 상징, 심리측정을 통해 지금의 나를 여러 결로 살펴봅니다. 탐구의 방식은 계속 넓어집니다. 지금 가장 끌리는 시작점부터 골라 보세요.",
+    "platformTitle2": "서로 다른 렌즈로 살펴봅니다.",
+    "platformBody": "심리 평가와 인지능력 탐색, 동서양의 전통 해석까지 — 하나의 답을 주장하는 대신 서로 다른 렌즈를 나란히 놓습니다. 렌즈마다 어떤 근거 위에 서 있고 어디까지만 말할 수 있는지를 결과보다 먼저 밝힙니다. 가입은 없고, 입력한 값은 이 브라우저에만 남습니다.",
     "heroTitle1": "태어난 순간을",
     "heroTitle2": "초 단위로 계산합니다.",
     "heroBody": "절기는 변환표가 아니라 태양 황경으로 직접 구합니다. 출생지 경도와 균시차로 진태양시를 보정하고, 1954년의 UTC+8:30이나 1988년 서머타임 같은 표준시 이력도 그대로 반영합니다. 가입은 없고, 입력한 값은 이 브라우저에만 남습니다.",
     "hubEyebrow": "내면 탐구의 시작",
     "hubHeading": "오늘은 어떤 나를 만나고 싶으신가요?",
-    "hubIntro": "태어난 순간의 구조, 마음에 남은 질문, 반복되는 경향, 오늘의 리듬을 따라가 보세요. LUMINA의 탐구 방법은 앞으로도 계속 확장됩니다.",
+    "hubIntro": "근거의 무게가 다른 렌즈를 한 덩어리로 섞지 않고 앎의 종류별로 나눠 두었습니다. 검증된 척도가 앞에, 전통 해석이 뒤에 옵니다. 카드마다 계층과 검증 상태를 함께 표시합니다.",
     "hubSajuTitle": "사주",
     "hubSajuDesc": "생년월일시로 원국·오행·대운을 정밀하게 계산합니다.",
     "hubAstroTitle": "점성술",
@@ -84,18 +93,31 @@
     "hubTarotDesc": "스프레드를 고르면 그 순간의 카드를 뽑습니다.",
     "hubNumerologyTitle": "수비학",
     "hubNumerologyDesc": "생년월일의 숫자로 삶의 경향을 봅니다.",
-      "hubPsychometricsTitle": "성향검사",
-      "hubPsychometricsDesc": "50문항으로 다섯 가지 성향을 확인합니다.",
-      "hubJungianTitle": "융 유형 렌즈(비공식)",
-      "hubJungianDesc": "IPIP-50 응답을 네 개의 연속 축으로 재표현해 비공식 융 유형 렌즈로 요약합니다.",
-      "hubDarkTriadTitle": "다크 트라이어드",
-      "hubDarkTriadDesc": "한국어 타당화 한계를 명시하고 SD3 세 구성개념을 탐색합니다.",
-      "hubAttachmentTitle": "애착 유형 검사",
-      "hubAttachmentDesc": "친밀한 관계에서의 패턴을 불안·회피 두 축으로 분석합니다.",
-      "hubHoroscopeTitle": "오늘의 운세",
+    "hubPsychometricsTitle": "성향검사",
+    "hubPsychometricsDesc": "50문항으로 다섯 가지 성향을 확인합니다.",
+    "hubJungianTitle": "MBTI 유형 분석(비공식)",
+    "hubJungianDesc": "IPIP-50 응답을 MBTI의 네 가지 선호 축으로 참고 해석하고, 연속 점수와 경계의 불확실성을 함께 보여 줍니다.",
+    "hubDarkTriadTitle": "다크 트라이어드",
+    "hubDarkTriadDesc": "한국어 타당화 한계를 명시하고 SD3 세 구성개념을 탐색합니다.",
+    "hubAttachmentTitle": "애착 유형 검사",
+    "hubAttachmentDesc": "친밀한 관계에서의 패턴을 불안·회피 두 축으로 분석합니다.",
+    "hubEqTitle": "정서지능(EQ) 검사",
+    "hubEqDesc": "33문항 SSEIT로 감정을 알아차리고 다루는 자기보고 경향을 살펴봅니다.",
+    "hubCognitiveTitle": "인지능력 탐색",
+    "hubCognitiveDesc": "ICAR 형식의 16문항으로 네 가지 추론 방식을 직접 풀어 봅니다. IQ 점수는 내지 않습니다.",
+    "hubHoroscopeTitle": "오늘의 운세",
     "hubHoroscopeDesc": "별자리·띠로 오늘 하루의 결을 봅니다.",
     "hubCompatibilityTitle": "궁합",
     "hubCompatibilityDesc": "두 사람의 사주 관계 신호를 나란히 비교합니다.",
+    "groupAssessmentTitle": "심리 평가",
+    "groupAssessmentDesc": "공개된 자기보고 척도에 직접 답하고, 연속 점수로 지금의 위치를 읽습니다. 어떤 표본에서 검증됐는지와 한국어판이 아직 검증되지 않은 지점까지 카드에 함께 적습니다.",
+    "groupAbilityTitle": "인지 능력",
+    "groupAbilityDesc": "스스로 보고하는 대신 정답이 있는 문항을 직접 풉니다. 이 문항에 답한 규준 표본이 없으므로 IQ 환산치나 백분위 대신 영역별 정답률만 보고합니다.",
+    "groupTraditionTitle": "동서양의 전통 해석",
+    "groupTraditionDesc": "태어난 순간을 계산하는 사주·점성술·궁합과, 상징을 읽는 타로·수비학입니다. 오래된 해석 체계를 자기성찰의 언어로 쓰되 예측으로 읽지는 않습니다.",
+    "groupTodayTitle": "오늘의 결",
+    "groupTodayDesc": "하루의 분위기를 가볍게 확인하는 콘텐츠입니다. 개인에게 일어날 사건의 확률을 예측하지 않습니다.",
+    "hubExploredMark": "탐색 완료",
     "portalLabel": "내면 탐구",
     "portalCta": "열어 보기",
     "portalOpen": "입력 열기",
@@ -120,7 +142,17 @@
       "waningCrescent": "그믐달"
     },
     "hubFormPrompt": "위에서 “사주” 카드를 고르면 여기에 입력 폼이 열립니다.",
-    "nowEyebrow": "03 / NOW",
+    "atlasEyebrow": "03 / SELF ATLAS",
+    "atlasHeading": "지금까지 몇 개의 렌즈를 지나오셨나요?",
+    "atlasBody": "LUMINA는 하나의 결과로 사람을 정의하지 않습니다. 서로 다른 렌즈를 여러 번 지나야 비로소 윤곽이 잡히기에, 어디까지 왔는지를 지도로 남겨 둡니다.",
+    "atlasProgress": "{total}개 가운데 {done}개를 탐색했습니다.",
+    "atlasNextLabel": "다음 렌즈:",
+    "atlasNextCta": "{title} 열어 보기",
+    "atlasComplete": "모든 렌즈를 한 번씩 지나오셨습니다. 시간이 지난 뒤 다시 재어 보면 또 다른 윤곽이 보일 수 있습니다.",
+    "atlasSlotExplored": "탐색함",
+    "atlasSlotOpen": "미탐색",
+    "atlasPrivacy": "이 지도는 어떤 분석을 열어 봤는지만 이 브라우저에 남깁니다. 점수·응답·출생 정보는 저장하지 않고 서버로도 보내지 않습니다.",
+    "nowEyebrow": "04 / NOW",
     "nowHeading": "지금은 흔적을 남깁니다.",
     "nowBody": "오늘의 일진과 진태양시, 달의 위상, 수성의 움직임을 한 줄의 계측 기록으로 남겼습니다. 계산의 근거가 어디에서 왔는지 바로 확인할 수 있습니다.",
     "nowDayLabel": "오늘의 일진",
@@ -132,7 +164,7 @@
     "nowMercuryLabel": "수성",
     "nowMercuryValue": "{status}",
     "nowEvidence": "근거: 사주 일진은 절기·간지 계산으로, 달과 행성 정보는 천문 위치 계산으로 구합니다.",
-    "trustEyebrow": "04 / HOW TO READ",
+    "trustEyebrow": "05 / HOW TO READ",
     "trustHeading": "재미와 근거를 같은 화면에 놓습니다.",
     "trustBody": "LUMINA는 모든 결과를 하나의 진실처럼 섞지 않습니다. 과학적 측정, 문화적 상징, 엔터테인먼트를 뱃지로 구분해 사용자가 스스로 읽는 방법을 선택하게 합니다.",
     "trustScientificTitle": "과학적 검증",
@@ -141,28 +173,178 @@
     "trustCulturalBody": "사주·타로·점성술처럼 오랜 상징 체계를 자기성찰의 언어로 경험합니다. 예측이 아닌 성찰의 질문으로 읽습니다.",
     "trustEntertainmentTitle": "엔터테인먼트",
     "trustEntertainmentBody": "오늘의 운세처럼 가볍게 즐기는 콘텐츠입니다. 재미를 위한 장치임을 화면에서 숨기지 않습니다.",
-    "reportEyebrow": "05 / WHAT YOU GET",
+    "reportEyebrow": "06 / WHAT YOU GET",
     "reportHeading": "각 방식은 자기 언어로 결과를 남깁니다.",
     "reportIntro": "사주만 길게 보여 주는 대신, 기능마다 무엇을 계산하고 어떤 질문을 열어 주는지 한눈에 정리했습니다.",
     "reportGroups": {
-      "saju": { "title": "사주", "desc": "출생 시점의 구조를 계측합니다.", "items": { "chart": { "term": "원국과 오행", "desc": "천간·지지 여덟 글자, 십신, 오행 분포" }, "cycles": { "term": "시간의 흐름", "desc": "절기 기록, 대운, 올해의 세운" } } },
-      "tarot": { "title": "타로", "desc": "질문을 카드의 상징으로 펼칩니다.", "items": { "spread": { "term": "스프레드", "desc": "1장·3장·켈틱 크로스 배열" }, "draw": { "term": "직접 뽑기", "desc": "선택한 자리와 정·역방향 카드" } } },
-      "numerology": { "title": "수비학", "desc": "날짜와 이름의 숫자를 따라갑니다.", "items": { "lifePath": { "term": "생애수", "desc": "생년월일에서 반복되는 방향성" }, "destiny": { "term": "운명수", "desc": "이름을 숫자로 환산한 상징" } } },
-      "psychometrics": { "title": "성향검사", "desc": "검증된 문항으로 성향을 측정합니다.", "items": { "factors": { "term": "Big Five", "desc": "외향성·친화성·성실성·정서 안정성·개방성" }, "percentile": { "term": "백분위 리포트", "desc": "연속 점수와 자기성찰 질문" } } },
-      "jungian": { "title": "융 유형 렌즈(비공식)", "desc": "같은 IPIP-50 응답을 네 개의 연속 축과 파생 네 글자 코드로 읽습니다.", "items": { "axes": { "term": "네 축", "desc": "에너지·정보·판단·생활 방향의 연속 점수" }, "typeSummary": { "term": "파생 코드", "desc": "경계값을 열어 둔 압축 요약" } } },
-      "darktriad": { "title": "다크 트라이어드", "desc": "번역·요인 구조의 한계를 명시하고 세 구성개념을 탐색합니다.", "items": { "factors": { "term": "세 구성개념", "desc": "마키아벨리즘·나르시시즘·정신병질 연속 점수" }, "norms": { "term": "참고 한계", "desc": "기존 표본 근거이며 한국 표적 집단 규준이 아님" } } },
-      "attachment": { "title": "애착 유형 검사", "desc": "친밀한 관계에서의 패턴을 분석합니다.", "items": { "dimensions": { "term": "두 가지 차원", "desc": "불안과 회피 축의 연속 점수" }, "quadrants": { "term": "4사분면 유형", "desc": "안정형·불안형·회피형·두려움형 분류" } } },
-      "horoscope": { "title": "오늘의 운세", "desc": "하루의 분위기를 가볍게 확인합니다.", "items": { "zodiac": { "term": "별자리", "desc": "태양궁을 기준으로 한 오늘의 문장" }, "animal": { "term": "띠", "desc": "십이지 동물로 보는 하루의 결" } } }
+      "saju": {
+        "title": "사주",
+        "desc": "출생 시점의 구조를 계측합니다.",
+        "items": {
+          "chart": {
+            "term": "원국과 오행",
+            "desc": "천간·지지 여덟 글자, 십신, 오행 분포"
+          },
+          "cycles": {
+            "term": "시간의 흐름",
+            "desc": "절기 기록, 대운, 올해의 세운"
+          }
+        }
+      },
+      "tarot": {
+        "title": "타로",
+        "desc": "질문을 카드의 상징으로 펼칩니다.",
+        "items": {
+          "spread": {
+            "term": "스프레드",
+            "desc": "1장·3장·켈틱 크로스 배열"
+          },
+          "draw": {
+            "term": "직접 뽑기",
+            "desc": "선택한 자리와 정·역방향 카드"
+          }
+        }
+      },
+      "numerology": {
+        "title": "수비학",
+        "desc": "날짜와 이름의 숫자를 따라갑니다.",
+        "items": {
+          "lifePath": {
+            "term": "생애수",
+            "desc": "생년월일에서 반복되는 방향성"
+          },
+          "destiny": {
+            "term": "운명수",
+            "desc": "이름을 숫자로 환산한 상징"
+          }
+        }
+      },
+      "psychometrics": {
+        "title": "성향검사",
+        "desc": "검증된 문항으로 성향을 측정합니다.",
+        "items": {
+          "factors": {
+            "term": "Big Five",
+            "desc": "외향성·친화성·성실성·정서 안정성·개방성"
+          },
+          "percentile": {
+            "term": "백분위 리포트",
+            "desc": "연속 점수와 자기성찰 질문"
+          }
+        }
+      },
+      "jungian": {
+        "title": "MBTI 유형 분석(비공식)",
+        "desc": "같은 IPIP-50 응답을 E/I·S/N·T/F·J/P 네 선호 축과 참고용 네 글자 코드로 읽습니다.",
+        "items": {
+          "axes": {
+            "term": "네 선호 축",
+            "desc": "에너지·정보·판단·생활 방식의 연속 점수"
+          },
+          "typeSummary": {
+            "term": "MBTI 요약 코드",
+            "desc": "경계값을 열어 둔 비공식 자기성찰 요약"
+          }
+        }
+      },
+      "darktriad": {
+        "title": "다크 트라이어드",
+        "desc": "번역·요인 구조의 한계를 명시하고 세 구성개념을 탐색합니다.",
+        "items": {
+          "factors": {
+            "term": "세 구성개념",
+            "desc": "마키아벨리즘·나르시시즘·정신병질 연속 점수"
+          },
+          "norms": {
+            "term": "참고 한계",
+            "desc": "기존 표본 근거이며 한국 표적 집단 규준이 아님"
+          }
+        }
+      },
+      "attachment": {
+        "title": "애착 유형 검사",
+        "desc": "친밀한 관계에서의 패턴을 분석합니다.",
+        "items": {
+          "dimensions": {
+            "term": "두 가지 차원",
+            "desc": "불안과 회피 축의 연속 점수"
+          },
+          "quadrants": {
+            "term": "4사분면 유형",
+            "desc": "안정형·불안형·회피형·두려움형 분류"
+          }
+        }
+      },
+      "eq": {
+        "title": "정서지능(EQ) 검사",
+        "desc": "감정을 알아차리고 다루는 자기보고 경향을 살펴봅니다.",
+        "items": {
+          "factors": {
+            "term": "총점과 네 측면",
+            "desc": "정서 인식·자기 조절·타인 조절·정서 활용"
+          },
+          "experiments": {
+            "term": "1주 일상 실험",
+            "desc": "측면별로 한 주 동안 해 볼 수 있는 작은 시도"
+          }
+        }
+      },
+      "cognitive": {
+        "title": "인지능력 탐색",
+        "desc": "네 가지 형식의 추론 문항을 직접 풀고 규칙을 확인합니다.",
+        "items": {
+          "domains": {
+            "term": "형식별 정답률",
+            "desc": "수열·행렬·언어·회전 네 형식의 정답 수"
+          },
+          "review": {
+            "term": "문항 다시 보기",
+            "desc": "문항마다 내가 고른 답과 정답, 그리고 규칙"
+          }
+        }
+      },
+      "horoscope": {
+        "title": "오늘의 운세",
+        "desc": "하루의 분위기를 가볍게 확인합니다.",
+        "items": {
+          "zodiac": {
+            "term": "별자리",
+            "desc": "태양궁을 기준으로 한 오늘의 문장"
+          },
+          "animal": {
+            "term": "띠",
+            "desc": "십이지 동물로 보는 하루의 결"
+          }
+        }
+      }
     },
     "sectionInput": "출생 정보",
     "sectionReport": "리포트에 담기는 것",
     "items": {
-      "pillars": { "term": "사주 원국", "desc": "천간·지지 여덟 글자, 지장간, 십이운성, 공망" },
-      "calc": { "term": "계산 기록", "desc": "절입 시각, 진태양시 보정량, 표준시 오프셋" },
-      "elements": { "term": "오행 분포", "desc": "여덟 글자 단순 집계와 지장간 가중 집계" },
-      "tenGods": { "term": "십신", "desc": "일간을 기준으로 본 여덟 글자의 관계" },
-      "luck": { "term": "대운", "desc": "10년 단위 100년치, 순행·역행 판정 포함" },
-      "yearly": { "term": "세운", "desc": "올해 간지와 십신, 입춘 기준" }
+      "pillars": {
+        "term": "사주 원국",
+        "desc": "천간·지지 여덟 글자, 지장간, 십이운성, 공망"
+      },
+      "calc": {
+        "term": "계산 기록",
+        "desc": "절입 시각, 진태양시 보정량, 표준시 오프셋"
+      },
+      "elements": {
+        "term": "오행 분포",
+        "desc": "여덟 글자 단순 집계와 지장간 가중 집계"
+      },
+      "tenGods": {
+        "term": "십신",
+        "desc": "일간을 기준으로 본 여덟 글자의 관계"
+      },
+      "luck": {
+        "term": "대운",
+        "desc": "10년 단위 100년치, 순행·역행 판정 포함"
+      },
+      "yearly": {
+        "term": "세운",
+        "desc": "올해 간지와 십신, 입춘 기준"
+      }
     },
     "prevResult": "이전 결과 다시 보기"
   },
@@ -342,6 +524,9 @@
   },
   "astro": {
     "navLabel": "출생 차트",
+    "entryTitle": "내 결과",
+    "newTitle": "새 출생 차트 계산",
+    "newIntro": "가입 없이 출생 정보를 입력하면 이 브라우저에서 바로 계산합니다.",
     "risingGloss": "처음 보이는 인상",
     "sunGloss": "밖으로 드러나는 방향",
     "moonGloss": "혼자 있을 때의 결",
@@ -474,7 +659,8 @@
     "reflectionLabel": "성찰 질문",
     "iconographyLabel": "도상 포인트",
     "revealHint": "원하는 자리를 먼저 고른 뒤, 지금의 상징을 만나 보세요. 결과는 링크 안에서 이미 고정되어 있습니다.",
-    "revealCta": "카드 공개하기"
+    "revealCta": "카드 공개하기",
+    "ogFooterNotice": "예언이 아닌 상징적 자기성찰 콘텐츠입니다 — 같은 시드는 언제나 같은 카드를 뽑습니다."
   },
   "numerology": {
     "kicker": "생애수 · 운명수",
@@ -534,82 +720,206 @@
     "resultTitle": "성향 검사 결과",
     "itemCountLabel": "IPIP-50 · 문항 {n}개",
     "sectionFactors": "다섯 요인",
+    "provisionalMean": "잠정 평균 {value}",
+    "allAnswered": "모든 문항 완료",
     "factorsAside": "0~100 척도 내 위치",
     "meanLabel": "평균 {mean} / 5.0",
     "scaleNote": "막대의 점은 이 척도 안에서의 원점수 위치(0~100), 띠는 측정표준오차를 반영한 95% 참고 범위입니다. 옆에 표시한 백분위·T점수는 영어권 공개 기준 표본과 비교한 값이며, 한국인 규준이나 진단 결과가 아닙니다.",
     "reliabilityNote": "신뢰도 α는 공식 IPIP 표의 요인별 내적 일관성 값이고, SEM은 그 오차 크기를 원점수 단위로 환산한 값입니다. 신뢰도와 참고 범위는 진단이나 미래 예측을 의미하지 않습니다.",
-      "brokenLink": "이 링크의 결과를 읽지 못했습니다.",
-      "restartCta": "다시 검사하기",
-      "openJungian": "융 유형 렌즈로 보기 →",
-      "jungianPreviewTitle": "융 유형 렌즈 축 미리보기",
-      "jungianPreviewNote": "응답이 쌓이면 움직이는 잠정 위치",
-      "jungianAxes": {
-        "EI": { "label": "에너지 방향", "negative": "I 내향", "positive": "E 외향" },
-        "SN": { "label": "정보 방향", "negative": "S 감각", "positive": "N 직관" },
-        "TF": { "label": "판단 방향", "negative": "T 사고", "positive": "F 감정" },
-        "JP": { "label": "생활 방향", "negative": "J 판단", "positive": "P 인식" }
+    "brokenLink": "이 링크의 결과를 읽지 못했습니다.",
+    "restartCta": "다시 검사하기",
+    "openJungian": "MBTI 유형 분석 보기 →",
+    "jungianPreviewTitle": "MBTI 네 선호 축 미리보기",
+    "jungianPreviewNote": "응답에 따라 잠정 위치가 업데이트됩니다",
+    "jungianAxes": {
+      "EI": {
+        "label": "에너지 선호",
+        "negative": "I 내향",
+        "positive": "E 외향"
       },
-      "factors": {
-      "extraversion": { "label": "외향성", "low": "혼자 있는 시간에서 에너지를 얻는 경향", "high": "사람들과 있을 때 에너지를 얻는 경향" },
-      "agreeableness": { "label": "우호성", "low": "직설적이고 독립적으로 판단하는 경향", "high": "타인의 입장을 먼저 헤아리는 경향" },
-      "conscientiousness": { "label": "성실성", "low": "유연하고 즉흥적으로 움직이는 경향", "high": "계획하고 체계를 세우는 경향" },
-      "emotionalStability": { "label": "정서 안정성", "low": "감정의 기복을 더 자주 느끼는 경향", "high": "감정 기복 앞에서도 비교적 안정적인 경향" },
-      "intellect": { "label": "개방성", "low": "익숙하고 구체적인 것을 선호하는 경향", "high": "새로운 생각과 추상적 개념을 즐기는 경향" }
+      "SN": {
+        "label": "정보 수집 선호",
+        "negative": "S 감각",
+        "positive": "N 직관"
+      },
+      "TF": {
+        "label": "판단 기준 선호",
+        "negative": "T 사고",
+        "positive": "F 감정"
+      },
+      "JP": {
+        "label": "생활 방식 선호",
+        "negative": "J 판단",
+        "positive": "P 인식"
+      },
+      "AT": {
+        "label": "정체성 선호",
+        "negative": "T 격정",
+        "positive": "A 주장"
+      },
+      "VW": {
+        "label": "정서표현 선호",
+        "negative": "W 침잠",
+        "positive": "V 표출"
+      }
+    },
+    "factors": {
+      "extraversion": {
+        "label": "외향성",
+        "low": "혼자 있는 시간에서 에너지를 얻는 경향",
+        "high": "사람들과 있을 때 에너지를 얻는 경향"
+      },
+      "agreeableness": {
+        "label": "우호성",
+        "low": "직설적이고 독립적으로 판단하는 경향",
+        "high": "타인의 입장을 먼저 헤아리는 경향"
+      },
+      "conscientiousness": {
+        "label": "성실성",
+        "low": "유연하고 즉흥적으로 움직이는 경향",
+        "high": "계획하고 체계를 세우는 경향"
+      },
+      "emotionalStability": {
+        "label": "정서 안정성",
+        "low": "감정의 기복을 더 자주 느끼는 경향",
+        "high": "감정 기복 앞에서도 비교적 안정적인 경향"
+      },
+      "intellect": {
+        "label": "개방성",
+        "low": "익숙하고 구체적인 것을 선호하는 경향",
+        "high": "새로운 생각과 추상적 개념을 즐기는 경향"
+      }
     }
   },
   "jungian": {
-    "metaTitle": "융 유형 렌즈(비공식)",
-    "metaDescription": "IPIP-50 Big Five 응답을 네 개의 연속 축으로 재표현하고 비공식 파생 유형 코드로 요약합니다.",
+    "metaTitle": "MBTI 유형 분석(비공식)",
+    "metaDescription": "IPIP-50 Big Five 응답을 MBTI 네 가지 선호 축으로 참고 해석하고, 연속 점수·경계 불확실성·16유형 코드를 함께 보여 줍니다.",
+    "evidenceStatusOverride": "Big Five 기반 MBTI 참고 해석",
     "brokenLink": "이 링크의 결과를 읽지 못했습니다.",
-    "kicker": "융 유형 렌즈(비공식) · IPIP-50 파생",
-    "heroTitle": "같은 응답, 나의 유형",
-    "heroBody": "완성한 IPIP-50 Big Five 응답을 McCrae와 Costa(1989) 등 비교 문헌의 상관 구조에 따라 네 개의 연속 축으로 재표현하고, 16개 파생 코드로 요약합니다. 연속 위치가 주된 결과이며 코드는 자기성찰의 출발점입니다.",
-    "startTest": "50문항 시작하기",
-    "openSavedResult": "저장된 융 유형 렌즈 결과 보기",
-    "retakeTest": "다시 검사하고 비교하기",
-    "whySameItems": "왜 같은 문항인가요?",
-    "axesKicker": "01 / FOUR CONTINUOUS AXES",
-    "axesTitle": "경계보다 흐름을 봅니다",
-    "axesBody": "각 축의 양끝은 우열이 아니라 서로 다른 응답 방향입니다. 가운데에 가까우면 문자를 억지로 붙이지 않고 ?로 남겨 현재의 불확실성을 보여 줍니다.",
-    "methodKicker": "02 / METHOD & LIMITS",
-    "methodTitle": "유형은 판정이 아니라 요약입니다",
-    "methodBody": "이 화면은 IPIP-50의 기존 요인 점수를 새로 측정하지 않고 선형 재표현합니다. 연속 점수가 중심이며, 네 글자 코드는 공유와 기억을 위한 압축 표기입니다. Big Five 점수에서 파생한 비공식 융 유형 렌즈입니다.",
-    "sourceMethod": "McCrae와 Costa(1989)의 NEO-PI 자기보고 비교에서 확인된 대응을 참고하되, 그 연구의 상관값을 개인 결과나 새로운 규준으로 사용하지 않습니다. Pittenger(1993)와 Stein·Swan(2019)의 비판도 함께 공개해 유형론의 한계를 숨기지 않습니다.",
+    "kicker": "MBTI 유형 분석 · IPIP-50 기반 참고 해석",
+    "heroTitle": "같은 응답, 나의 MBTI 경향",
+    "heroBody": "50문항에 답하면 다섯 요인 점수에서 E/I·S/N·T/F·J/P 네 선호 축의 흐름을 읽습니다. 결과 화면에서 각 문자·연속 점수·경계 불확실성·유형 해설을 차례로 확인하고, 오늘의 나에게 맞는 작은 실험 질문까지 가져가 보세요.",
+    "startTest": "50문항으로 시작하기",
+    "openSavedResult": "저장된 MBTI 분석 결과 보기",
+    "retakeTest": "다시 검사해 다른 순간과 비교하기",
+    "whySameItems": "MBTI를 어떻게 분석하나요?",
+    "axesKicker": "01 / MBTI의 네 가지 선호 축",
+    "axesTitle": "네 글자는 네 방향의 조합입니다",
+    "chapterAxes": "네 선호 축",
+    "axesBody": "E/I·S/N·T/F·J/P는 우열이나 고정된 정체성이 아니라 서로 다른 선호 방향입니다. 축의 연속 점수와 95% 참고 범위를 먼저 보고, 가운데에 가까우면 ?로 남겨 과도한 단정을 피합니다.",
+    "methodKicker": "02 / MBTI 분석 방법과 한계",
+    "methodTitle": "계산 방법·문헌·한계",
+    "methodBody": "새로운 MBTI 문항을 별도로 측정하는 화면이 아닙니다. IPIP-50 Big Five 요인 점수를 McCrae와 Costa(1989)의 비교 연구에서 관찰된 상관 구조를 참고해 네 선호 축으로 선형 변환합니다. 연속 점수와 95% 참고 범위가 1차 결과이고, 네 글자 코드는 경계를 통과한 경우에만 붙는 기억용 요약입니다. 경계에 가까운 축은 ?로 유지합니다.",
+    "methodStepsTitle": "MBTI 분석 흐름",
+    "methodSteps": {
+      "answer": {
+        "title": "문항에 답하기",
+        "body": "최근의 나를 기준으로 50개 문항에 솔직하게 답합니다. 정답이나 더 좋은 유형은 없습니다."
+      },
+      "map": {
+        "title": "네 선호 축 확인하기",
+        "body": "Big Five 점수를 E/I·S/N·T/F·J/P 네 방향으로 참고 해석하고, 연속 위치와 참고 범위를 함께 계산합니다."
+      },
+      "reflect": {
+        "title": "코드와 질문으로 실험하기",
+        "body": "가장 가까운 유형 코드를 출발점으로 삼아 강점·주의점·작은 행동 실험을 현재 상황에 대입해 봅니다."
+      }
+    },
+    "sourceMethod": "McCrae와 Costa(1989)의 NEO-PI 자기보고 비교에서 확인된 대응을 참고하지만, 그 연구의 상관값을 개인의 상관이나 새로운 규준으로 사용하지 않습니다. Pittenger(1993)와 Stein·Swan(2019)의 비판도 함께 공개해 MBTI 유형론의 한계를 숨기지 않습니다.",
     "sourcesTitle": "비교 문헌과 한계",
-    "trademarkNotice": "MBTI는 The Myers & Briggs Foundation의 등록상표이며, 본 서비스는 공식 MBTI® 검사가 아닙니다. 이 결과는 IPIP-50 응답을 학술 문헌의 상관 구조에 따라 네 축과 16개 유형 코드로 재해석한 것입니다.",
+    "trademarkNotice": "MBTI®는 The Myers & Briggs Foundation의 등록상표입니다. LUMINA의 결과는 공식 MBTI® 검사·문항·규준이 아니라, IPIP-50 응답을 학술 문헌의 상관 구조에 따라 네 선호 축과 16개 코드로 참고 해석한 비공식 분석입니다.",
     "openBigFive": "Big Five 결과 보기",
     "openMethodology": "방법론 보기",
     "backHome": "홈으로",
-    "resultMetaTitle": "융 유형 렌즈 결과",
-    "resultMetaDescription": "IPIP-50 응답에서 파생한 네 글자 코드와 네 축 연속 점수 결과입니다.",
-    "resultKicker": "JUNGIAN TYPE LENS / RESULT",
-    "resultTitle": "{code} 유형 결과",
-    "resultHero": "{code}는 지금의 응답 방향을 요약한 유형 코드입니다. 유형별 별명과 문장은 판정이 아니라 자기성찰을 위한 출발점입니다.",
-    "typeCodeLabel": "요약 코드 {code}",
-    "certaintyLabel": "네 축 중 가장 가까운 경계에서의 확실성 참고값 {percent}%",
-    "axesAside": "연속 점수 · 95% 참고 범위",
+    "resultMetaTitle": "MBTI 유형 분석 결과",
+    "resultMetaDescription": "IPIP-50 응답을 MBTI 네 선호 축으로 참고 해석한 연속 점수와 네 글자 요약 코드 결과입니다.",
+    "resultKicker": "MBTI TYPE ANALYSIS / RESULT",
+    "resultTitle": "{code} MBTI 경향",
+    "resultHero": "{code}는 지금의 응답에서 상대적으로 선명한 네 선호 방향을 압축한 참고 코드입니다. 유형별 별명과 문장은 판정이 아니라 현재의 행동을 관찰하고 다음 실험을 고르는 출발점입니다.",
+    "typeCodeLabel": "MBTI 요약 코드 {code}",
+    "certaintyLabel": "가장 가까운 경계 기준 참고 확실성 {percent}%",
+    "resultReadingKicker": "RESULT READING GUIDE",
+    "resultReadingTitle": "네 글자보다 네 축의 이야기를 먼저",
+    "resultReadingBody": "① 각 축의 점과 95% 참고 범위를 확인하고, ② ?가 있는 축은 양쪽 설명을 비교한 뒤, ③ 유형 프로필의 강점·주의점·실험 질문을 현재 상황에 대입해 보세요. 결과는 고정된 정체성이 아니라 지금의 응답을 읽는 지도입니다.",
+    "axesAside": "네 축 연속 점수 · 95% 참고 범위",
     "axisLetterLabel": "{axis} 축 요약 문자 {pole}",
     "axisScaleLabel": "{axis} 축 연속 점수",
     "zScoreLabel": "표준화 점수 z = {z}",
     "ci95AxisLabel": "95% 참고 범위 {low}–{high}",
     "correlationBasisLabel": "문헌 대응 참고값 r = {r}",
-    "axisBoundaryNotice": "가운데 경계에 가까워 이 축의 문자를 단정하지 않았습니다. 양끝의 설명을 우열이 아닌 관찰 질문으로 읽어 주세요.",
-    "boundaryNote": "?는 결과가 부족하다는 표시가 아니라, 임의의 절단점으로 연속적인 응답을 과도하게 단정하지 않기 위한 안전장치입니다.",
-    "typeSectionTitle": "나의 융 유형 렌즈 요약",
-    "typeSectionAside": "유형별 요약 · 비결정론적",
-    "typeImageAlt": "{code} 유형을 상징하는 자기성찰 일러스트",
-    "typeImageNote": "이 이미지는 유형을 고정된 정체성이 아닌 유연한 패턴으로 읽기 위한 시각적 출발점입니다.",
-    "typeNicknameLabel": "유형 별명",
-    "typeKeywordsLabel": "유형 키워드",
+    "axisBoundaryNotice": "가운데 경계에 가까워 이 축의 문자를 단정하지 않았습니다. E/I처럼 양끝의 설명을 우열이 아닌 관찰 질문으로 읽어 주세요.",
+    "boundaryNote": "?는 결과가 부족하다는 표시가 아니라, 임의의 절단점으로 연속적인 응답을 과도하게 단정하지 않기 위한 안전장치입니다. 경계가 보이면 두 선호를 모두 시도해 보는 것이 더 정확한 다음 단계입니다.",
+    "typeSectionTitle": "나의 MBTI 해석",
+    "typeSectionAside": "유형 코드 + 선호 축 + 실험 질문",
+    "typeImageAlt": "{code} MBTI 경향을 상징하는 자기성찰 일러스트",
+    "typeImageNote": "이 이미지는 유형을 고정된 정체성이 아닌, 상황에 따라 달라질 수 있는 유연한 패턴으로 읽기 위한 시각적 출발점입니다.",
+    "typeNicknameLabel": "MBTI 경향 별명",
+    "typeKeywordsLabel": "MBTI 경향 키워드",
     "boundaryTypeSummary": "한 축 이상이 경계에 가까워 전체 코드를 완성하지 않았습니다.",
-    "boundaryTypeDetail": "네 축의 연속 위치를 먼저 확인해 보세요. 결과가 바뀌었다면 성격이 변했다기보다 문항 응답과 현재 상황이 달라졌을 가능성도 있습니다.",
-    "methodTitle": "계산·문헌·한계",
-    "openBigFiveResult": "Big Five 원 결과로 돌아가기",
+    "boundaryTypeDetail": "네 축의 연속 위치를 먼저 확인해 보세요. 결과가 바뀌었다면 성격이 변했다기보다 문항 응답과 현재 상황이 달라졌거나 경계 주변의 오차가 드러났을 가능성도 있습니다.",
+    "openBigFiveResult": "Big Five 원 결과 보기",
     "jungianAxes": {
-      "EI": { "label": "에너지 방향", "description": "혼자 회복하는 방향에서 사람과 활동의 자극으로 향하는 연속 축입니다.", "negative": "I · 내향", "positive": "E · 외향" },
-      "SN": { "label": "정보 방향", "description": "구체적인 경험에서 패턴과 가능성으로 향하는 연속 축입니다.", "negative": "S · 감각", "positive": "N · 직관" },
-      "TF": { "label": "판단 방향", "description": "기준과 일관성에서 사람과 관계의 영향을 함께 보는 방향으로 이어지는 축입니다.", "negative": "T · 사고", "positive": "F · 감정" },
-      "JP": { "label": "생활 방향", "description": "구조와 마무리에서 선택지를 열어 두는 방식으로 이어지는 연속 축입니다.", "negative": "J · 판단", "positive": "P · 인식" }
+      "EI": {
+        "label": "에너지 선호",
+        "description": "혼자 회복하는 방식에서 사람과 활동의 자극으로 에너지를 얻는 방식까지 이어지는 연속 축입니다.",
+        "negative": "I · 내향",
+        "positive": "E · 외향"
+      },
+      "SN": {
+        "label": "정보 수집 선호",
+        "description": "구체적인 경험과 관찰에서 패턴·가능성·새 관점으로 주의를 옮기는 방식까지 이어지는 축입니다.",
+        "negative": "S · 감각",
+        "positive": "N · 직관"
+      },
+      "TF": {
+        "label": "판단 기준 선호",
+        "description": "기준·논리의 일관성을 먼저 보는 방식에서 사람·관계의 영향을 함께 고려하는 방식까지 이어지는 축입니다.",
+        "negative": "T · 사고",
+        "positive": "F · 감정"
+      },
+      "JP": {
+        "label": "생활 방식 선호",
+        "description": "구조·마감으로 닫아 가는 방식에서 선택지를 열고 새 정보에 맞춰 조정하는 방식까지 이어지는 축입니다.",
+        "negative": "J · 판단",
+        "positive": "P · 인식"
+      },
+      "AT": {
+        "label": "정체성 선호",
+        "description": "스트레스 앞에서 얼마나 차분한 확신을 유지하는지에서 얼마나 세심하게 자신을 점검하는지로 이어지는 연속 축입니다. 공식 MBTI에는 없는 독자적 확장입니다.",
+        "negative": "T · 격정",
+        "positive": "A · 주장"
+      },
+      "VW": {
+        "label": "정서표현 선호",
+        "description": "감정이 흔들릴 때 짜증·기분 변화처럼 겉으로 드러나는 신호와 걱정·낮은 기분처럼 안으로 향하는 신호 중 어느 쪽이 상대적으로 더 두드러지는지를 보여주는 대비 축입니다.",
+        "negative": "W · 침잠",
+        "positive": "V · 표출"
+      }
+    },
+    "correlationBasisUnavailable": "이 축은 공식 상관 참고값이 없는 독자적 확장입니다.",
+    "sectionStrengthsTitle": "강점과 성장 과제",
+    "sectionStrengthsAside": "이 조합에서 상대적으로 자주 보고되는 강점과, 함께 주의 깊게 볼 지점입니다.",
+    "sectionRelationshipsTitle": "관계와 커뮤니케이션",
+    "sectionRelationshipsAside": "가까운 관계에서 소통하고 갈등을 다루는 방식의 경향입니다.",
+    "sectionWorkTitle": "일과 협업 성향",
+    "sectionWorkAside": "선호할 수 있는 업무 환경과 협업 방식입니다. 직업을 추천하지 않습니다.",
+    "sectionGrowthTitle": "성장 로드맵과 자기실험",
+    "sectionGrowthAside": "스스로 답해 볼 수 있는 질문들입니다. 정답은 없습니다.",
+    "growthPromptsLabel": "자기실험 질문",
+    "benefitsTitle": "이 분석으로 할 수 있는 것",
+    "benefits": {
+      "selfUnderstanding": {
+        "title": "깊은 자기이해",
+        "body": "여섯 축의 연속 점수와 경계 표시를 통해 스스로의 경향을 단정보다 관찰로 확인합니다."
+      },
+      "relationships": {
+        "title": "더 나은 관계",
+        "body": "선호가 다른 사람과 어떻게 다르게 소통하고 갈등을 다루는지 이해하는 실마리를 얻습니다."
+      },
+      "work": {
+        "title": "일하는 방식 탐색",
+        "body": "선호할 수 있는 업무 환경과 협업 스타일을 직업 추천이 아닌 질문으로 탐색합니다."
+      }
     }
   },
   "darktriad": {
@@ -618,7 +928,14 @@
     "kicker": "다크 트라이어드 · SD3 탐색",
     "heroTitle": "성격의 어두운 면을 살펴봅니다",
     "heroBody": "Jones & Paulhus(2014)의 Short Dark Triad 문항을 탐색용 참고로 사용합니다. 27문항에 응답하면 구성개념의 연속 점수를 보여 줍니다. 한국어 문항과 3요인 구조는 표적 집단에서 추가 검증이 필요하며, 점수는 임상적·도덕적 판단이 아닙니다.",
+    "heroImageAlt": "세 가지 다크 트라이어드 구성개념을 표현한 삽화 지도",
+    "visualGuideTitle": "세 가지 구성개념을 이미지로 살펴보기",
+    "visualGuideBody": "점수는 사람을 규정하지 않습니다. 각 이미지는 한 가지 경향을 이해하기 위한 은유입니다.",
+    "factorImageAlt": "{factor} 구성개념을 상징하는 삽화",
+    "resultImageAlt": "다크 트라이어드의 세 가지 구성개념을 상징하는 삽화",
     "sectionFactors": "세 가지 특성",
+    "provisionalMean": "잠정 평균 {value}",
+    "allAnswered": "모든 문항 완료",
     "factorsAside": "연속 점수",
     "scaleNote": "점수는 9~45 범위이며 보관된 참고 분포는 한국 표적 집단 규준이 아닙니다. 점수가 높다고 진단·도덕적 낙인·미래 예측을 의미하지 않습니다.",
     "reliabilityNote": "내적 일관성 값은 기존 연구 표본의 참고 근거이며, 현재 한국어 구현의 신뢰도를 보장하지 않습니다.",
@@ -649,13 +966,211 @@
     "itemResponseTitle": "문항 응답",
     "itemStrongTitle": "강하게 동의한 문항",
     "itemWeakTitle": "약하게 동의한 문항",
-    "itemResponseFormat": "응답 {response} → 채점 {scoreed}",
+    "itemResponseFormat": "응답 {response} → 채점 {scored}",
     "reverseScored": "역채점",
     "midpointCaution": "중간 응답 비율이 {rate}%로 높습니다. 판단을 유보한 문항이 많아 결과가 흔들릴 수 있습니다.",
     "factors": {
-      "machiavellianism": { "label": "마키아벨리즘" },
-      "narcissism": { "label": "나르시시즘" },
-      "psychopathy": { "label": "정신병질" }
+      "machiavellianism": {
+        "label": "마키아벨리즘"
+      },
+      "narcissism": {
+        "label": "나르시시즘"
+      },
+      "psychopathy": {
+        "label": "정신병질"
+      }
+    }
+  },
+  "eq": {
+    "metaTitle": "정서지능(EQ) 검사",
+    "metaDescription": "33문항 SSEIT로 감정을 알아차리고 조절하고 활용하는 경향을 살펴봅니다. 능력검사가 아닌 자기보고 척도이며, 한국어 번역은 별도로 타당화되지 않았습니다.",
+    "kicker": "정서지능 · SSEIT 자기보고",
+    "heroTitle": "감정을 다루는 나의 방식",
+    "heroBody": "Schutte 외(1998)의 SSEIT 33문항으로 감정을 알아차리고 조절하고 활용한다고 스스로 보고하는 정도를 살펴봅니다. 총점이 대표 지표이고, 네 하위요인은 대화를 시작하기 위한 보조 지표입니다.",
+    "selfReportNotice": "이 검사는 정서지능을 수행으로 재는 능력검사가 아니라, 평소 자신을 어떻게 느끼는지 스스로 답하는 자기보고 척도입니다. 점수는 능력의 증명이 아니라 지금의 자기인식을 비추는 거울에 가깝습니다.",
+    "heroImageAlt": "정서지능의 네 가지 측면을 표현한 삽화",
+    "visualGuideTitle": "네 가지 측면을 이미지로 살펴보기",
+    "visualGuideBody": "점수는 사람을 규정하지 않습니다. 각 이미지는 한 가지 경향을 이해하기 위한 은유이며, 전용 삽화는 준비 중입니다.",
+    "factorImageAlt": "{factor} 측면을 상징하는 삽화",
+    "resultImageAlt": "정서지능의 네 가지 측면을 상징하는 삽화",
+    "sectionFactors": "총점과 네 측면",
+    "provisionalMean": "잠정 평균 {value}",
+    "allAnswered": "모든 문항 완료",
+    "factorsAside": "총점 + 하위요인",
+    "totalLabel": "총점(SSEIT)",
+    "totalNormNote": "총점 백분위는 Schutte 외(1998) 표본(N = 346, 평균 124.78, SD 13.00)에 정규분포를 가정해 추정한 값이며 실측 백분위표가 아닙니다.",
+    "scaleNote": "총점은 33~165 범위이고, 하위요인은 문항 수가 서로 달라 각자의 이론 범위 안에서의 상대 위치로 표시합니다. 점수가 높다고 진단이나 능력 증명이 되지 않습니다.",
+    "reliabilityNote": "내적 일관성 값은 기존 연구 표본의 참고 근거이며, 현재 한국어 구현의 신뢰도를 보장하지 않습니다.",
+    "subscaleNormUnavailable": "하위요인 규준 없음 (원점수로 표시)",
+    "normUnavailable": "규준 없음",
+    "methodBody": "33문항을 1~5점으로 채점하고 5·28·33번 세 문항만 역채점합니다. 총점은 Schutte 외(1998)의 출판 요약통계로 표준화하고, 하위요인은 Ciarrochi 외(2001)의 4요인 해에 따라 묶되 출판 규준이 없어 원점수와 척도 내 상대 위치로만 표시합니다.",
+    "itemCountLabel": "{n}문항",
+    "brokenLink": "이 링크의 결과를 읽지 못했습니다.",
+    "restartCta": "다시 검사하기",
+    "resultTitle": "정서지능 결과",
+    "resultMetaDescription": "자기보고 척도라는 한계를 명시한 SSEIT 총점과 네 하위요인 점수입니다.",
+    "scale1": "전혀 아니다",
+    "scale2": "그렇지 않다",
+    "scale3": "보통이다",
+    "scale4": "그렇다",
+    "scale5": "매우 그렇다",
+    "submit": "결과 보기",
+    "unansweredWarning": "{n}문항이 아직 비어 있습니다. 모두 응답해야 결과를 볼 수 있습니다.",
+    "shareTitle": "정서지능 결과",
+    "retakeCta": "다시 검사하기",
+    "meanLabel": "평균 {mean}",
+    "rawSumLabel": "원점수 {score} / {max}",
+    "tScoreLabel": "T점수 {score}",
+    "percentileLabel": "백분위 {n}",
+    "normSample": "표본 {n}명",
+    "reliabilityLabel": "α = {alpha}",
+    "ci95Label": "95% CI [{low}, {high}]",
+    "lowEnd": "낮음",
+    "highEnd": "높음",
+    "itemResponseTitle": "문항 응답",
+    "itemStrongTitle": "강하게 동의한 문항",
+    "itemWeakTitle": "약하게 동의한 문항",
+    "itemResponseFormat": "응답 {response} → 채점 {scored}",
+    "reverseScored": "역채점",
+    "midpointCaution": "중간 응답 비율이 {rate}%로 높습니다. 판단을 유보한 문항이 많아 결과가 흔들릴 수 있습니다.",
+    "sectionExperiments": "1주 일상 실험",
+    "experimentsAside": "측면별 작은 시도",
+    "experimentsIntro": "아래 네 가지는 처방이 아니라 한 주 동안 해 볼 수 있는 작은 관찰 실험입니다. 점수가 낮은 쪽을 고쳐야 한다는 뜻이 아니라, 문항이 무엇을 묻고 있었는지 일상에서 직접 확인해 보자는 제안입니다.",
+    "experimentsFooterNotice": "자기보고 척도에서 나온 참고 결과이며 상담·치료를 대신하지 않습니다. 해 보고 잘 맞지 않으면 그만두어도 괜찮습니다.",
+    "factors": {
+      "perceptionOfEmotion": {
+        "label": "정서 인식",
+        "blurb": "표정·목소리·자기 감각에서 감정 신호를 알아차리는 경향.",
+        "experimentTitle": "하루 한 장면, 이름 붙이기",
+        "experimentBody": "하루에 한 번, 마음이 움직인 장면을 떠올려 그때의 감정에 이름을 하나 붙여 메모해 보세요. 한 주가 지나면 같은 단어가 반복되는지, 상황이 겹치는지만 훑어봅니다."
+      },
+      "managingOwnEmotions": {
+        "label": "자기 정서 조절",
+        "blurb": "어려움 앞에서 기분을 추스르고 시도를 이어 가는 경향.",
+        "experimentTitle": "잘 넘겼던 한 번을 적어 두기",
+        "experimentBody": "이번 주에 막혔다가 다시 움직인 순간을 하나만 골라 무엇이 도움이 됐는지 한 줄로 적어 보세요. 다음에 비슷한 상황이 오면 그 한 줄을 먼저 꺼내 봅니다."
+      },
+      "managingOthersEmotions": {
+        "label": "타인 정서 조절",
+        "blurb": "다른 사람의 기분을 살피고 관계의 분위기를 다루는 경향.",
+        "experimentTitle": "구체적인 칭찬 한 번",
+        "experimentBody": "한 주에 한 번, 가까운 사람에게 “무엇이 좋았는지”를 구체적으로 말해 보세요. 상대의 반응보다 말하고 난 뒤 내 기분이 어땠는지를 기록합니다."
+      },
+      "utilisationOfEmotion": {
+        "label": "정서 활용",
+        "blurb": "기분의 변화를 판단·발상·동기의 재료로 쓰는 경향.",
+        "experimentTitle": "컨디션 좋은 시간대에 한 가지 붙이기",
+        "experimentBody": "하루 중 컨디션이 가장 나은 시간대를 한 번만 정해, 미뤄 둔 일 하나를 그 시간에 붙여 보세요. 결과보다 그 시간대가 실제로 도움이 됐는지만 확인합니다."
+      }
+    }
+  },
+  "cognitive": {
+    "standardizedKicker": "표준화 인지능력 파일럿",
+    "standardizedTitle": "사고 방식을 신중하게 측정하는 연구 검사",
+    "standardizedBody": "유동 추론·언어 지식·시공간 능력·작업기억·처리 속도를 표본화합니다. 문항은행에서 무작위로 출제하고 서버에서 적응형 선택을 수행합니다.",
+    "pilotNotice": "현재는 타당화용 파일럿입니다. 한국 성인 규준이 승인되기 전에는 IQ·백분위·하위점수·정답 해설을 표시하지 않습니다.",
+    "researchNotice": "연구 참여는 선택 사항입니다. 익명 실행 재개를 위한 운영 저장 동의만 필수입니다.",
+    "practiceLink": "공개 연습 문항 풀기",
+    "setupRequired": "연구 파일럿 저장소 또는 문항은행을 읽지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    "runStart": "파일럿 시작",
+    "runResume": "파일럿 재개",
+    "runSubmit": "답변 제출",
+    "runProgress": "{answered} / {total}",
+    "runInvalid": "이 실행은 더 이상 사용할 수 없습니다. 새 파일럿을 시작해 주세요.",
+    "pilotResultTitle": "파일럿 참여가 기록되었습니다",
+    "pilotResultBody": "응답은 검사 도구 타당화를 위해 기록되었습니다. 한국 성인 규준·신뢰도·공정성·독립 검토가 승인된 뒤에만 표준화 IQ 추정치를 제공합니다.",
+    "pilotResultCta": "인지 파일럿으로 돌아가기",
+    "legacyNotice": "이전 응답 링크는 읽기 전용이며 표준화 점수를 만들 수 없습니다. 보호된 파일럿을 시작해 주세요.",
+    "deviceReady": "현재 장치 조건으로 파일럿을 진행할 수 있습니다.",
+    "deviceUnsupported": "이 장치에서는 처리 속도 자료를 보류합니다. 전체 프로토콜에는 키보드·포인터·더 넓은 화면이 필요합니다.",
+    "metaTitle": "인지능력 탐색 (흔히 찾는 IQ 테스트가 아닙니다)",
+    "metaDescription": "LUMINA가 직접 만든 20문항을 유동 추론·언어 지식·시공간 능력·작업기억·처리 속도의 다섯 영역에서 서버 적응형으로 제시합니다. 한국 성인 규준이 승인되기 전에는 IQ와 백분위를 노출하지 않습니다.",
+    "kicker": "인지능력 탐색 · 과학적 파일럿 20문항",
+    "heroTitle": "내가 문제를 푸는 방식",
+    "heroBody": "유동 추론·언어 지식·시공간 능력·작업기억·처리 속도를 다섯 영역에서 표본화합니다. 문제은행에서 매번 다른 문항을 무작위·적응형으로 골라 풀고, 파일럿 결과는 승인된 규준이 생길 때까지 IQ로 환산하지 않습니다.",
+    "heroImageAlt": "다섯 인지 영역을 표현한 삽화",
+    "notAnIqTitle": "이것은 IQ 검사가 아닙니다",
+    "notAnIqBody": "임상 지능검사(WAIS, 스탠퍼드-비네 등)는 저작권이 있고 훈련받은 검사자가 한 사람씩 직접 실시합니다. 웹페이지에서 그 검사를 다시 만드는 일은 가능하지 않습니다. 이 페이지는 그 검사의 대체물이 아니라, 같은 형식의 문항을 직접 풀어 보며 자기 생각의 결을 들여다보는 탐색입니다.",
+    "noScoreNotice": "현재 결과에는 IQ 점수·백분위·표준점수·등수를 표시하지 않습니다. 한국 성인 표본으로 문항을 보정하고, 독립 타당화·공정성 검토·규준 승인을 마치기 전에는 환산 근거가 없기 때문입니다.",
+    "provenanceBody": "문항은 CHC 능력 분류와 ICAR(Condon & Revelle, 2014) 문항 형식 문헌을 참고해 LUMINA가 직접 만든 원문입니다. 공개 연구의 형식과 규준을 그대로 복사하지 않고, 이 문제은행에 맞는 별도 표본 보정을 진행합니다.",
+    "durationLabel": "약 {minutes}분",
+    "itemCountLabel": "{n}문항",
+    "formatsTitle": "공개 연습용 형식 미리보기",
+    "formatsBody": "아래 갤러리는 공개 연습용으로 제공하는 네 가지 시각·언어 형식입니다. 실제 파일럿은 다섯 CHC 영역의 보호된 문제은행에서 별도 문항을 무작위·적응형으로 출제합니다.",
+    "domainImageAlt": "{domain} 형식을 상징하는 삽화",
+    "unaidedNotice": "정답은 페이지와 함께 브라우저로 내려받아집니다 — 서버가 없는 구조라 달리 둘 곳이 없습니다. 그래서 이 결과는 도움 없이 혼자 풀었을 때에만 스스로에게 의미가 있습니다.",
+    "resultTitle": "인지능력 탐색 결과",
+    "resultMetaDescription": "네 가지 형식별 정답률과 문항마다의 규칙 풀이입니다. 규준 표본이 없어 백분위와 IQ 환산치는 제공하지 않습니다.",
+    "resultSummary": "네 가지 형식에서 각각 몇 문항을 맞혔는지, 그리고 각 문항이 어떤 규칙을 묻고 있었는지를 함께 정리했습니다.",
+    "resultImageAlt": "추론의 네 가지 형식을 상징하는 삽화",
+    "brokenLink": "이 링크의 결과를 읽지 못했습니다.",
+    "restartCta": "문항 풀러 가기",
+    "retakeCta": "다시 풀어 보기",
+    "shareTitle": "인지능력 탐색 결과",
+    "overallAccuracy": "{total}문항 중 {correct}문항 정답 · 전체 정답률 {percent}%",
+    "sectionDomains": "형식별 정답률",
+    "domainsAside": "네 형식 · 각 4문항",
+    "domainsIntro": "네 형식의 정답률을 한 도형에 겹쳐 놓았습니다. 넓고 좁음은 능력의 크기가 아니라 이번 열여섯 문항에서 어떤 형식이 손에 붙었는지를 보여 주는 모양입니다.",
+    "domainAccuracy": "{total}문항 중 {correct}문항 · {percent}%",
+    "coarseResolutionNote": "한 형식이 네 문항뿐이라 정답률은 0·25·50·75·100 다섯 값만 나옵니다. 한 문항 차이가 곧 25%p 차이이므로 형식 사이의 높낮이는 우연으로도 쉽게 뒤집힙니다.",
+    "sectionReview": "문항 다시 보기",
+    "reviewAside": "16문항 · 규칙 풀이",
+    "reviewIntroResult": "이 페이지에서 가장 오래 머물 만한 자리입니다. 열여섯 문항을 하나씩 다시 펼쳐 두었고, 각 문항이 어떤 규칙을 묻고 있었는지 함께 적었습니다. 맞힌 문항도 규칙을 확인해 보면 다음 문항이 다르게 보입니다.",
+    "itemCorrect": "맞힘",
+    "itemIncorrect": "틀림",
+    "yourAnswer": "내가 고른 답",
+    "yourAnswerCorrect": "내가 고른 답 (정답)",
+    "correctAnswer": "정답",
+    "ruleLabel": "규칙",
+    "sectionLimits": "이 결과의 한계",
+    "limitsAside": "읽기 전에",
+    "methodBody": "열여섯 문항을 맞았는지 틀렸는지만 채점해 형식별·전체 정답 수와 정답률을 냅니다. 역채점도 가중치도 시간 감점도 없습니다. 걸린 시간은 재되 채점에 전혀 쓰이지 않으며 공유 링크에도 담기지 않습니다.",
+    "citationScopeNote": "아래 문헌은 이 검사가 따른 문항 형식의 출처이며 문항 자체의 출처가 아닙니다. 따라서 이 연구들의 규준과 타당도 근거는 이 결과에 그대로 적용되지 않습니다.",
+    "elapsedResultNote": "이 브라우저에 기록된 시간 {minutes}분 {seconds}초 — 채점에는 쓰이지 않은 값입니다.",
+    "limitations": {
+      "item1": "문항은 ICAR(Condon & Revelle, 2014)의 네 가지 형식만 따라 LUMINA가 직접 쓴 것이며 ICAR 원문 문항이 아닙니다.",
+      "item2": "이 문항에 답한 규준 표본이 없어 백분위나 IQ 환산치를 낼 수 없습니다. 보고하는 값은 영역별·전체 정답률뿐입니다.",
+      "item3": "16문항은 능력을 안정적으로 추정하기에 턱없이 적은 수입니다.",
+      "item4": "임상 지능검사가 아니라 스스로를 살펴보기 위한 탐색이며, 결과는 도움 없이 혼자 풀었을 때만 의미가 있습니다."
+    },
+    "domainsLabel": "네 가지 문항 형식",
+    "itemLabel": "문항 {n}",
+    "optionsLabel": "보기",
+    "recommendedTime": "권장 {seconds}초",
+    "timingNote": "권장 시간은 안내일 뿐입니다. 제한 시간도 자동 제출도 없고, 걸린 시간은 채점에 쓰이지 않습니다.",
+    "previous": "이전 문항",
+    "next": "다음 문항",
+    "toReview": "답 확인하기",
+    "reviewTitle": "제출 전 답 확인",
+    "reviewIntro": "제출하기 전에 열여섯 문항을 한 화면에서 다시 볼 수 있습니다. 지금이라면 어떤 답이든 바꿔도 됩니다.",
+    "backToItems": "문항으로 돌아가기",
+    "submit": "결과 보기",
+    "unansweredWarning": "{n}문항이 아직 비어 있습니다. 모두 응답해야 결과를 볼 수 있습니다.",
+    "unansweredMark": "미응답",
+    "elapsedItem": "머문 시간 {seconds}초",
+    "elapsedNotMeasured": "시간 기록 없음",
+    "elapsedTotal": "지금까지 기록된 시간 {minutes}분 {seconds}초",
+    "matrixStimulusAlt": "가로 세 칸, 세로 세 칸으로 놓인 도형 표입니다. 한 칸이 물음표로 비어 있으며, 나머지 여덟 칸에서 규칙을 찾아 빈칸에 들어갈 도형을 고르는 문항입니다.",
+    "rotationStimulusAlt": "정육면체를 이어 붙여 만든 입체 도형입니다. 이 도형을 돌리기만 해서 만들 수 있는 보기를 고르는 문항입니다.",
+    "matrixOptionAlt": "보기 {n}번 도형",
+    "rotationOptionAlt": "보기 {n}번 입체 도형",
+    "domains": {
+      "letterNumberSeries": {
+        "label": "문자·숫자 수열",
+        "blurb": "글자와 숫자가 서로 다른 규칙으로 나아가는 줄에서 다음 자리를 찾습니다."
+      },
+      "matrixReasoning": {
+        "label": "도형 행렬",
+        "blurb": "3×3 표에서 행과 열이 각각 무엇을 바꾸는지 읽고 빈칸을 채웁니다."
+      },
+      "verbalReasoning": {
+        "label": "언어 추론",
+        "blurb": "낱말과 문장이 담은 관계를 따져 조건에 맞는 답을 고릅니다."
+      },
+      "threeDimensionalRotation": {
+        "label": "3차원 회전",
+        "blurb": "정육면체로 만든 입체를 머릿속에서 돌려 같은 도형을 찾습니다."
+      }
     }
   },
   "horoscope": {
@@ -664,23 +1179,26 @@
     "heroTitle2": "띠 하나를 고르세요.",
     "heroBody": "보는 사람의 현지 자정을 기준으로 하루가 바뀝니다. 서버에 저장하지 않고 그 자리에서 바로 계산합니다.",
     "sectionPick": "고르기",
-      "tabZodiac": "별자리",
+    "tabZodiac": "별자리",
     "tabChinese": "띠",
-      "previewLabel": "선택 미리보기",
-      "recommendedSign": "저장된 프로필",
-      "systemZodiac": "별자리",
+    "previewLabel": "선택 미리보기",
+    "recommendedSign": "저장된 프로필",
+    "systemZodiac": "별자리",
     "systemChinese": "띠",
     "sectionToday": "오늘",
     "moodLabel": "분위기",
     "relationshipLabel": "관계",
     "workLabel": "할 일",
     "tipLabel": "팁",
+    "elementAffinityLabel": "오늘의 오행",
+    "elementAffinityBody": "오늘은 {branch}({hanja})일 — {element} 기운이 흐릅니다.",
     "otherSigns": "다른 별자리·띠 보기",
     "brokenLink": "이 결과를 읽지 못했습니다.",
     "emptyBody": "아직 입력한 출생 정보가 없습니다.",
     "cannotCompute": "이 값으로는 계산할 수 없습니다.",
     "resultTitleSuffix": "오늘의 운세",
-    "metaDescription": "별자리 또는 띠를 고르면 오늘 하루의 짧은 흐름을 보여줍니다."
+    "metaDescription": "별자리 또는 띠를 고르면 오늘 하루의 짧은 흐름을 보여줍니다.",
+    "ogFooterNotice": "특정 날짜를 반영하지 않은 일반 소개입니다 — 오늘의 실제 운세는 사이트에서 매일 갱신됩니다."
   },
   "horoscopeReading": {
     "sectionEvidence": "계산 근거",
@@ -766,7 +1284,7 @@
     "tarot": "타로 · 상징 전통",
     "numerology": "수비학 · 숫자 전통",
     "psychometrics": "성향검사 · 심리측정",
-    "jungian": "융 유형 렌즈(비공식) · Big Five 재표현",
+    "jungian": "MBTI 유형 분석(비공식) · Big Five 기반 참고 해석",
     "horoscope": "오늘의 운세 · 천체·일진 계산",
     "note": "각 결과의 세부 블록에도 해당 문헌이 다시 표시됩니다. URL이 있는 자료는 원문으로 이동할 수 있습니다."
   },
@@ -775,18 +1293,54 @@
     "title": "용어집",
     "intro": "계산값과 해석 문장에서 자주 쓰이는 전문 용어를 짧게 설명합니다. 정의와 문화적 해석을 혼동하지 않도록 계층을 함께 표시합니다.",
     "items": {
-      "evidenceRef": { "term": "근거 참조", "definition": "해설 문장이 어느 계산값에서 나왔는지 가리키는 내부 연결입니다. 해석의 진실성을 자동으로 보증하지는 않지만 끊어진 연결을 검사할 수 있습니다." },
-      "tenGod": { "term": "십신", "definition": "일간과 다른 글자의 오행·음양 관계를 열 가지 역할 언어로 표현한 사주 전통 용어입니다." },
-      "growthStage": { "term": "십이운성", "definition": "일간의 천간과 지지의 관계를 열두 단계의 생명 주기 비유로 읽는 사주 전통 용어입니다. 병·사 같은 이름은 의료·수명 예측이 아닙니다." },
-      "trueSolar": { "term": "진태양시", "definition": "표준시의 시각을 출생지 경도와 균시차로 보정해 실제 태양의 위치에 가까운 시각으로 표현한 계산값입니다." },
-      "house": { "term": "하우스", "definition": "점성술 차트의 황도 공간을 출생지의 상승궁을 기준으로 열두 구간으로 나눈 상징적 영역입니다." },
-      "aspect": { "term": "각(aspect)", "definition": "두 천체의 황경 차이가 합·육분·사분·삼분·대치 같은 기준 각도와 가까운지 계산한 관계입니다." },
-      "tScore": { "term": "T점수", "definition": "규준 표본의 평균과 표준편차를 기준으로 표준화한 점수입니다. LUMINA는 평균 50, 표준편차 10으로 표시합니다." },
-      "percentile": { "term": "백분위", "definition": "응답 원점수가 규준 분포에서 어느 위치에 놓이는지 1부터 99 사이로 나타낸 값입니다. 한국인 규준을 뜻하지 않습니다." },
-      "sem": { "term": "측정표준오차(SEM)", "definition": "같은 특성을 반복 측정할 때 점수가 흔들릴 수 있는 정도를 신뢰도와 표준편차로 추정한 값입니다." },
-      "masterNumber": { "term": "마스터 넘버", "definition": "수비학 전통에서 11·22·33을 한 자리로 더 줄이지 않고 별도 상징으로 남기는 규칙입니다." },
-      "jungianAxis": { "term": "융 유형 렌즈 축", "definition": "새 문항 없이 기존 Big Five 점수를 네 개의 연속 방향으로 다시 표현하는 축입니다. 경계의 불확실성을 보존한 파생 코드로 요약합니다." },
-      "typeBoundary": { "term": "경계값 ?", "definition": "축 점수가 중간에 가까울 때 임의로 한쪽 문자를 붙이지 않는 표시입니다. 결과가 부족하다는 뜻이 아니라 연속성을 보존하는 안전장치입니다." }
+      "evidenceRef": {
+        "term": "근거 참조",
+        "definition": "해설 문장이 어느 계산값에서 나왔는지 가리키는 내부 연결입니다. 해석의 진실성을 자동으로 보증하지는 않지만 끊어진 연결을 검사할 수 있습니다."
+      },
+      "tenGod": {
+        "term": "십신",
+        "definition": "일간과 다른 글자의 오행·음양 관계를 열 가지 역할 언어로 표현한 사주 전통 용어입니다."
+      },
+      "growthStage": {
+        "term": "십이운성",
+        "definition": "일간의 천간과 지지의 관계를 열두 단계의 생명 주기 비유로 읽는 사주 전통 용어입니다. 병·사 같은 이름은 의료·수명 예측이 아닙니다."
+      },
+      "trueSolar": {
+        "term": "진태양시",
+        "definition": "표준시의 시각을 출생지 경도와 균시차로 보정해 실제 태양의 위치에 가까운 시각으로 표현한 계산값입니다."
+      },
+      "house": {
+        "term": "하우스",
+        "definition": "점성술 차트의 황도 공간을 출생지의 상승궁을 기준으로 열두 구간으로 나눈 상징적 영역입니다."
+      },
+      "aspect": {
+        "term": "각(aspect)",
+        "definition": "두 천체의 황경 차이가 합·육분·사분·삼분·대치 같은 기준 각도와 가까운지 계산한 관계입니다."
+      },
+      "tScore": {
+        "term": "T점수",
+        "definition": "규준 표본의 평균과 표준편차를 기준으로 표준화한 점수입니다. LUMINA는 평균 50, 표준편차 10으로 표시합니다."
+      },
+      "percentile": {
+        "term": "백분위",
+        "definition": "응답 원점수가 규준 분포에서 어느 위치에 놓이는지 1부터 99 사이로 나타낸 값입니다. 한국인 규준을 뜻하지 않습니다."
+      },
+      "sem": {
+        "term": "측정표준오차(SEM)",
+        "definition": "같은 특성을 반복 측정할 때 점수가 흔들릴 수 있는 정도를 신뢰도와 표준편차로 추정한 값입니다."
+      },
+      "masterNumber": {
+        "term": "마스터 넘버",
+        "definition": "수비학 전통에서 11·22·33을 한 자리로 더 줄이지 않고 별도 상징으로 남기는 규칙입니다."
+      },
+      "jungianAxis": {
+        "term": "MBTI 선호 축",
+        "definition": "새로운 공식 MBTI 문항 없이 기존 Big Five 점수를 E/I·S/N·T/F·J/P 네 개의 연속 선호 방향으로 참고 해석하는 축입니다. 경계의 불확실성은 ?로 보존합니다."
+      },
+      "typeBoundary": {
+        "term": "경계값 ?",
+        "definition": "축 점수가 중간에 가까울 때 임의로 한쪽 문자를 붙이지 않는 표시입니다. 결과가 부족하다는 뜻이 아니라 연속성을 보존하는 안전장치입니다."
+      }
     }
   },
   "methodologyPage": {
@@ -799,7 +1353,7 @@
     "dayCases": "일진: 1900-01-01~2100-12-31의 73,414일을 lunar-javascript와 전수 대조해 불일치 0건",
     "norms": "Big Five: 공개 IPIP 자료 1,015,341행 중 품질 필터 후 551,607행의 집계값만 규준으로 보존",
     "determinism": "타로·수비학: 시드 기반 셔플과 자릿수·문자값 산술의 결정론적 재현성 테스트",
-    "jungian": "융 유형 렌즈: IPIP-50 기존 점수의 선형 재표현, 네 축 방향·경계값·파생 프로필과 학술 상관 근거를 단위 테스트로 고정",
+    "jungian": "MBTI 유형 분석: IPIP-50 기존 점수의 선형 참고 해석, 네 선호 축·경계값·유형 프로필과 학술 상관 근거를 단위 테스트로 고정",
     "limitsHeading": "해석의 한계",
     "limitsBody": "사주·점성술·타로·수비학의 상징 문장은 계산값에서 출발하지만 미래 사건을 예측한다는 경험적 검증을 제공하지 않습니다. Big Five 규준도 영어권 온라인 공개 표본이며 한국인 인구 규준이 아닙니다.",
     "notYet": "점성술 8,030건은 5일 간격 표본이므로 모든 시각의 오차를 보장하는 전수 검사는 아닙니다. Big Five 규준은 영어권 공개 표본이며, 연령·성별 층화 규준은 적용하지 않습니다.",
@@ -846,6 +1400,13 @@
     "kicker": "LUMINA / 두 프로필",
     "title": "두 프로필을 비교해 보세요",
     "body": "두 사람의 출생 정보를 입력하면 전통 사주의 지지 관계와 일간 오행 방향을 나란히 보여 줍니다. 프로필은 서버에 저장하지 않습니다.",
+    "heroImageAlt": "두 사주 차트와 흐르는 오행의 결을 표현한 궁합 삽화",
+    "visualGuideTitle": "관계의 흐름을 이미지로 살펴보기",
+    "visualGuideBody": "궁합은 고정된 점수가 아니라 두 사람이 만날 때 생기는 조화와 조정의 지점을 살펴보는 상징 지도입니다.",
+    "toneImageAlt": "{tone} 관계의 흐름을 상징하는 삽화",
+    "resultImageAlt": "두 사람의 사주 흐름이 만나는 장면을 표현한 궁합 삽화",
+    "profileImageAlt": "{profile}의 일주 상징 삽화: {zodiac}",
+    "toneSectionKicker": "LUMINA / 관계의 흐름",
     "sectionInput": "두 프로필 입력",
     "personA": "프로필 A",
     "personB": "프로필 B",
@@ -922,12 +1483,50 @@
     "kicker": "ECR-R 참고 · 탐색용 36문항",
     "heroTitle": "나의 애착 유형은?",
     "heroDescription": "친밀한 관계에서 당신이 보여주는 패턴을 알아보세요. 불안과 회피 두 가지 축으로 당신의 애착 스타일을 분석합니다.",
+    "heroImageAlt": "두 돌과 네 갈래 길로 표현한 애착 패턴 탐색 지도",
+    "visualGuideTitle": "네 가지 패턴을 이미지로 살펴보기",
+    "visualGuideBody": "유형은 고정된 정체성이 아니라 관계 경험 속에서 움직일 수 있는 패턴입니다.",
+    "styleImageAlt": "{style} 애착 패턴을 상징하는 삽화",
+    "axisImageAlt": "{axis} 축을 설명하는 상징 삽화",
+    "resultImageAlt": "애착 유형과 두 축을 상징하는 삽화",
+    "styles": {
+      "secure": {
+        "label": "안정형"
+      },
+      "anxious": {
+        "label": "불안형"
+      },
+      "avoidant": {
+        "label": "회피형"
+      },
+      "fearful": {
+        "label": "두려움형"
+      }
+    },
     "aboutTitle": "애착 유형 검사란?",
     "aboutDescription": "애착 이론은 관계 경험이 성인기의 친밀한 관계 패턴에 영향을 줄 수 있다고 설명합니다. 이 탐색용 화면은 ECR-R 개념을 참고하지만, 한국어 문항·5점 척도·역채점 규칙·규준은 현재 검토 중입니다. 불안(버려짐에 대한 걱정)과 회피(친밀감에 대한 불편함) 두 차원을 보여줍니다.",
     "timeLabel": "소요 시간",
     "timeValue": "약 5분",
     "itemsLabel": "문항 수",
     "itemsValue": "36문항",
+    "scale1": "전혀 그렇지 않다",
+    "scale2": "그렇지 않다",
+    "scale3": "보통이다",
+    "scale4": "그렇다",
+    "scale5": "매우 그렇다",
+    "sectionAxes": "두 축",
+    "axes": {
+      "anxiety": {
+        "label": "불안"
+      },
+      "avoidance": {
+        "label": "회피"
+      }
+    },
+    "provisionalMean": "잠정 평균 {value}",
+    "allAnswered": "모든 문항 완료",
+    "unansweredWarning": "{n}문항이 아직 비어 있습니다. 모두 응답해야 결과를 볼 수 있습니다.",
+    "submit": "결과 보기",
     "footerNote1": "※ 이 검사는 자기성찰을 위한 도구이며, 임상 진단을 대체하지 않습니다.",
     "footerNote2": "※ 결과는 이 브라우저에만 저장되며 서버로 전송되지 않습니다.",
     "resultTitle": "애착 유형 결과",
@@ -953,9 +1552,55 @@
   },
   "consent": {
     "ariaLabel": "광고 동의",
-    "message": "이 사이트는 운영을 위해 광고를 게재할 수 있습니다. 동의하면 관심사 기반 광고가, 거부하면 개인화되지 않은 광고가 표시됩니다.",
+    "message": "이 사이트는 운영을 위해 광고를 게재하고 익명 방문 통계를 수집할 수 있습니다. 동의하면 관심사 기반 광고가, 거부하면 개인화되지 않은 광고가 표시되며, 방문 통계 수집은 두 경우 모두 동일합니다.",
     "learnMore": "개인정보처리방침 보기",
     "accept": "동의",
     "reject": "거부"
+  },
+  "share": {
+    "kicker": "공유된 결과",
+    "summaryOnlyNotice": "이 페이지는 다른 사람이 공유한 요약 결과만 보여줍니다. 문항별 응답이나 세부 하위척도는 여기서 제공되지 않으며, 제공하는 것도 적절하지 않습니다.",
+    "ctaTitle": "당신의 패턴은 어떤 모습일까요?",
+    "ctaBody": "이 요약은 다른 사람의 응답으로 만들어졌습니다. 같은 분석을 직접 해보면 자신의 연속 점수와 경계 축을 확인할 수 있습니다.",
+    "ctaButton": "{title} 직접 해보기",
+    "backHome": "LUMINA 홈으로",
+    "invalidTitle": "유효하지 않은 공유 링크입니다",
+    "invalidBody": "링크의 코드가 없거나 손상되었습니다. 보낸 사람에게 새 링크를 요청하거나 직접 분석을 진행해 보세요.",
+    "limitationLabel": "알려진 한계",
+    "jungian": {
+      "metaTitle": "{code} · 공유된 MBTI 스타일 요약",
+      "metaDescription": "LUMINA MBTI 스타일 분석에서 공유된 요약입니다 — Big Five 응답에서 파생한 연속 축 점수를 {code} 패턴으로 보여줍니다.",
+      "heroKicker": "공유된 MBTI 스타일 요약",
+      "heroTitle": "{code} 패턴",
+      "heroBody": "다른 사람이 IPIP-50 Big Five 응답에서 계산한 MBTI 스타일 요약을 공유했습니다. 네 글자는 네 개의 연속 선호 축을 압축한 것이며, 경계에 걸친 축은 글자를 단정하지 않고 \"?\"로 남습니다.",
+      "axesTitle": "네 가지 선호 축",
+      "footerNotice": "Big Five 파생 · 공식 MBTI® 검사 아님"
+    },
+    "fallback": {
+      "metaTitle": "공유된 {title} 결과 · LUMINA",
+      "metaDescription": "이 링크는 LUMINA {title} 분석에서 나온 요약을 담고 있습니다.",
+      "heroKicker": "공유된 결과",
+      "heroTitle": "공유된 {title} 결과",
+      "heroBody": "이 링크는 LUMINA {title} 분석에서 나온 요약을 담고 있습니다. 전체 분석을 열어 자신의 결과를 확인해 보세요.",
+      "footerNotice": "요약만 제공 · 자세한 내용은 전체 분석에서 확인하세요"
+    },
+    "bigfive": {
+      "footerNotice": "영어권 참고 표본의 근거 · 한국 대표 규준 아님"
+    },
+    "darktriad": {
+      "footerNotice": "임상 진단·도덕성 판정이 아니며, 한국 연구에서 원척도의 3요인 구조가 그대로 재현되지 않았습니다."
+    },
+    "attachment": {
+      "footerNotice": "현재 구현은 공식 ECR-R 문항·7점 척도·역채점 규칙과 일치하지 않아 실험용으로만 표시합니다."
+    },
+    "eq": {
+      "footerNotice": "능력검사가 아닌 자기보고 척도 · 한국어 문항은 미검증 자체 번역"
+    },
+    "cognitive": {
+      "footerNotice": "ICAR 형식을 따른 LUMINA 자체 16문항 · 규준 표본이 없어 백분위·IQ 환산치 없음 · 임상 지능검사 아님",
+      "correctLabel": "맞힌 문항 수",
+      "accuracyLabel": "전체 정답률 {percent}%",
+      "domainsHeading": "형식별 정답률"
+    }
   }
 }

@@ -1104,6 +1104,8 @@
     "runProgress": "{answered} / {total}",
     "runInvalid": "This run is no longer available. Start a new pilot.",
     "pilotResultTitle": "Pilot participation recorded",
+    "estimatedResultTitle": "Theoretical-distribution IQ estimate result",
+    "standardizedResultTitle": "Standardized IQ result",
     "pilotResultBody": "Your responses were recorded for instrument validation. A standardized IQ estimate will appear only after Korean adult norms, reliability, fairness and independent review are approved.",
     "pilotResultCta": "Return to cognitive pilot",
     "legacyNotice": "This old response link is read-only and cannot produce a standardized score. Start the protected pilot instead.",

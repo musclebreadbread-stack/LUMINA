@@ -1104,6 +1104,8 @@
     "runProgress": "{answered} / {total}",
     "runInvalid": "이 실행은 더 이상 사용할 수 없습니다. 새 파일럿을 시작해 주세요.",
     "pilotResultTitle": "파일럿 참여가 기록되었습니다",
+    "estimatedResultTitle": "이론 분포 기반 IQ 추정 결과",
+    "standardizedResultTitle": "표준화 IQ 결과",
     "pilotResultBody": "응답은 검사 도구 타당화를 위해 기록되었습니다. 한국 성인 규준·신뢰도·공정성·독립 검토가 승인된 뒤에만 표준화 IQ 추정치를 제공합니다.",
     "pilotResultCta": "인지 파일럿으로 돌아가기",
     "legacyNotice": "이전 응답 링크는 읽기 전용이며 표준화 점수를 만들 수 없습니다. 보호된 파일럿을 시작해 주세요.",

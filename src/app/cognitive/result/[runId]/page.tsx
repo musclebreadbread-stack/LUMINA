@@ -16,9 +16,20 @@ interface PageProps {
   readonly params: Promise<{ runId: string }>;
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { runId: rawRunId } = await params;
   const t = await getTranslations("cognitive");
-  return { title: t("pilotResultTitle"), robots: { index: false, follow: false } };
+  let status: "pilot_withheld" | "estimated_scored" | "standardized_scored" = "pilot_withheld";
+  try {
+    const runId = parseRunId(rawRunId);
+    if ((await resumeCognitiveRun(runId)) !== null) {
+      status = (await resolveScoreForRun(runId)).status;
+    }
+  } catch {
+    status = "pilot_withheld";
+  }
+  const titleKey = status === "estimated_scored" ? "estimatedResultTitle" : status === "standardized_scored" ? "standardizedResultTitle" : "pilotResultTitle";
+  return { title: t(titleKey), robots: { index: false, follow: false } };
 }
 
 export default async function CognitiveRunResultPage({ params }: PageProps) {

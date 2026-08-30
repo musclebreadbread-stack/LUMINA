@@ -58,7 +58,7 @@ export default async function CognitiveRunPage({ params }: PageProps) {
               initialRun={run}
               locale={locale as Locale}
               labels={{
-                progress: t("runProgress"),
+                progress: t.raw("runProgress"),
                 submit: t("runSubmit"),
                 invalid: t("runInvalid"),
                 stale: t("runInvalid"),

@@ -15,6 +15,7 @@ export function SajuHubTrigger({
   imageSrc,
   imageAlt,
   cta,
+  mark,
   featured = false,
 }: {
   readonly glyph: string;
@@ -25,6 +26,7 @@ export function SajuHubTrigger({
   readonly imageSrc: string;
   readonly imageAlt: string;
   readonly cta: string;
+  readonly mark?: ReactNode;
   readonly featured?: boolean;
 }) {
   const { reveal } = useSajuReveal();
@@ -60,6 +62,7 @@ export function SajuHubTrigger({
           <span aria-hidden className="portal-arrow absolute right-5 top-5 text-xl text-white">
             ↗
           </span>
+          {mark}
         </div>
 
         <div className="flex min-h-[178px] flex-col justify-between gap-6 p-6 sm:p-7">

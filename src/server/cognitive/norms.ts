@@ -6,8 +6,9 @@ import {
   type AgeNormRow,
   type ApprovedNormVersion,
 } from "@engine/cognitive-standardized/norming";
-import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { createNeonSql, neonRows, type NeonSql } from "@/lib/neon/server";
 
+import { requireCognitiveSubject } from "./auth";
 import { getOwnedRun } from "./repository";
 
 interface NormReleasePayload {
@@ -65,35 +66,66 @@ function parseApprovedNorm(row: unknown): ApprovedNormVersion | null {
   };
 }
 
-async function loadScoringState(runId: string): Promise<ScoringState | null> {
-  const admin = createAdminSupabaseClient();
-  const { data, error } = await admin
-    .schema("private_cognitive")
-    .from("scoring_state")
-    .select("theta, standard_error, answered_count, age_years")
-    .eq("run_id", runId)
-    .maybeSingle();
-  if (error || data === null) return null;
-  return data;
+async function queryAsSubject(subjectId: string, query: ReturnType<NeonSql>): Promise<readonly Readonly<Record<string, unknown>>[]> {
+  const sql = createNeonSql();
+  const results = await sql.transaction([
+    sql`select set_config('app.current_subject_id', ${subjectId}, true)`,
+    query,
+  ]);
+  return neonRows(results[1]);
+}
+
+async function loadScoringState(subjectId: string, runId: string): Promise<ScoringState | null> {
+  const sql = createNeonSql();
+  try {
+    const rows = await queryAsSubject(subjectId, sql`
+      select theta, standard_error, answered_count, age_years
+        from private_cognitive.scoring_state
+       where run_id = ${runId}::uuid
+       limit 1
+    `);
+    const row = rows[0];
+    if (
+      row === undefined ||
+      typeof row.theta !== "number" ||
+      (row.standard_error !== null && typeof row.standard_error !== "number") ||
+      typeof row.answered_count !== "number" ||
+      (row.age_years !== null && typeof row.age_years !== "number")
+    ) return null;
+    return {
+      theta: row.theta,
+      standard_error: row.standard_error,
+      answered_count: row.answered_count,
+      age_years: row.age_years,
+    };
+  } catch {
+    return null;
+  }
 }
 
 export async function loadApprovedNormForRun(runId: string): Promise<ApprovedNormVersion | null> {
   const ownedRun = await getOwnedRun(runId);
   if (ownedRun === null || ownedRun.status !== "completed") return null;
 
-  const admin = createAdminSupabaseClient();
-  const { data, error } = await admin
-    .schema("private_cognitive")
-    .from("norm_releases")
-    .select("id, status, target_population, item_bank_version, algorithm_version, norm_payload, approved_at")
-    .eq("status", "approved")
-    .eq("target_population", "ko-adults-18-64")
-    .eq("item_bank_version", ownedRun.itemBankVersion)
-    .eq("algorithm_version", ownedRun.algorithmVersion)
-    .order("approved_at", { ascending: false })
-    .limit(1);
-  if (error || data === null || data.length === 0) return null;
-  return parseApprovedNorm(data[0]);
+  const subject = await requireCognitiveSubject().catch(() => null);
+  if (subject === null) return null;
+  const sql = createNeonSql();
+  try {
+    const rows = await queryAsSubject(subject.id, sql`
+      select id, status, target_population, item_bank_version, algorithm_version,
+             norm_payload, approved_at
+        from private_cognitive.norm_releases
+       where status = 'approved'
+         and target_population = 'ko-adults-18-64'
+         and item_bank_version = ${ownedRun.itemBankVersion}
+         and algorithm_version = ${ownedRun.algorithmVersion}
+       order by approved_at desc
+       limit 1
+    `);
+    return rows.length === 0 ? null : parseApprovedNorm(rows[0]);
+  } catch {
+    return null;
+  }
 }
 
 export async function resolveScoreForRun(runId: string): Promise<ScoredRun> {
@@ -101,7 +133,9 @@ export async function resolveScoreForRun(runId: string): Promise<ScoredRun> {
   const ownedRun = await getOwnedRun(runId);
   if (ownedRun === null || ownedRun.status !== "completed" || ownedRun.answeredCount < ownedRun.targetItemCount) return pilot;
 
-  const [norm, scoringState] = await Promise.all([loadApprovedNormForRun(runId), loadScoringState(runId)]);
+  const subject = await requireCognitiveSubject().catch(() => null);
+  if (subject === null) return pilot;
+  const [norm, scoringState] = await Promise.all([loadApprovedNormForRun(runId), loadScoringState(subject.id, runId)]);
   if (norm === null || scoringState === null || scoringState.standard_error === null || scoringState.age_years === null || scoringState.answered_count < ownedRun.targetItemCount) return pilot;
 
   try {

@@ -2,15 +2,22 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
+import { ChapterNav } from "@/components/ui/ChapterNav";
 import { Disclaimer } from "@/components/ui/Chrome";
 import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
+import { ResultCover } from "@/components/ui/ResultCover";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { AxisBar } from "@/components/attachment/AxisBar";
 import { AttachmentResultClient } from "@/components/attachment/AttachmentResultClient";
 import { QuadrantCard } from "@/components/attachment/QuadrantCard";
+import { attachmentResultChapters } from "@/components/attachment/resultChapters";
+import { NextLens } from "@/components/report/NextLens";
+import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
 import { buildAttachmentView } from "@/lib/attachmentModel";
 import { decodeAttachmentResponses } from "@/lib/attachmentCode";
 import { analysisDefinition } from "@/lib/analysisCatalog";
+import { attachmentImagePath } from "@/lib/psychometricsAssets";
+import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
 
 interface ResultPageProps {
   searchParams: Promise<{ r?: string; run?: string }>;
@@ -21,14 +28,19 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: t("resultTitle"),
     description: t("resultDescription"),
+    robots: { index: false, follow: false },
   };
 }
 
 export default async function AttachmentResultPage({ searchParams }: ResultPageProps) {
   const params = await searchParams;
-  const t = await getTranslations("attachment");
+  const [t, tCommon] = await Promise.all([
+    getTranslations("attachment"),
+    getTranslations("common"),
+  ]);
   const locale = await getLocale();
   const evidence = analysisDefinition("attachment");
+  const chapters = attachmentResultChapters(t, tCommon("nextLensKicker"));
 
   if (params.run) {
     return (
@@ -43,7 +55,13 @@ export default async function AttachmentResultPage({ searchParams }: ResultPageP
               <EvidenceStatusBadge status={evidence.evidence.validationStatus} />
             </div>
           </header>
-          <AttachmentResultClient runId={params.run} />
+          {/* 목차와 추천은 결과가 실제로 복원됐을 때만 뜨도록 클라이언트 쪽에 슬롯으로 넘긴다. */}
+          <AttachmentResultClient
+            runId={params.run}
+            chapters={chapters}
+            chapterNavLabel={tCommon("chapterNavLabel")}
+            nextLens={<NextLens analysisKey={evidence.key} id="section-next-lens" />}
+          />
         </main>
       </SceneShell>
     );
@@ -92,6 +110,7 @@ export default async function AttachmentResultPage({ searchParams }: ResultPageP
   return (
     <SceneShell tone="attachment">
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
+        <ExplorationRecorder analysisKey="attachment" />
         <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
           <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">
             LUMINA
@@ -104,35 +123,43 @@ export default async function AttachmentResultPage({ searchParams }: ResultPageP
 
         <div className="py-8 sm:py-12 space-y-12">
           {/* 헤더 */}
-          <div className="text-center space-y-4">
-            <h1 className="text-3xl sm:text-4xl font-bold text-hobun">
-              {t("resultHeading")}
-            </h1>
-            <p className="text-lg text-hobun-dim">
-              {t("resultSubheading")}
-            </p>
-          </div>
-
-          {/* 4사분면 분류 카드 */}
-          <QuadrantCard
-            classification={view.classification}
-            locale={resolvedLocale}
+          <ResultCover
+            eyebrow={t("resultTitle")}
+            title={t("resultHeading")}
+            summary={t("resultSubheading")}
+            imageSrc={attachmentImagePath(view.classification.quadrant)}
+            imageAlt={t("resultImageAlt")}
+            imageLabel={t("resultHeading")}
+            imageFrameClassName="assessment-result-art aspect-[3/2] max-w-[260px]"
+            tier={evidence.tier}
+            evidenceStatus={evidence.evidence.validationStatus}
+            completionAnalysisKey={evidence.key}
           />
 
+          <ChapterNav chapters={chapters} label={tCommon("chapterNavLabel")} />
+
+          {/* 4사분면 분류 카드 */}
+          <div id="section-quadrant" className="scroll-mt-24">
+            <QuadrantCard
+              classification={view.classification}
+              locale={resolvedLocale}
+            />
+          </div>
+
           {/* 축별 점수 */}
-          <div className="space-y-8">
+          <div id="section-axes" className="space-y-8 scroll-mt-24">
             <h2 className="text-2xl font-bold text-hobun">
               {t("axisScoresTitle")}
             </h2>
 
             <div className="space-y-8">
-              <AxisBar axis={view.anxiety} locale={resolvedLocale} />
-              <AxisBar axis={view.avoidance} locale={resolvedLocale} />
+              <AxisBar axis={view.anxiety} axisKey="anxiety" locale={resolvedLocale} />
+              <AxisBar axis={view.avoidance} axisKey="avoidance" locale={resolvedLocale} />
             </div>
           </div>
 
           {/* 해석 가이드 */}
-          <div className="border border-ink-700 rounded-xl p-6 space-y-4">
+          <div id="section-interpretation" className="border border-ink-700 rounded-xl p-6 space-y-4 scroll-mt-24">
             <h2 className="text-xl font-semibold text-hobun">
               {t("interpretationTitle")}
             </h2>
@@ -146,7 +173,7 @@ export default async function AttachmentResultPage({ searchParams }: ResultPageP
           <Disclaimer tier={evidence.tier} />
 
           {/* 참고 근거와 한계 */}
-          <div className="border border-ink-700 rounded-xl p-6 space-y-4">
+          <div id="section-science" className="border border-ink-700 rounded-xl p-6 space-y-4 scroll-mt-24">
             <h2 className="text-xl font-semibold text-hobun">
               {t("scienceTitle")}
             </h2>
@@ -156,6 +183,10 @@ export default async function AttachmentResultPage({ searchParams }: ResultPageP
               <p>{t("scienceP3")}</p>
             </div>
           </div>
+
+          <IntegratedReportEntry />
+
+          <NextLens analysisKey={evidence.key} id="section-next-lens" />
 
           {/* 액션 버튼 */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

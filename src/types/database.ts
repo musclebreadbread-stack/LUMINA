@@ -1,8 +1,7 @@
 /**
- * Supabase schema contract used by the server DAL. private_cognitive row
- * types exist only for server-side compilation; no private row is ever
- * returned as a Client Component prop and the migration grants no browser
- * role table access to that schema.
+ * Legacy Supabase schema contract retained for historical migration tests.
+ * The active cognitive server DAL uses Neon SQL and does not import this
+ * type; private rows are never returned as Client Component props.
  */
 
 export type Json =

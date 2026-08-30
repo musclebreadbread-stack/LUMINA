@@ -19,8 +19,7 @@ import type {
   Voxel,
 } from "@engine/cognitive-standardized/types";
 
-import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createNeonSql, isNeonUniqueViolation, neonErrorMessage, neonRows, type NeonSql } from "@/lib/neon/server";
 import type { CognitiveSubject } from "./auth";
 import {
   getOwnedRun,
@@ -66,19 +65,19 @@ export const COGNITIVE_PILOT_BLUEPRINT: Blueprint = Object.freeze({
   maximumItems: 20,
 });
 
-interface SupabaseAssignmentRow {
+interface CognitiveAssignmentRow {
   readonly assignment_id: string;
   readonly item_version_id: string;
   readonly ordinal: number;
   readonly state: "current" | "answered" | "expired";
 }
 
-interface SupabaseResponseRow {
+interface CognitiveResponseRow {
   readonly assignment_id: string;
   readonly option_id: string;
 }
 
-interface SupabaseScoringStateRow {
+interface CognitiveScoringStateRow {
   readonly server_seed: string;
   readonly theta: number;
 }
@@ -156,7 +155,7 @@ function parseItemRows(rows: readonly unknown[], answerKeys: ReadonlyMap<string,
   const items: InternalItem[] = [];
   for (const row of rows) {
     if (!isRecord(row) || typeof row.version_id !== "string" || typeof row.item_bank_version !== "string" || typeof row.calibration_version !== "string" || typeof row.domain !== "string" || typeof row.status !== "string" || typeof row.exposure_rate !== "number") continue;
-    if (row.status !== "active" || row.item_bank_version !== COGNITIVE_PILOT_VERSIONS.itemBank || row.calibration_version !== COGNITIVE_PILOT_VERSIONS.calibration || !isDomain(row.domain)) continue;
+    if ((row.status !== "pilot" && row.status !== "active") || row.item_bank_version !== COGNITIVE_PILOT_VERSIONS.itemBank || row.calibration_version !== COGNITIVE_PILOT_VERSIONS.calibration || !isDomain(row.domain)) continue;
     const parameters = parseParameters(row.parameters);
     const presentation = parsePresentation(row.presentation, row.domain);
     const correctOptionId = answerKeys.get(row.version_id);
@@ -172,63 +171,111 @@ function assertItemBankCoverage(items: readonly InternalItem[]): void {
     if (item.exposureRate <= COGNITIVE_PILOT_BLUEPRINT.maxExposureRate) counts[item.domain] += 1;
   }
   if (Object.values(counts).reduce((total, count) => total + count, 0) < COGNITIVE_PILOT_BLUEPRINT.maximumItems) {
-    throw new CognitiveRunConfigurationError("active cognitive item bank is smaller than the pilot blueprint");
+    throw new CognitiveRunConfigurationError("pilot cognitive item bank is smaller than the blueprint");
   }
   for (const domain of Object.keys(counts) as StandardizedDomain[]) {
     if (counts[domain] < COGNITIVE_PILOT_BLUEPRINT.minimumByDomain[domain]) {
-      throw new CognitiveRunConfigurationError(`active cognitive item bank lacks ${domain} coverage`);
+      throw new CognitiveRunConfigurationError(`pilot cognitive item bank lacks ${domain} coverage`);
     }
   }
 }
 
-async function loadActiveItems(admin: ReturnType<typeof createAdminSupabaseClient>): Promise<InternalItem[]> {
-  const { data: rows, error } = await admin
-    .schema("private_cognitive")
-    .from("item_versions")
-    .select("version_id, item_bank_version, calibration_version, domain, status, presentation, parameters, exposure_rate")
-    .eq("item_bank_version", COGNITIVE_PILOT_VERSIONS.itemBank)
-    .eq("calibration_version", COGNITIVE_PILOT_VERSIONS.calibration)
-    .eq("status", "active");
-  if (error) throw new CognitiveRunConfigurationError(`failed to load active cognitive item bank: ${error.message}`);
+async function queryAsSubject(subjectId: string, query: ReturnType<NeonSql>): Promise<readonly Readonly<Record<string, unknown>>[]> {
+  const sql = createNeonSql();
+  const results = await sql.transaction([
+    sql`select set_config('app.current_subject_id', ${subjectId}, true)`,
+    query,
+  ]);
+  return neonRows(results[1]);
+}
 
-  const versionIds = (rows ?? []).map((row) => row.version_id);
-  const { data: keyRows, error: keyError } = versionIds.length === 0
-    ? { data: [], error: null }
-    : await admin.schema("private_cognitive").from("answer_keys").select("version_id, correct_option_id").in("version_id", versionIds);
-  if (keyError) throw new CognitiveRunConfigurationError(`failed to load cognitive answer keys: ${keyError.message}`);
-  const keys = new Map<string, string>();
-  for (const row of keyRows ?? []) keys.set(row.version_id, row.correct_option_id);
-  const items = parseItemRows(rows ?? [], keys);
-  if (items.length === 0) throw new CognitiveRunConfigurationError("no active calibrated cognitive items are available");
+async function loadActiveItems(subjectId: string): Promise<InternalItem[]> {
+  const sql = createNeonSql();
+  let rows: readonly Readonly<Record<string, unknown>>[];
+  try {
+    rows = await queryAsSubject(subjectId, sql`
+      select iv.version_id, iv.item_bank_version, iv.calibration_version, iv.domain,
+             iv.status, iv.presentation, iv.parameters, iv.exposure_rate,
+             ak.correct_option_id
+        from private_cognitive.item_versions as iv
+        join private_cognitive.answer_keys as ak on ak.version_id = iv.version_id
+       where iv.item_bank_version = ${COGNITIVE_PILOT_VERSIONS.itemBank}
+         and iv.calibration_version = ${COGNITIVE_PILOT_VERSIONS.calibration}
+         and iv.status in ('pilot', 'active')
+    `);
+  } catch (error) {
+    throw new CognitiveRunConfigurationError(`failed to load active cognitive item bank: ${neonErrorMessage(error)}`);
+  }
+
+  const answerKeys = new Map<string, string>();
+  for (const row of rows) {
+    if (typeof row.version_id === "string" && typeof row.correct_option_id === "string") {
+      answerKeys.set(row.version_id, row.correct_option_id);
+    }
+  }
+  const items = parseItemRows(rows, answerKeys);
+  if (items.length === 0) throw new CognitiveRunConfigurationError("no pilot cognitive items are available");
   assertItemBankCoverage(items);
   return items;
 }
 
-async function loadAssignments(admin: ReturnType<typeof createAdminSupabaseClient>, runId: string): Promise<SupabaseAssignmentRow[]> {
-  const { data, error } = await admin
-    .schema("private_cognitive")
-    .from("run_assignments")
-    .select("assignment_id, item_version_id, ordinal, state")
-    .eq("run_id", runId)
-    .order("ordinal", { ascending: true });
-  if (error) throw new CognitiveRunConfigurationError(`failed to load cognitive assignments: ${error.message}`);
-  return (data ?? []).map((row) => ({ assignment_id: row.assignment_id, item_version_id: row.item_version_id, ordinal: row.ordinal, state: row.state }));
+async function loadAssignments(subjectId: string, runId: string): Promise<CognitiveAssignmentRow[]> {
+  const sql = createNeonSql();
+  try {
+    const rows = await queryAsSubject(subjectId, sql`
+      select assignment_id, item_version_id, ordinal, state
+        from private_cognitive.run_assignments
+       where run_id = ${runId}::uuid
+       order by ordinal asc
+    `);
+    return rows.flatMap((row): CognitiveAssignmentRow[] => {
+      if (typeof row.assignment_id !== "string" || typeof row.item_version_id !== "string" || typeof row.ordinal !== "number") return [];
+      if (row.state !== "current" && row.state !== "answered" && row.state !== "expired") return [];
+      return [{ assignment_id: row.assignment_id, item_version_id: row.item_version_id, ordinal: row.ordinal, state: row.state }];
+    });
+  } catch (error) {
+    throw new CognitiveRunConfigurationError(`failed to load cognitive assignments: ${neonErrorMessage(error)}`);
+  }
 }
 
-async function loadResponses(admin: ReturnType<typeof createAdminSupabaseClient>, runId: string): Promise<SupabaseResponseRow[]> {
-  const { data, error } = await admin.schema("private_cognitive").from("raw_responses").select("assignment_id, option_id").eq("run_id", runId);
-  if (error) throw new CognitiveRunConfigurationError(`failed to load cognitive responses: ${error.message}`);
-  return (data ?? []).map((row) => ({ assignment_id: row.assignment_id, option_id: row.option_id }));
+async function loadResponses(subjectId: string, runId: string): Promise<CognitiveResponseRow[]> {
+  const sql = createNeonSql();
+  try {
+    const rows = await queryAsSubject(subjectId, sql`
+      select assignment_id, option_id
+        from private_cognitive.raw_responses
+       where run_id = ${runId}::uuid
+    `);
+    return rows.flatMap((row): CognitiveResponseRow[] => {
+      if (typeof row.assignment_id !== "string" || typeof row.option_id !== "string") return [];
+      return [{ assignment_id: row.assignment_id, option_id: row.option_id }];
+    });
+  } catch (error) {
+    throw new CognitiveRunConfigurationError(`failed to load cognitive responses: ${neonErrorMessage(error)}`);
+  }
 }
 
-async function loadScoringState(admin: ReturnType<typeof createAdminSupabaseClient>, runId: string): Promise<SupabaseScoringStateRow> {
-  const { data, error } = await admin.schema("private_cognitive").from("scoring_state").select("server_seed, theta").eq("run_id", runId).maybeSingle();
-  if (error) throw new CognitiveRunConfigurationError(`failed to load cognitive scoring state: ${error.message}`);
-  if (data === null) throw new CognitiveRunConfigurationError("cognitive scoring state is missing");
-  return { server_seed: data.server_seed, theta: data.theta };
+async function loadScoringState(subjectId: string, runId: string): Promise<CognitiveScoringStateRow> {
+  const sql = createNeonSql();
+  try {
+    const rows = await queryAsSubject(subjectId, sql`
+      select server_seed, theta
+        from private_cognitive.scoring_state
+       where run_id = ${runId}::uuid
+       limit 1
+    `);
+    const row = rows[0];
+    if (row === undefined || typeof row.server_seed !== "string" || typeof row.theta !== "number") {
+      throw new CognitiveRunConfigurationError("cognitive scoring state is missing");
+    }
+    return { server_seed: row.server_seed, theta: row.theta };
+  } catch (error) {
+    if (error instanceof CognitiveRunConfigurationError) throw error;
+    throw new CognitiveRunConfigurationError(`failed to load cognitive scoring state: ${neonErrorMessage(error)}`);
+  }
 }
 
-function estimateTheta(items: readonly InternalItem[], assignments: readonly SupabaseAssignmentRow[], responses: readonly SupabaseResponseRow[], initialTheta: number): { readonly theta: number; readonly information: number } {
+function estimateTheta(items: readonly InternalItem[], assignments: readonly CognitiveAssignmentRow[], responses: readonly CognitiveResponseRow[], initialTheta: number): { readonly theta: number; readonly information: number } {
   const itemById = new Map(items.map((item) => [item.versionId, item]));
   const responseByAssignment = new Map(responses.map((response) => [response.assignment_id, response.option_id]));
   let theta = Number.isFinite(initialTheta) ? Math.max(-4, Math.min(4, initialTheta)) : 0;
@@ -262,10 +309,20 @@ function invalidSnapshot(runId: string, targetItemCount = COGNITIVE_PILOT_BLUEPR
   return Object.freeze({ runId, status: "invalid", nextItem: null, answeredCount: 0, targetItemCount });
 }
 
-async function ensureNextAssignment(admin: ReturnType<typeof createAdminSupabaseClient>, ownedRun: OwnedRun): Promise<ItemPresentation | null> {
+async function markRunInvalid(subjectId: string, runId: string): Promise<void> {
+  const sql = createNeonSql();
+  await queryAsSubject(subjectId, sql`
+    update public.assessment_runs
+       set status = 'invalid', updated_at = now()
+     where id = ${runId}::uuid
+       and owner_id = ${subjectId}::uuid
+  `);
+}
+
+async function ensureNextAssignment(subjectId: string, ownedRun: OwnedRun): Promise<ItemPresentation | null> {
   if (ownedRun.status === "completed" || ownedRun.status === "invalid") return null;
-  const items = await loadActiveItems(admin);
-  const assignments = await loadAssignments(admin, ownedRun.id);
+  const items = await loadActiveItems(subjectId);
+  const assignments = await loadAssignments(subjectId, ownedRun.id);
   const current = assignments.find((assignment) => assignment.state === "current");
   if (current !== undefined) {
     const item = items.find((candidate) => candidate.versionId === current.item_version_id);
@@ -274,8 +331,8 @@ async function ensureNextAssignment(admin: ReturnType<typeof createAdminSupabase
   }
   if (ownedRun.answeredCount >= ownedRun.targetItemCount) return null;
 
-  const responses = await loadResponses(admin, ownedRun.id);
-  const scoringState = await loadScoringState(admin, ownedRun.id);
+  const responses = await loadResponses(subjectId, ownedRun.id);
+  const scoringState = await loadScoringState(subjectId, ownedRun.id);
   const estimate = estimateTheta(items, assignments, responses, scoringState.theta);
   const answeredItemIds = assignments.filter((assignment) => assignment.state === "answered").map((assignment) => assignment.item_version_id);
   const answeredDomainCounts = EMPTY_DOMAIN_COUNTS();
@@ -294,100 +351,110 @@ async function ensureNextAssignment(admin: ReturnType<typeof createAdminSupabase
     random: rngFromSeed(`${scoringState.server_seed}:${ownedRun.answeredCount}`),
   });
   if (selected === null) {
-    await admin.from("assessment_runs").update({ status: "invalid" }).eq("id", ownedRun.id);
+    await markRunInvalid(subjectId, ownedRun.id);
     return null;
   }
 
   const ordinal = assignments.length + 1;
-  const { data: assignment, error } = await admin
-    .schema("private_cognitive")
-    .from("run_assignments")
-    .insert({ run_id: ownedRun.id, item_version_id: selected.versionId, ordinal, state: "current" })
-    .select("assignment_id")
-    .single();
-  if (error || assignment === null) {
-    if (error?.code === "23505") {
-      const racedAssignments = await loadAssignments(admin, ownedRun.id);
+  const sql = createNeonSql();
+  let assignmentId: string | null = null;
+  try {
+    const rows = await queryAsSubject(subjectId, sql`
+      insert into private_cognitive.run_assignments (run_id, item_version_id, ordinal, state)
+      values (${ownedRun.id}::uuid, ${selected.versionId}, ${ordinal}, 'current')
+      returning assignment_id
+    `);
+    assignmentId = typeof rows[0]?.assignment_id === "string" ? rows[0].assignment_id : null;
+  } catch (error) {
+    if (isNeonUniqueViolation(error)) {
+      const racedAssignments = await loadAssignments(subjectId, ownedRun.id);
       const racedCurrent = racedAssignments.find((candidate) => candidate.state === "current");
       if (racedCurrent !== undefined) {
         const racedItem = items.find((candidate) => candidate.versionId === racedCurrent.item_version_id);
         if (racedItem !== undefined) return presentationFor(racedItem, racedCurrent.assignment_id, racedCurrent.ordinal);
       }
     }
-    throw new CognitiveRunConfigurationError(`failed to create cognitive assignment: ${error?.message ?? "unknown error"}`);
+    throw new CognitiveRunConfigurationError(`failed to create cognitive assignment: ${neonErrorMessage(error)}`);
   }
+  if (assignmentId === null) throw new CognitiveRunConfigurationError("cognitive assignment id is missing");
 
-  const { error: scoringError } = await admin
-    .schema("private_cognitive")
-    .from("scoring_state")
-    .update({ theta: estimate.theta, information: estimate.information, standard_error: estimate.information > 0 ? 1 / Math.sqrt(estimate.information) : null, answered_count: ownedRun.answeredCount })
-    .eq("run_id", ownedRun.id);
-  if (scoringError) throw new CognitiveRunConfigurationError(`failed to update cognitive scoring state: ${scoringError.message}`);
-  return presentationFor(selected, assignment.assignment_id, ordinal);
+  try {
+    await queryAsSubject(subjectId, sql`
+      update private_cognitive.scoring_state
+         set theta = ${estimate.theta},
+             information = ${estimate.information},
+             standard_error = ${estimate.information > 0 ? 1 / Math.sqrt(estimate.information) : null},
+             answered_count = ${ownedRun.answeredCount},
+             updated_at = now()
+       where run_id = ${ownedRun.id}::uuid
+    `);
+  } catch (error) {
+    throw new CognitiveRunConfigurationError(`failed to update cognitive scoring state: ${neonErrorMessage(error)}`);
+  }
+  return presentationFor(selected, assignmentId, ordinal);
 }
 
 /**
- * 실제 Supabase 저장소 어댑터가 연결되기 전까지는 의도적으로 실행을 중단한다.
+ * Neon 저장소 어댑터는 서버 전용 SQL 경계에서만 실행한다.
  * 브라우저에서 임의의 localStorage 점수로 대체하지 않아 답안·seed 위조를 막는다.
  */
-export class SupabaseCognitiveRunStore implements CognitiveRunStore {
+export class NeonCognitiveRunStore implements CognitiveRunStore {
   async start(subject: CognitiveSubject, input: StartRunInput): Promise<RunSnapshot> {
     if (input.consent.operationalStorage !== true) {
       throw new CognitiveRunConfigurationError("operational storage consent is required");
     }
 
-    const server = await createServerSupabaseClient();
-    const admin = createAdminSupabaseClient();
-    const { error: consentError } = await server.from("research_consents").insert({
-      owner_id: subject.id,
-      consent_version: COGNITIVE_PILOT_VERSIONS.consent,
-      operational_storage: true,
-      research_participation: input.consent.researchParticipation,
-    });
-    if (consentError !== null && consentError.code !== "23505") {
-      throw new CognitiveRunConfigurationError(`failed to record cognitive consent: ${consentError.message}`);
-    }
-
     const runId = crypto.randomUUID();
-    const { error: runError } = await server.from("assessment_runs").insert({
-      id: runId,
-      owner_id: subject.id,
-      assessment_key: "cognitive_v1",
-      status: "active",
-      item_bank_version: COGNITIVE_PILOT_VERSIONS.itemBank,
-      algorithm_version: COGNITIVE_PILOT_VERSIONS.algorithm,
-      blueprint_version: COGNITIVE_PILOT_VERSIONS.blueprint,
-      target_item_count: COGNITIVE_PILOT_BLUEPRINT.maximumItems,
-      answered_count: 0,
-    });
-    if (runError) throw new CognitiveRunConfigurationError(`failed to create cognitive run: ${runError.message}`);
-
+    const serverSeed = crypto.randomUUID();
+    const sql = createNeonSql();
     try {
-      const { error: stateError } = await admin.schema("private_cognitive").from("scoring_state").insert({
-        run_id: runId,
-        server_seed: crypto.randomUUID(),
-        theta: 0,
-        information: 0,
-        standard_error: null,
-        answered_count: 0,
-        age_years: input.ageYears ?? null,
-      });
-      if (stateError) throw new CognitiveRunConfigurationError(`failed to create cognitive scoring state: ${stateError.message}`);
+      await sql.transaction([
+        sql`select set_config('app.current_subject_id', ${subject.id}, true)`,
+        sql`
+          insert into public.cognitive_subjects (id, kind)
+          values (${subject.id}::uuid, 'guest')
+          on conflict (id) do nothing
+        `,
+        sql`
+          insert into public.research_consents
+            (owner_id, consent_version, operational_storage, research_participation)
+          values
+            (${subject.id}::uuid, ${COGNITIVE_PILOT_VERSIONS.consent}, true, ${input.consent.researchParticipation})
+          on conflict (owner_id, consent_version) do nothing
+        `,
+        sql`
+          insert into public.assessment_runs
+            (id, owner_id, assessment_key, status, item_bank_version, algorithm_version,
+             blueprint_version, target_item_count, answered_count)
+          values
+            (${runId}::uuid, ${subject.id}::uuid, 'cognitive_v1', 'active',
+             ${COGNITIVE_PILOT_VERSIONS.itemBank}, ${COGNITIVE_PILOT_VERSIONS.algorithm},
+             ${COGNITIVE_PILOT_VERSIONS.blueprint}, ${COGNITIVE_PILOT_BLUEPRINT.maximumItems}, 0)
+        `,
+        sql`
+          insert into private_cognitive.scoring_state
+            (run_id, server_seed, theta, information, standard_error, answered_count,
+             age_years, gender_band, education_band, region_class)
+          values (${runId}::uuid, ${serverSeed}, 0, 0, null, 0,
+                  ${input.ageYears ?? null}, ${input.genderBand ?? null},
+                  ${input.educationBand ?? null}, ${input.regionClass ?? null})
+        `,
+      ]);
 
       const ownedRun = await getOwnedRun(runId);
       if (ownedRun === null) throw new CognitiveRunConfigurationError("created cognitive run could not be read back");
-      const nextItem = await ensureNextAssignment(admin, ownedRun);
+      const nextItem = await ensureNextAssignment(subject.id, ownedRun);
       const refreshed = await getOwnedRun(runId);
       if (refreshed === null) throw new CognitiveRunConfigurationError("cognitive run disappeared after assignment");
       return Object.freeze({ runId, status: refreshed.status, nextItem, answeredCount: refreshed.answeredCount, targetItemCount: refreshed.targetItemCount });
     } catch (error) {
-      await admin.from("assessment_runs").update({ status: "invalid" }).eq("id", runId);
+      await markRunInvalid(subject.id, runId).catch(() => undefined);
       if (error instanceof CognitiveRunConfigurationError) throw error;
-      throw new CognitiveRunConfigurationError("failed to initialize cognitive run");
+      throw new CognitiveRunConfigurationError(`failed to initialize cognitive run: ${neonErrorMessage(error)}`);
     }
   }
 
-  async submit(_subject: CognitiveSubject, input: SubmitOwnedResponseInput): Promise<SubmissionResult> {
+  async submit(subject: CognitiveSubject, input: SubmitOwnedResponseInput): Promise<SubmissionResult> {
     const ownedRun = await getOwnedRun(input.runId);
     if (ownedRun === null) return { run: invalidSnapshot(input.runId), error: "invalid_run" };
 
@@ -395,8 +462,7 @@ export class SupabaseCognitiveRunStore implements CognitiveRunStore {
     if (!submitted.ok) {
       const current = await getOwnedRun(input.runId);
       if (current === null) return { run: invalidSnapshot(input.runId), error: "invalid_run" };
-      const admin = createAdminSupabaseClient();
-      const nextItem = await ensureNextAssignment(admin, current);
+      const nextItem = await ensureNextAssignment(subject.id, current);
       const refreshed = await getOwnedRun(input.runId);
       const run = refreshed ?? current;
       return { run: Object.freeze({ runId: run.id, status: run.status, nextItem, answeredCount: run.answeredCount, targetItemCount: run.targetItemCount }), error: submitted.error };
@@ -404,18 +470,16 @@ export class SupabaseCognitiveRunStore implements CognitiveRunStore {
 
     const current = await getOwnedRun(input.runId);
     if (current === null) return { run: invalidSnapshot(input.runId), error: "invalid_run" };
-    const admin = createAdminSupabaseClient();
-    const nextItem = await ensureNextAssignment(admin, current);
+    const nextItem = await ensureNextAssignment(subject.id, current);
     const refreshed = await getOwnedRun(input.runId);
     const run = refreshed ?? current;
     return { run: Object.freeze({ runId: run.id, status: run.status, nextItem, answeredCount: run.answeredCount, targetItemCount: run.targetItemCount }), error: null };
   }
 
-  async resume(_subject: CognitiveSubject, runId: string): Promise<RunSnapshot | null> {
+  async resume(subject: CognitiveSubject, runId: string): Promise<RunSnapshot | null> {
     const ownedRun = await getOwnedRun(runId);
     if (ownedRun === null) return null;
-    const admin = createAdminSupabaseClient();
-    const nextItem = await ensureNextAssignment(admin, ownedRun);
+    const nextItem = await ensureNextAssignment(subject.id, ownedRun);
     const refreshed = await getOwnedRun(runId);
     const run = refreshed ?? ownedRun;
     return Object.freeze({ runId: run.id, status: run.status, nextItem, answeredCount: run.answeredCount, targetItemCount: run.targetItemCount });
@@ -502,7 +566,7 @@ function nextAssignment(run: MemoryRun): void {
   run.status = "active";
 }
 
-/** 테스트와 로컬 계약 검증 전용 메모리 저장소. 운영 경로는 Supabase 어댑터를 사용한다. */
+/** 테스트와 로컬 계약 검증 전용 메모리 저장소. 운영 경로는 Neon 어댑터를 사용한다. */
 export function createMemoryCognitiveRunStore(options: MemoryStoreOptions): CognitiveRunStore {
   const runs = new Map<string, MemoryRun>();
 
@@ -567,11 +631,16 @@ export function createMemoryCognitiveRunStore(options: MemoryStoreOptions): Cogn
   };
 }
 
-const defaultStore: CognitiveRunStore = new SupabaseCognitiveRunStore();
+const defaultStore: CognitiveRunStore = new NeonCognitiveRunStore();
 
 export async function startCognitiveRun(input: StartRunInput, store: CognitiveRunStore = defaultStore): Promise<RunSnapshot> {
   const { requireCognitiveSubject } = await import("./auth");
-  const subject = await requireCognitiveSubject();
+  const demographicsProvided =
+    input.ageYears !== undefined || input.genderBand !== undefined || input.educationBand !== undefined || input.regionClass !== undefined;
+  if (demographicsProvided && input.consent.researchParticipation !== true) {
+    throw new CognitiveRunConfigurationError("norming demographics require research consent");
+  }
+  const subject = await requireCognitiveSubject({ createIfMissing: true });
   const eligibility = evaluateEligibility(input.capability);
   if (!eligibility.eligibleForComposite && eligibility.reason !== null) {
     throw new CognitiveEligibilityError(eligibility.reason);

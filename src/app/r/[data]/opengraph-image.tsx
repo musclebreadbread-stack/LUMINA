@@ -1,10 +1,10 @@
 import { ImageResponse } from "next/og";
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { getLocale, getTranslations } from "next-intl/server";
 import { buildReportView, formatBirthLabel } from "@/lib/reportModel";
 import { decodeProfile } from "@/lib/share";
 import { placeDisplayLabel } from "@/lib/profile";
+import { loadOgFonts } from "@/lib/og/fonts";
+import { ELEMENT_HEX, HOBUN, HOBUN_DIM, HOBUN_FAINT, INK, INK_LINE } from "@/lib/og/theme";
 import type { Locale } from "@/i18n/locale";
 
 /**
@@ -15,136 +15,13 @@ import type { Locale } from "@/i18n/locale";
  *
  * Satori(next/og)는 CSS 변수·filter·상속을 지원하지 않으므로 색은 전부 리터럴로
  * 적고 레이아웃은 flex 만 쓴다. 한자·한글은 웹폰트가 없으면 두부(tofu)로 나오므로,
- * 필요한 글자만 담은 초소형 서브셋을 구글 폰트에서 받아 쓴다.
+ * 필요한 글자만 담은 초소형 서브셋을 구글 폰트에서 받아 쓴다(src/lib/og/fonts.ts).
  */
 
 export const alt = "LUMINA 사주 원국";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const runtime = "nodejs";
-
-const INK = "#12100D";
-const INK_LINE = "#2A251E";
-const HOBUN = "#EDE6D8";
-const HOBUN_DIM = "#A79E90";
-const HOBUN_FAINT = "#8A8276";
-
-const ELEMENT_HEX: Record<string, string> = {
-  wood: "#5BA383",
-  fire: "#D95B41",
-  earth: "#DFA83E",
-  metal: "#B9BFC4",
-  water: "#5580D4",
-};
-
-/**
- * 구글 폰트에서 필요한 글자만 잘라 받는다.
- * 오래된 User-Agent 를 보내야 woff2 대신 Satori 가 읽을 수 있는 ttf 를 준다.
- */
-type FontFamilyKey = "serif" | "sans";
-type FontWeight = 500 | 900;
-
-interface FontSubset {
-  readonly file: string;
-  readonly range: string;
-}
-
-type FontManifest = Record<FontFamilyKey, Record<string, FontSubset>>;
-
-interface OgFont {
-  readonly name: "Serif" | "Sans";
-  readonly data: ArrayBuffer;
-  readonly weight: FontWeight;
-  readonly style: "normal";
-}
-
-const FONT_PACKAGE_BY_KEY: Record<FontFamilyKey, string> = {
-  serif: "noto-serif-kr",
-  sans: "ibm-plex-sans-kr",
-};
-
-const FONT_WEIGHT_BY_KEY: Record<FontFamilyKey, FontWeight> = {
-  serif: 900,
-  sans: 500,
-};
-
-let fontManifestPromise: Promise<FontManifest | null> | null = null;
-
-function isFontManifest(value: unknown): value is FontManifest {
-  if (!value || typeof value !== "object") return false;
-
-  const candidate = value as Partial<Record<FontFamilyKey, unknown>>;
-  return (["serif", "sans"] as const).every((key) => {
-    const family = candidate[key];
-    if (!family || typeof family !== "object") return false;
-
-    return Object.values(family).every((subset) => {
-      if (!subset || typeof subset !== "object") return false;
-      const entry = subset as Partial<FontSubset>;
-      return typeof entry.file === "string" && typeof entry.range === "string";
-    });
-  });
-}
-
-async function loadFontManifest(): Promise<FontManifest | null> {
-  if (!fontManifestPromise) {
-    fontManifestPromise = readFile(
-      path.join(process.cwd(), "public/fonts/og/manifest.json"),
-      "utf8",
-    )
-      .then((contents) => {
-        const parsed: unknown = JSON.parse(contents);
-        return isFontManifest(parsed) ? parsed : null;
-      })
-      .catch(() => null);
-  }
-
-  return fontManifestPromise;
-}
-
-function rangeContainsCodePoint(range: string, codePoint: number): boolean {
-  return range.split(",").some((token) => {
-    const values = token.trim().toUpperCase().replace(/^U\+/, "").split("-");
-    const start = Number.parseInt(values[0] ?? "", 16);
-    const end = Number.parseInt(values[1] ?? values[0] ?? "", 16);
-
-    return Number.isFinite(start) && Number.isFinite(end) && codePoint >= start && codePoint <= end;
-  });
-}
-
-function subsetSupportsText(range: string, text: string): boolean {
-  return [...text].some((character) =>
-    rangeContainsCodePoint(range, character.codePointAt(0) ?? -1),
-  );
-}
-
-async function loadLocalFontFamily(key: FontFamilyKey, text: string): Promise<OgFont[]> {
-  const manifest = await loadFontManifest();
-  if (!manifest) return [];
-
-  const packageName = FONT_PACKAGE_BY_KEY[key];
-  const weight = FONT_WEIGHT_BY_KEY[key];
-  const familyName = key === "serif" ? "Serif" : "Sans";
-  const candidates = Object.values(manifest[key]).filter((subset) =>
-    subsetSupportsText(subset.range, text),
-  );
-
-  const loaded = await Promise.all(
-    candidates.map(async (subset): Promise<OgFont | null> => {
-      try {
-        const bytes = await readFile(
-          path.join(process.cwd(), "public/fonts/og", packageName, subset.file),
-        );
-        const data = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
-        return { name: familyName, data, weight, style: "normal" };
-      } catch {
-        return null;
-      }
-    }),
-  );
-
-  return loaded.filter((font): font is OgFont => font !== null);
-}
 
 export default async function Image({ params }: { params: Promise<{ data: string }> }) {
   const { data } = await params;
@@ -191,10 +68,7 @@ export default async function Image({ params }: { params: Promise<{ data: string
   ].join("");
   const koreanText = `${birthLabel}${placeLabel}${spiritName}${spiritTagline}${tierLabel}LUMINA0123456789 ·`;
 
-  const fonts = await Promise.all([
-    loadLocalFontFamily("serif", hanjaText),
-    loadLocalFontFamily("sans", koreanText),
-  ]).then((families) => families.flat());
+  const fonts = await loadOgFonts({ serifText: hanjaText, sansText: koreanText });
 
   return new ImageResponse(
     (
@@ -301,6 +175,6 @@ export default async function Image({ params }: { params: Promise<{ data: string
         </div>
       </div>
     ),
-    { ...size, fonts: fonts.length ? fonts : undefined },
+    { ...size, fonts: fonts.length ? [...fonts] : undefined },
   );
 }

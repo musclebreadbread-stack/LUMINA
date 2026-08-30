@@ -8,6 +8,8 @@ export type AmbientTone =
   | "psychometrics"
   | "darktriad"
   | "attachment"
+  | "eq"
+  | "cognitive"
   | "horoscope"
   | "neutral";
 

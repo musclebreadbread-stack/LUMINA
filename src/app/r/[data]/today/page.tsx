@@ -9,9 +9,11 @@ import { EvidenceTable } from "@/components/horoscope/EvidenceTable";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { ShareBar } from "@/components/report/ShareBar";
 import { Disclaimer, Section, TierBadge } from "@/components/ui/Chrome";
+import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { computeDailyReading, type HoroscopeSystem } from "@engine/horoscope";
 import { decodeProfile } from "@/lib/share";
+import { assetPath } from "@/lib/assets";
 import { toBirthInput } from "@/lib/profile";
 import type { Locale } from "@/i18n/locale";
 
@@ -121,13 +123,27 @@ export default async function PersonalTodayPage({
       </header>
 
       <div className="py-10">
-        <p className="font-mono text-[13px] text-hobun-faint">{date}</p>
-        <h1 className="mt-3 text-[clamp(1.5rem,4.5vw,2rem)] leading-tight font-medium tracking-tight">
-          {signName} · {tReading("personalizeTitle")}
-        </h1>
-        <p className="mt-3 text-sm leading-relaxed text-hobun-dim">
-          {profile.placeLabel} · {profile.timeZone}
-        </p>
+        <div className="grid items-center gap-8 sm:grid-cols-[minmax(0,1fr)_minmax(170px,0.42fr)]">
+          <div>
+            <p className="font-mono text-[13px] text-hobun-faint">{date}</p>
+            <h1 className="mt-3 text-[clamp(1.5rem,4.5vw,2rem)] leading-tight font-medium tracking-tight">
+              {signName} · {tReading("personalizeTitle")}
+            </h1>
+            <p className="mt-3 text-sm leading-relaxed text-hobun-dim">
+              {profile.placeLabel} · {profile.timeZone}
+            </p>
+          </div>
+          <div className="assessment-result-art relative mx-auto aspect-[2/3] w-full max-w-[190px] overflow-hidden rounded-[1.25rem] border border-ink-900/20 bg-ink-900 shadow-[0_22px_50px_-24px_rgba(0,0,0,0.75)]">
+            <MotionSafeImage
+              src={assetPath("horoscope/zodiac", reading.sign.key)}
+              alt={t("personalImageAlt", { sign: signName })}
+              sizes="(min-width: 640px) 190px, 46vw"
+              priority
+              className="object-cover"
+              fallbackLabel={signName}
+            />
+          </div>
+        </div>
       </div>
 
       <Section index="01" title={t("sectionToday")}>

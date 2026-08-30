@@ -2,17 +2,22 @@ import Link from "next/link";
 
 import type { Locale } from "@/i18n/locale";
 import type { ScoredRun } from "@engine/cognitive-standardized/types";
+import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
+import { COGNITIVE_OVERVIEW_IMAGE } from "@/lib/psychometricsAssets";
 import { StandardizedResult } from "./StandardizedResult";
 
 interface PilotResultProps {
   readonly result: ScoredRun;
   readonly locale: Locale;
+  readonly imageAlt: string;
 }
 
 /** 승인된 규준이 없을 때는 참여 기록만 표시하고, IQ·백분위·정답을 노출하지 않습니다. */
-export function PilotResult({ result, locale }: PilotResultProps) {
+export function PilotResult({ result, locale, imageAlt }: PilotResultProps) {
   const korean = locale === "ko";
-  if (result.status === "standardized_scored") return <StandardizedResult score={result.score} locale={locale} />;
+  if (result.status === "standardized_scored") {
+    return <StandardizedResult score={result.score} locale={locale} imageAlt={imageAlt} />;
+  }
 
   return (
     <section className="space-y-5 border border-ink-700 p-6" aria-labelledby="pilot-result-title">
@@ -20,6 +25,16 @@ export function PilotResult({ result, locale }: PilotResultProps) {
       <h1 id="pilot-result-title" className="text-3xl font-semibold text-hobun">
         {korean ? "파일럿 참여가 기록되었습니다" : "Pilot participation recorded"}
       </h1>
+      <div className="assessment-result-art relative aspect-[3/2] w-full max-w-[260px] overflow-hidden rounded-[1.25rem] border border-ink-700 bg-ink-900">
+        <MotionSafeImage
+          src={COGNITIVE_OVERVIEW_IMAGE}
+          alt={imageAlt}
+          sizes="(min-width: 640px) 260px, 82vw"
+          priority
+          className="object-cover"
+          fallbackLabel={korean ? "인지능력" : "Cognitive ability"}
+        />
+      </div>
       <p className="max-w-xl text-sm leading-relaxed text-hobun-dim">
         {korean
           ? "응답은 검사 도구를 검증하기 위한 연구 자료로 기록되었습니다. 사전 등록한 검증 절차가 끝난 뒤 결과 공개 여부를 결정합니다."

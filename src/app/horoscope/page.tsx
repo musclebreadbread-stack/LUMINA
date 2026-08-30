@@ -7,7 +7,7 @@ import { PersonalizeCta } from "@/components/horoscope/PersonalizeCta";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { Disclaimer, TierBadge } from "@/components/ui/Chrome";
 import { SceneShell } from "@/components/ui/SceneShell";
-import { assetPath } from "@/lib/assets";
+import { HOROSCOPE_OVERVIEW_IMAGE } from "@/lib/horoscopeAssets";
 import { DAILY_READING_TIER } from "@engine/horoscope";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -49,8 +49,8 @@ export default async function HoroscopePage() {
             </div>
             <div className="result-cover-art relative mx-auto aspect-[2/3] w-full max-w-[190px] overflow-hidden rounded-[1.25rem] border border-ink-900/20 bg-ink-900 shadow-[0_22px_50px_-24px_rgba(0,0,0,0.75)]">
               <MotionSafeImage
-                src={assetPath("horoscope/zodiac", "leo")}
-                alt={t("resultTitleSuffix")}
+                src={HOROSCOPE_OVERVIEW_IMAGE}
+                alt={t("heroImageAlt")}
                 sizes="(min-width: 640px) 190px, 46vw"
                 priority
                 className="object-cover"

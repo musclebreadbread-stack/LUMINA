@@ -1,50 +1,107 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { ECR_ITEMS, type LikertScale } from "@engine/attachment/items";
+import { useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { ECR_ITEMS, getAxisItems, scoreItem, type AttachmentAxis, type LikertScale } from "@engine/attachment/items";
 import type { AttachmentResponse } from "@engine/attachment/scoring";
-import { saveDraft, loadDraft, clearDraft } from "@/lib/attachmentDraft";
-import { buildAttachmentView } from "@/lib/attachmentModel";
-import { createAssessmentRun } from "@/lib/assessmentRun";
-import { analysisDefinition } from "@/lib/analysisCatalog";
+import { LikertItemList } from "@/components/assessment/LikertItemList";
+import type { LikertScaleLabels } from "@/components/assessment/likert";
+import { buildSegments } from "@/components/assessment/segments";
+import { SurveyNotice } from "@/components/assessment/SurveyNotice";
+import { SurveyProgressHeader } from "@/components/assessment/SurveyProgressHeader";
+import { SurveySegmentTrack } from "@/components/assessment/SurveySegmentTrack";
+import { useUnansweredGuard } from "@/components/assessment/useUnansweredGuard";
 import type { Locale } from "@/i18n/locale";
+import { analysisDefinition } from "@/lib/analysisCatalog";
+import { track } from "@/lib/analytics";
+import { createAssessmentRun } from "@/lib/assessmentRun";
+import { markCompletionArrival } from "@/lib/completionCinematic";
+import {
+  clearAttachmentDraft,
+  getAttachmentDraftServerSnapshot,
+  getAttachmentDraftSnapshot,
+  saveAttachmentDraft,
+  subscribeAttachmentDraft,
+} from "@/lib/attachmentDraft";
+import { buildAttachmentView } from "@/lib/attachmentModel";
+
+/**
+ * 애착 설문지 (ECR-R 개념을 참고한 탐색용 36문항).
+ *
+ * 한 화면에 한 문항씩 넘기고 자동으로 진행하던 방식을 접고 나머지 자기보고 척도와 같은 목록형으로
+ * 맞췄다 — 되돌아가 고치려면 지나온 문항을 다시 넘겨야 했고, 미응답 안내는 alert() 한 줄이라
+ * 어느 문항이 비었는지 알 수 없었다. 정답이 있는 인지능력 검사만 한 화면 한 문항으로 남는다.
+ *
+ * 진행 표시·문항 목록·미응답 처리는 src/components/assessment/ 의 공통 부품을 쓴다.
+ */
+
+const AXES: readonly AttachmentAxis[] = ["anxiety", "avoidance"];
 
 export function SurveyForm() {
   const router = useRouter();
   const locale = useLocale() as Locale;
   const t = useTranslations("attachment");
-  const [responses, setResponses] = useState<AttachmentResponse>(() => {
-    return loadDraft() || {};
-  });
-  const [currentItemIndex, setCurrentItemIndex] = useState(0);
 
-  useEffect(() => {
-    if (Object.keys(responses).length > 0) {
-      saveDraft(responses);
+  const draft = useSyncExternalStore(
+    subscribeAttachmentDraft,
+    getAttachmentDraftSnapshot,
+    getAttachmentDraftServerSnapshot,
+  );
+  const [editedResponses, setEditedResponses] = useState<AttachmentResponse | null>(null);
+  const [storageFailed, setStorageFailed] = useState(false);
+  const responses = editedResponses ?? draft;
+  const testStarted = useRef(false);
+
+  function selectResponse(itemId: number, value: LikertScale): void {
+    if (!testStarted.current) {
+      testStarted.current = true;
+      track("test_start", { analysis: "attachment" });
     }
-  }, [responses]);
+    const next: AttachmentResponse = { ...responses, [itemId]: value };
+    saveAttachmentDraft(next);
+    setEditedResponses(next);
+  }
 
-  const handleResponse = (itemId: number, value: LikertScale) => {
-    const newResponses = { ...responses, [itemId]: value };
-    setResponses(newResponses);
+  const answeredCount = useMemo(
+    () => ECR_ITEMS.filter((item) => responses[item.id] !== undefined).length,
+    [responses],
+  );
+  const firstUnanswered = useMemo(
+    () => ECR_ITEMS.find((item) => responses[item.id] === undefined)?.id ?? null,
+    [responses],
+  );
+  const { attempted, reportUnanswered } = useUnansweredGuard(firstUnanswered);
 
-    // 자동 진행: 다음 문항으로
-    if (currentItemIndex < ECR_ITEMS.length - 1) {
-      setCurrentItemIndex(currentItemIndex + 1);
-    }
+  const itemViews = useMemo(
+    () => ECR_ITEMS.map((item) => ({ id: item.id, text: locale === "en" ? item.textEn : item.textKo })),
+    [locale],
+  );
+  const segments = useMemo(
+    () =>
+      buildSegments(
+        AXES.map((axis) => ({
+          key: axis,
+          label: t(`axes.${axis}.label`),
+          items: getAxisItems(axis),
+        })),
+        responses,
+        scoreItem,
+      ),
+    [responses, t],
+  );
+  const scaleLabels: LikertScaleLabels = {
+    1: t("scale1"),
+    2: t("scale2"),
+    3: t("scale3"),
+    4: t("scale4"),
+    5: t("scale5"),
   };
 
-  const handlePrevious = () => {
-    if (currentItemIndex > 0) {
-      setCurrentItemIndex(currentItemIndex - 1);
-    }
-  };
-
-  const handleSubmit = () => {
-    if (Object.keys(responses).length !== ECR_ITEMS.length) {
-      alert("모든 문항에 응답해주세요.");
+  function handleSubmit(event: React.FormEvent): void {
+    event.preventDefault();
+    if (answeredCount < ECR_ITEMS.length) {
+      reportUnanswered();
       return;
     }
 
@@ -55,126 +112,50 @@ export function SurveyForm() {
       scoreSummary: buildAttachmentView(responses),
     });
     if (!run) {
-      window.alert(t("storageError"));
+      setStorageFailed(true);
       return;
     }
 
-    clearDraft();
+    setStorageFailed(false);
+    clearAttachmentDraft();
+    track("test_complete", { analysis: "attachment" });
+    markCompletionArrival("attachment");
     router.push(`/attachment/result?run=${encodeURIComponent(run.id)}`);
-  };
-
-  const currentItem = ECR_ITEMS[currentItemIndex];
-  const progress = (Object.keys(responses).length / ECR_ITEMS.length) * 100;
-  const allAnswered = Object.keys(responses).length === ECR_ITEMS.length;
+  }
 
   return (
-    <div className="space-y-6">
-      {/* 진행률 표시줄 */}
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm text-hobun-dim">
-          <span>{currentItemIndex + 1} / {ECR_ITEMS.length}</span>
-          <span>{Math.round(progress)}%</span>
-        </div>
-        <div className="h-2 bg-ink-800 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-hobun transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      </div>
+    <form onSubmit={handleSubmit}>
+      <SurveyProgressHeader
+        answered={answeredCount}
+        total={ECR_ITEMS.length}
+        completeLabel={t("allAnswered")}
+      >
+        <SurveySegmentTrack
+          label={t("sectionAxes")}
+          segments={segments}
+          formatMean={(mean) => t("provisionalMean", { value: mean.toFixed(1) })}
+        />
+      </SurveyProgressHeader>
 
-      {/* 현재 문항 */}
-      <div className="border border-ink-700 rounded-lg p-6 space-y-6">
-        <div className="space-y-2">
-          <p className="text-sm text-hobun-dim">문항 {currentItemIndex + 1}</p>
-          <p className="text-lg leading-relaxed">{currentItem!.textKo}</p>
-          <p className="text-sm text-hobun-dim">{currentItem!.textEn}</p>
-        </div>
+      <LikertItemList
+        items={itemViews}
+        responses={responses}
+        scaleLabels={scaleLabels}
+        flagUnanswered={attempted}
+        onSelect={selectResponse}
+      />
 
-        {/* 5점 척도 선택지 */}
-        <div className="grid grid-cols-5 gap-2">
-          {[1, 2, 3, 4, 5].map((value) => (
-            <button
-              key={value}
-              onClick={() => handleResponse(currentItem!.id, value as LikertScale)}
-              className={`
-                py-3 px-2 rounded-lg border-2 transition-all
-                ${responses[currentItem!.id] === value
-                  ? "border-hobun bg-hobun/20 text-hobun"
-                  : "border-ink-700 hover:border-ink-600 text-hobun-dim"
-                }
-              `}
-            >
-              <div className="text-2xl font-bold">{value}</div>
-              <div className="text-xs mt-1">
-                {value === 1 && "전혀 그렇지 않다"}
-                {value === 2 && "그렇지 않다"}
-                {value === 3 && "보통이다"}
-                {value === 4 && "그렇다"}
-                {value === 5 && "매우 그렇다"}
-              </div>
-            </button>
-          ))}
-        </div>
+      {attempted && answeredCount < ECR_ITEMS.length && (
+        <SurveyNotice message={t("unansweredWarning", { n: ECR_ITEMS.length - answeredCount })} />
+      )}
+      {storageFailed && <SurveyNotice message={t("storageError")} />}
 
-        {/* 네비게이션 버튼 */}
-        <div className="flex justify-between pt-4">
-          <button
-            onClick={handlePrevious}
-            disabled={currentItemIndex === 0}
-            className="px-4 py-2 text-sm text-hobun-dim hover:text-hobun disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            ← 이전
-          </button>
-
-          {currentItemIndex === ECR_ITEMS.length - 1 ? (
-            <button
-              onClick={handleSubmit}
-              disabled={!allAnswered}
-              className="px-6 py-2 bg-hobun text-ink-900 rounded-lg font-medium hover:bg-hobun-dim disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              결과 보기
-            </button>
-          ) : (
-            <button
-              onClick={() => setCurrentItemIndex(currentItemIndex + 1)}
-              className="px-4 py-2 text-sm text-hobun-dim hover:text-hobun"
-            >
-              다음 →
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* 전체 문항 목록 (접기/펼치기) */}
-      <details className="border border-ink-700 rounded-lg">
-        <summary className="p-4 cursor-pointer text-sm text-hobun-dim hover:text-hobun">
-          전체 문항 보기 ({Object.keys(responses).length}/{ECR_ITEMS.length} 응답 완료)
-        </summary>
-        <div className="p-4 border-t border-ink-700 space-y-3 max-h-96 overflow-y-auto">
-          {ECR_ITEMS.map((item, index) => (
-            <div
-              key={item.id}
-              className={`
-                p-3 rounded-lg border
-                ${responses[item.id] ? "border-ink-600 bg-ink-850/50" : "border-ink-700"}
-              `}
-            >
-              <div className="flex items-start gap-3">
-                <span className="text-xs text-hobun-dim whitespace-nowrap">#{index + 1}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm">{item.textKo}</p>
-                  {responses[item.id] && (
-                    <p className="text-xs text-hobun-dim mt-1">
-                      응답: {responses[item.id]}점
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </details>
-    </div>
+      <button
+        type="submit"
+        className="mt-8 bg-hobun px-6 py-3 text-sm font-medium text-ink-900 transition-opacity hover:opacity-85"
+      >
+        {t("submit")}
+      </button>
+    </form>
   );
 }

@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 
 import type { DeviceCapability, StartRunInput } from "@engine/cognitive-standardized/types";
 import type { Locale } from "@/i18n/locale";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { evaluateEligibility } from "@/lib/cognitiveEligibility";
 import { startCognitiveRunAction } from "@/app/cognitive/actions";
 import { DeviceCheck } from "./DeviceCheck";
@@ -15,7 +14,6 @@ interface CognitivePilotStartProps {
   readonly locale: Locale;
   readonly labels: Readonly<{
     readonly setupRequired: string;
-    readonly signInRequired: string;
     readonly starting: string;
     readonly ineligible: string;
   }>;
@@ -59,14 +57,17 @@ export function CognitivePilotStart({ locale, labels }: CognitivePilotStartProps
     setBusy(true);
     setError(null);
     try {
-      const supabase = createSupabaseBrowserClient();
-      const session = await supabase.auth.getSession();
-      if (session.data.session === null) {
-        const { error: signInError } = await supabase.auth.signInAnonymously();
-        if (signInError) throw new Error(labels.signInRequired);
-      }
-
-      const input: StartRunInput = { consent, capability };
+      const input: StartRunInput = {
+        consent: {
+          operationalStorage: true,
+          researchParticipation: consent.researchParticipation,
+        },
+        capability,
+        ...(consent.ageYears === undefined ? {} : { ageYears: consent.ageYears }),
+        ...(consent.genderBand === undefined ? {} : { genderBand: consent.genderBand }),
+        ...(consent.educationBand === undefined ? {} : { educationBand: consent.educationBand }),
+        ...(consent.regionClass === undefined ? {} : { regionClass: consent.regionClass }),
+      };
       const run = await startCognitiveRunAction(input);
       router.push(`/cognitive/run/${run.runId}`);
     } catch {

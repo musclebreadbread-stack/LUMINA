@@ -131,4 +131,29 @@ test.describe('IPIP-50 psychometrics survey (English locale)', () => {
     // Each of the 5 factor bars shows a "Mean X.X / 5.0" mean readout.
     await expect(page.getByText(/^Mean \d\.\d \/ 5\.0$/)).toHaveCount(5);
   });
+
+  test('shares a /s/bigfive/<code> link that renders in a brand-new browser context', async ({ page, context, browser }) => {
+    test.setTimeout(60_000);
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await setLocaleCookie(context, 'en');
+    await page.goto('/psychometrics', { timeout: 60_000 });
+    await dismissConsentBanner(page);
+    await answerItemsInRange(page, 1, TOTAL_ITEMS);
+
+    await page.getByRole('button', { name: 'View Result', exact: true }).click();
+    await expect(page).toHaveURL(/\/psychometrics\/result\?r=[1-5]{50}$/, { timeout: 15_000 });
+    await dismissConsentBanner(page);
+
+    await page.getByRole('button', { name: 'Copy Link', exact: true }).click();
+    const copied = await page.evaluate(() => navigator.clipboard.readText());
+    expect(copied).toMatch(/^\/s\/bigfive\/[0-9A-Za-z_-]{14}$/);
+    expect(copied).not.toContain('?r=');
+
+    // 저장소를 전혀 공유하지 않는 새 컨텍스트에서도 같은 요약이 그대로 재현되는지 증명한다.
+    const freshContext = await browser.newContext();
+    const freshPage = await freshContext.newPage();
+    await freshPage.goto(copied);
+    await expect(freshPage.getByRole('heading', { level: 1 })).toBeVisible();
+    await freshContext.close();
+  });
 });

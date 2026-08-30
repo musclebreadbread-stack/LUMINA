@@ -8,7 +8,18 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/r/", "/compatibility/", "/numerology/result", "/psychometrics/result", "/psychometrics/types/result"],
+      disallow: [
+        "/r/",
+        "/compatibility/",
+        "/numerology/result",
+        "/psychometrics/result",
+        "/psychometrics/types/result",
+        "/darktriad/result",
+        "/attachment/result",
+        "/eq/result",
+        "/cognitive/result",
+        "/cognitive/internal-preview",
+      ],
     },
     sitemap: new URL("/sitemap.xml", siteUrl).toString(),
   };

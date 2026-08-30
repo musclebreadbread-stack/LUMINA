@@ -26,13 +26,13 @@ export function JungianLandingActions() {
     <div className="flex flex-wrap gap-3">
       <Link
         href={latestCode ? `/psychometrics/types/result?r=${latestCode}` : "/psychometrics?to=types"}
-        className="inline-flex min-h-12 items-center justify-center rounded-full bg-hobun px-6 text-sm font-semibold text-ink-900 transition-transform hover:-translate-y-0.5"
+        className="inline-flex min-h-12 items-center justify-center rounded-full bg-hobun px-6 text-sm font-semibold text-ink-900 transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_12px_24px_-16px_rgba(18,16,13,0.8)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink-900"
       >
         {latestCode ? t("openSavedResult") : t("startTest")}
       </Link>
       <Link
         href="/psychometrics?to=types"
-        className="inline-flex min-h-12 items-center justify-center rounded-full border border-ink-600 px-6 text-sm text-hobun transition-colors hover:border-hobun"
+        className="inline-flex min-h-12 items-center justify-center rounded-full border border-ink-900/35 px-6 text-sm font-medium text-ink-900 transition-[border-color,background-color,box-shadow] hover:border-ink-900 hover:bg-ink-900/5 hover:shadow-[0_10px_22px_-18px_rgba(18,16,13,0.8)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ink-900"
       >
         {latestCode ? t("retakeTest") : t("whySameItems")}
       </Link>

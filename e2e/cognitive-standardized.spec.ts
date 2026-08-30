@@ -9,5 +9,5 @@ test('standardized entry keeps the score release gate visible', async ({ page, c
 
   await expect(page.getByText(/current.*pilot|pilot/i).first()).toBeVisible();
   await expect(page.getByText(/IQ|percentile/i).first()).toBeVisible();
-  await expect(page.getByText(/no IQ score|withheld/i)).toBeVisible();
+  await expect(page.getByText(/no IQ score|withheld/i).last()).toBeVisible();
 });

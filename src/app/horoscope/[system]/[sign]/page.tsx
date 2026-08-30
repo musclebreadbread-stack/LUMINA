@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { TodaySync } from "@/components/horoscope/TodaySync";
+import { ElementAffinity } from "@/components/horoscope/ElementAffinity";
 import { EvidenceTable } from "@/components/horoscope/EvidenceTable";
 import { PersonalizeCta } from "@/components/horoscope/PersonalizeCta";
 import { ReadingNotes } from "@/components/horoscope/ReadingNotes";
@@ -15,6 +16,7 @@ import { SceneShell } from "@/components/ui/SceneShell";
 import { buildHoroscopeView, formatHoroscopeDate, isDateString, utcToday } from "@/lib/horoscopeModel";
 import type { Locale } from "@/i18n/locale";
 import type { HoroscopeSystem } from "@engine/horoscope";
+import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
 
 /** 요청마다 새로 계산한다 — 방문자의 로컬 날짜가 매번 다를 수 있기 때문이다. */
 export const dynamic = "force-dynamic";
@@ -94,6 +96,7 @@ export default async function HoroscopeResultPage({
   return (
     <SceneShell tone="horoscope">
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
+        <ExplorationRecorder analysisKey="horoscope" />
       <TodaySync serverDate={serverDate} />
 
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
@@ -138,6 +141,8 @@ export default async function HoroscopeResultPage({
           </p>
         </div>
       </Section>
+
+      <ElementAffinity dayElement={view.dayElement} />
 
       <Section index="02" title={tReading("sectionEvidence")}>
         <EvidenceTable evidence={view.evidence} lines={view.reading.lines} />

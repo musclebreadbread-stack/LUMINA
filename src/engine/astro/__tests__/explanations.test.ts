@@ -45,6 +45,11 @@ describe("점성술 구조화 해설", () => {
     expect(astroMethodExplanation("whole").evidenceRefs).toContain("astro-calculation-record");
   });
 
+  it("하우스 체계 세 종류 모두 설명 문구에 반영된다", () => {
+    expect(astroMethodExplanation("equal").detail.ko).toContain("이퀄");
+    expect(astroMethodExplanation("placidus").detail.ko).toContain("플라시두스");
+  });
+
   it("알 수 없는 표시 입력은 안전한 기본 설명으로 되돌린다", () => {
     expect(signExplanation(-1).id).toBe("astro-sign-0");
     expect(planetExplanation("moon").id).toBe("astro-planet-moon");

@@ -4,9 +4,13 @@ import { getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { Disclaimer } from "@/components/ui/Chrome";
 import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
+import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { SurveyForm } from "@/components/attachment/SurveyForm";
 import { analysisDefinition } from "@/lib/analysisCatalog";
+import { ATTACHMENT_OVERVIEW_IMAGE, attachmentImagePath } from "@/lib/psychometricsAssets";
+
+const ATTACHMENT_STYLES = ["secure", "anxious", "avoidant", "fearful"] as const;
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("attachment");
@@ -35,16 +39,28 @@ export default async function AttachmentPage() {
 
         <div className="py-8 sm:py-12">
           {/* 히어로 섹션 */}
-          <div className="mb-12 text-center space-y-4">
-            <p className="font-mono text-sm text-hobun-dim tracking-wider">
-              {t("kicker")}
-            </p>
-            <h1 className="text-4xl sm:text-5xl font-bold text-hobun">
-              {t("heroTitle")}
-            </h1>
-            <p className="text-lg text-hobun-dim max-w-2xl mx-auto leading-relaxed">
-              {t("heroDescription")}
-            </p>
+          <div className="mb-12 grid items-center gap-8 sm:grid-cols-[minmax(0,1fr)_minmax(210px,0.62fr)]">
+            <div className="space-y-4 sm:text-left">
+              <p className="font-mono text-sm text-hobun-dim tracking-wider">
+                {t("kicker")}
+              </p>
+              <h1 className="text-4xl sm:text-5xl font-bold text-hobun">
+                {t("heroTitle")}
+              </h1>
+              <p className="text-lg text-hobun-dim max-w-2xl leading-relaxed">
+                {t("heroDescription")}
+              </p>
+            </div>
+            <div className="assessment-hero-art relative mx-auto aspect-[4/3] w-full max-w-[340px] overflow-hidden rounded-[1.25rem] border border-ink-700 bg-ink-900 shadow-[0_22px_50px_-24px_rgba(0,0,0,0.75)]">
+              <MotionSafeImage
+                src={ATTACHMENT_OVERVIEW_IMAGE}
+                alt={t("heroImageAlt")}
+                sizes="(min-width: 640px) 340px, 82vw"
+                priority
+                className="object-cover"
+                fallbackLabel={t("heroTitle")}
+              />
+            </div>
           </div>
 
           {/* 소개 카드 */}
@@ -76,6 +92,34 @@ export default async function AttachmentPage() {
           </div>
 
           {/* 설문 폼 */}
+          <section className="mb-10 rounded-[1.5rem] border border-ink-700 bg-ink-900/55 p-5 sm:p-8">
+            <p className="font-mono text-[12px] tracking-[0.18em] text-hobun-faint">LUMINA / VISUAL GUIDE</p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-hobun">{t("visualGuideTitle")}</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-hobun-dim">{t("visualGuideBody")}</p>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              {ATTACHMENT_STYLES.map((style) => {
+                const label = t(`styles.${style}.label`);
+                return (
+                  <article key={style} className="assessment-gallery-card reveal overflow-hidden rounded-[1.25rem] border border-ink-700 bg-ink-950/70">
+                    <div className="assessment-art relative aspect-[4/3] overflow-hidden bg-ink-900">
+                      <MotionSafeImage
+                        src={attachmentImagePath(style)}
+                        alt={t("styleImageAlt", { style: label })}
+                        sizes="(min-width: 640px) 320px, 86vw"
+                        className="object-cover"
+                        fallbackLabel={label}
+                      />
+                    </div>
+                    <div className="p-4">
+                      <h3 className="text-base font-medium text-hobun">{label}</h3>
+                      <p className="mt-2 text-xs leading-relaxed text-hobun-dim">{t("visualGuideBody")}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+
           <SurveyForm />
 
           {/* 각주 */}

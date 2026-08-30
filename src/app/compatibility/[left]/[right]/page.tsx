@@ -6,12 +6,16 @@ import type { Locale } from "@/i18n/locale";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { ShareBar } from "@/components/report/ShareBar";
-import { Disclaimer, Section, TierBadge } from "@/components/ui/Chrome";
+import { Disclaimer, Section } from "@/components/ui/Chrome";
+import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
 import { ProgressiveBlock } from "@/components/ui/ProgressiveBlock";
 import { OverflowFade } from "@/components/ui/OverflowFade";
 import { ResultCover } from "@/components/ui/ResultCover";
 import { SceneShell } from "@/components/ui/SceneShell";
+import { analysisDefinition } from "@/lib/analysisCatalog";
 import { assetPath } from "@/lib/assets";
+import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
+import { compatibilityToneImagePath } from "@/lib/compatibilityAssets";
 import { decodeProfile } from "@/lib/share";
 import { placeDisplayLabel, toBirthInput, type StoredProfile } from "@/lib/profile";
 import { computeSaju, branchAt, stemAt } from "@engine/saju";
@@ -22,6 +26,7 @@ import {
   type SynastryPillarKey,
 } from "@engine/synastry";
 import type { BranchRelationKind } from "@engine/saju/relations";
+import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
 
 export const dynamic = "force-dynamic";
 
@@ -121,18 +126,21 @@ export default async function CompatibilityResultPage({
     getTranslations("compatibility"),
     getTranslations("common"),
   ]);
+  const evidence = analysisDefinition("compatibility");
   const result = computeSynastry(leftSaju.pillars, rightSaju.pillars);
   const leftDayBranch = branchAt(leftSaju.pillars.day.branch);
+  const rightDayBranch = branchAt(rightSaju.pillars.day.branch);
   const tone = toneLabel(result.summary.tone, t);
 
   return (
     <SceneShell tone="saju">
       <main className="mx-auto w-full max-w-4xl px-5 pb-24 sm:px-8">
+        <ExplorationRecorder analysisKey="compatibility" />
         <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
           <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">LUMINA</Link>
           <div className="no-print flex items-center gap-3">
             <LocaleSwitcher />
-            <TierBadge tier="cultural" />
+            <EvidenceStatusBadge status={evidence.evidence.validationStatus} />
           </div>
         </header>
 
@@ -141,14 +149,45 @@ export default async function CompatibilityResultPage({
             eyebrow={t("resultKicker")}
             title={t("resultTitle")}
             summary={t("resultBody")}
-            imageSrc={assetPath("saju/zodiac", leftDayBranch.zodiacEn.toLowerCase())}
-            imageAlt={locale === "en" ? leftDayBranch.zodiacEn : leftDayBranch.zodiacKo}
-            imageLabel={locale === "en" ? leftDayBranch.zodiacEn : leftDayBranch.zodiacKo}
+            imageSrc={compatibilityToneImagePath(result.summary.tone)}
+            imageAlt={t("resultImageAlt")}
+            imageLabel={t("resultTitle")}
             tier="cultural"
+            evidenceStatus={evidence.evidence.validationStatus}
           />
           <div className="mt-4 grid gap-3 text-xs text-hobun-faint sm:grid-cols-2">
             <p>{t("personA")}: {profileDate(leftProfile)} · {placeDisplayLabel(leftProfile.placeLabel, locale)}</p>
             <p>{t("personB")}: {profileDate(rightProfile)} · {placeDisplayLabel(rightProfile.placeLabel, locale)}</p>
+          </div>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <ProfileVisual
+              label={t("personA")}
+              zodiac={locale === "en" ? leftDayBranch.zodiacEn : leftDayBranch.zodiacKo}
+              imageSrc={assetPath("saju/zodiac", leftDayBranch.zodiacEn.toLowerCase())}
+              imageAlt={t("profileImageAlt", { profile: t("personA"), zodiac: locale === "en" ? leftDayBranch.zodiacEn : leftDayBranch.zodiacKo })}
+            />
+            <ProfileVisual
+              label={t("personB")}
+              zodiac={locale === "en" ? rightDayBranch.zodiacEn : rightDayBranch.zodiacKo}
+              imageSrc={assetPath("saju/zodiac", rightDayBranch.zodiacEn.toLowerCase())}
+              imageAlt={t("profileImageAlt", { profile: t("personB"), zodiac: locale === "en" ? rightDayBranch.zodiacEn : rightDayBranch.zodiacKo })}
+            />
+          </div>
+          <div className="assessment-result-art reveal mt-5 grid overflow-hidden rounded-[1.5rem] border border-ink-700 bg-ink-900/70 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+            <div className="assessment-art relative aspect-[4/3] min-h-[220px] overflow-hidden bg-ink-900 sm:min-h-0">
+              <MotionSafeImage
+                src={compatibilityToneImagePath(result.summary.tone)}
+                alt={t("toneImageAlt", { tone })}
+                sizes="(min-width: 640px) 360px, 92vw"
+                className="object-cover"
+                fallbackLabel={tone}
+              />
+            </div>
+            <div className="flex flex-col justify-center p-5 sm:p-7">
+              <p className="font-mono text-[12px] tracking-[0.18em] text-hobun-faint">{t("toneSectionKicker")}</p>
+              <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-hobun">{tone}</h2>
+              <p className="mt-3 text-sm leading-relaxed text-hobun-dim">{t("resultBody")}</p>
+            </div>
           </div>
         </div>
 
@@ -238,5 +277,35 @@ function Metric({ label, value }: { readonly label: string; readonly value: numb
       <p className="text-xs leading-relaxed text-hobun-faint">{label}</p>
       <p className="mt-2 font-mono text-2xl text-hobun">{value}</p>
     </div>
+  );
+}
+
+function ProfileVisual({
+  label,
+  zodiac,
+  imageSrc,
+  imageAlt,
+}: {
+  readonly label: string;
+  readonly zodiac: string;
+  readonly imageSrc: string;
+  readonly imageAlt: string;
+}) {
+  return (
+    <article className="assessment-gallery-card reveal grid grid-cols-[96px_1fr] items-center gap-4 overflow-hidden rounded-[1.25rem] border border-ink-700 bg-ink-950/70 p-3 sm:grid-cols-[112px_1fr]">
+      <div className="assessment-art relative aspect-square overflow-hidden rounded-[0.9rem] border border-ink-800 bg-ink-900">
+        <MotionSafeImage
+          src={imageSrc}
+          alt={imageAlt}
+          sizes="112px"
+          className="object-cover"
+          fallbackLabel={zodiac}
+        />
+      </div>
+      <div>
+        <p className="font-mono text-[11px] tracking-[0.16em] text-hobun-faint">{label}</p>
+        <p className="mt-2 text-lg font-medium text-hobun">{zodiac}</p>
+      </div>
+    </article>
   );
 }

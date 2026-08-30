@@ -1,7 +1,7 @@
-import Image from "next/image";
 import { LETTER_VALUES } from "@engine/numerology/constants";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ProgressiveBlock } from "@/components/ui/ProgressiveBlock";
+import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import type { NumberCardView } from "@/lib/numerologyModel";
 import type { Locale } from "@/i18n/locale";
 
@@ -48,14 +48,13 @@ export async function NumberPlate({
     >
       <p className="font-mono text-[13px] tracking-wide text-hobun-faint">{title}</p>
 
-      <div className="relative mx-auto mt-4 aspect-[2/3] w-full max-w-[180px] overflow-hidden border border-ink-700 shadow-[0_18px_36px_-20px_rgba(0,0,0,0.9)]">
-        <Image
+      <div className="assessment-result-art relative mx-auto mt-4 aspect-[2/3] w-full max-w-[180px] overflow-hidden border border-ink-700 shadow-[0_18px_36px_-20px_rgba(0,0,0,0.9)]">
+        <MotionSafeImage
           src={card.imageSrc}
           alt=""
-          aria-hidden
-          fill
           sizes="180px"
           className="object-cover"
+          fallbackLabel={title}
         />
       </div>
 

@@ -2,12 +2,12 @@
 
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
-import Image from "next/image";
 import { stageEvidenceRef } from "@engine/saju";
 import { useRef, type PointerEvent as ReactPointerEvent } from "react";
 import { ELEMENT_STYLE } from "@/lib/elements";
 import { stageLabel, tenGodLabel, type PillarColumn } from "@/lib/reportModel";
 import type { Locale } from "@/i18n/locale";
+import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 
 /**
  * 사주 원국(原局) — 네 개의 기둥.
@@ -250,14 +250,15 @@ function Pillar({
             {stageLabel(pillar.stage, locale)}
           </a>
           <span className="flex items-center gap-1.5 text-[12px] text-hobun-faint">
-            <Image
-              src={pillar.zodiacImageSrc}
-              alt=""
-              aria-hidden
-              width={20}
-              height={30}
-              className="h-5 w-[13px] object-cover object-top opacity-90"
-            />
+            <span className="assessment-art relative inline-block h-5 w-[13px] shrink-0 overflow-hidden opacity-90">
+              <MotionSafeImage
+                src={pillar.zodiacImageSrc}
+                alt=""
+                sizes="13px"
+                className="object-cover object-top"
+                fallbackLabel={locale === "en" ? pillar.zodiacEn : pillar.zodiacKo}
+              />
+            </span>
             {/* 좁은 기둥 폭에서 긴 띠 이름은 네 기둥의 발판 높이를 어긋나게 한다 —
                 이미지는 남기고 이름은 넓은 화면에서만 */}
             <span className="hidden sm:inline">

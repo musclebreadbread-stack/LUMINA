@@ -11,7 +11,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ReferencesPage() {
-  const [t, homeT] = await Promise.all([getTranslations("referencesPage"), getTranslations("home")]);
+  // scopeNoteKey는 네임스페이스를 가로지르는 전체 경로라 루트 번역기로만 읽을 수 있다.
+  const [t, homeT, rootT] = await Promise.all([
+    getTranslations("referencesPage"),
+    getTranslations("home"),
+    getTranslations(),
+  ]);
   const groups = ANALYSIS_CATALOG.map((definition) =>
     REFERENCE_GROUPS.find((group) => group.key === definition.key),
   ).filter((group): group is (typeof REFERENCE_GROUPS)[number] => group !== undefined);
@@ -32,6 +37,11 @@ export default async function ReferencesPage() {
           return (
           <section key={group.key}>
             <h2 className="text-lg font-medium text-hobun">{homeT(definition.titleKey)}</h2>
+            {group.scopeNoteKey ? (
+              <p className="mt-3 border-l border-ink-600 pl-4 text-[13px] leading-relaxed text-hobun-faint">
+                {rootT(group.scopeNoteKey)}
+              </p>
+            ) : null}
             <CitationList citations={group.citations} />
           </section>
           );

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import type { ValidationStatus } from "@engine/shared/evidence";
 import type { EvidenceTier } from "@engine/shared/tier";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
@@ -16,6 +17,8 @@ interface Props {
   readonly evidenceStatus?: ValidationStatus;
   readonly label: string;
   readonly cta: string;
+  /** 브라우저에만 있는 "이미 열어 봄" 표시. 서버 HTML 에서는 비어 있는 것이 정상이다. */
+  readonly mark?: ReactNode;
   readonly featured?: boolean;
 }
 
@@ -29,6 +32,7 @@ export async function FeaturePortal({
   evidenceStatus,
   label,
   cta,
+  mark,
   featured = false,
 }: Props) {
   return (
@@ -53,6 +57,7 @@ export async function FeaturePortal({
           <span aria-hidden className="portal-arrow absolute right-5 top-5 text-xl text-white">
             ↗
           </span>
+          {mark}
         </div>
 
         <div className="flex min-h-[178px] flex-col justify-between gap-6 p-6 sm:p-7">

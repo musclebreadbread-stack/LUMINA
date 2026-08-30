@@ -58,6 +58,8 @@ export interface FactorView {
 export interface BigFiveView {
   readonly itemCount: number;
   readonly factors: readonly FactorView[];
+  /** 다섯 요인 중 척도 내 상대 위치(규준이 있으면 z점수)가 가장 높은 하나 — 대표 표지 이미지 선정에 쓴다. */
+  readonly dominantFactor: BigFiveFactor | null;
   readonly profileExplanation: ExplanationBlock | null;
 }
 
@@ -95,9 +97,22 @@ export function buildBigFiveView(responses: ResponseMap, normContext?: NormConte
     } satisfies FactorView;
   });
 
+  /**
+   * 다크 트라이어드(buildDarkTriadView)와 같은 규칙: 규준 z점수가 있으면 그것을,
+   * 없으면 척도 내 위치(scalePosition)를 대신 비교해 가장 높은 요인을 고른다.
+   */
+  const dominantFactor = factors.reduce<BigFiveFactor | null>((best, factor) => {
+    const factorZ = factor.norm?.zScore ?? factor.scalePosition;
+    if (best === null) return factor.key;
+    const bestFactor = factors.find((f) => f.key === best);
+    const bestZ = bestFactor?.norm?.zScore ?? bestFactor?.scalePosition ?? -Infinity;
+    return factorZ > bestZ ? factor.key : best;
+  }, null);
+
   return {
     itemCount: result.itemCount,
     factors: Object.freeze(factors),
+    dominantFactor,
     profileExplanation: profileCombinationExplanation(result.factors),
   };
 }

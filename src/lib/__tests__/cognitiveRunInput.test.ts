@@ -36,4 +36,55 @@ describe("cognitive run input parser", () => {
       }).consent.researchParticipation,
     ).toBe(false);
   });
+
+  it("accepts an optional norming age only within the target population", () => {
+    const base = {
+      consent: { operationalStorage: true, researchParticipation: true },
+      capability: {
+        locale: "ko" as const,
+        device: "desktop" as const,
+        keyboard: true,
+        pointer: true,
+        viewportWidth: 1440,
+        viewportHeight: 900,
+        reducedMotion: false,
+      },
+    };
+    expect(parseStartRunInput({ ...base, ageYears: 32 }).ageYears).toBe(32);
+    expect(() => parseStartRunInput({ ...base, ageYears: 17 })).toThrow("age must be an integer");
+    expect(() => parseStartRunInput({ ...base, consent: { ...base.consent, researchParticipation: false }, ageYears: 32 })).toThrow(
+      "norming demographics require research consent",
+    );
+  });
+
+  it("accepts optional gender, education, and region strata only within the pre-registered bands", () => {
+    const base = {
+      consent: { operationalStorage: true, researchParticipation: true },
+      capability: {
+        locale: "ko" as const,
+        device: "desktop" as const,
+        keyboard: true,
+        pointer: true,
+        viewportWidth: 1440,
+        viewportHeight: 900,
+        reducedMotion: false,
+      },
+    };
+    const parsed = parseStartRunInput({
+      ...base,
+      genderBand: "self_described",
+      educationBand: "bachelor",
+      regionClass: "capital_region",
+    });
+    expect(parsed.genderBand).toBe("self_described");
+    expect(parsed.educationBand).toBe("bachelor");
+    expect(parsed.regionClass).toBe("capital_region");
+
+    expect(() => parseStartRunInput({ ...base, genderBand: "unknown" })).toThrow("invalid gender band");
+    expect(() => parseStartRunInput({ ...base, educationBand: "phd" })).toThrow("invalid education band");
+    expect(() => parseStartRunInput({ ...base, regionClass: "moon" })).toThrow("invalid region class");
+    expect(() =>
+      parseStartRunInput({ ...base, consent: { ...base.consent, researchParticipation: false }, genderBand: "male" }),
+    ).toThrow("norming demographics require research consent");
+  });
 });

@@ -17,3 +17,11 @@ export function assetPath(directory: string, name: string): string {
 export function mandalaTexturePath(name: string): string {
   return assetPath("mandala/textures", name);
 }
+
+/**
+ * Satori(next/og)는 WebP를 디코드하지 못해 카드가 오류 없이 빈 이미지로 나오므로,
+ * OG 카드는 반드시 미리 만들어 둔 PNG 파생본만 가리켜야 한다.
+ */
+export function ogTypeImagePath(code: string): string {
+  return `og/types/${code.toLowerCase()}.png`;
+}

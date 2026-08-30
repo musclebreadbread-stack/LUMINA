@@ -5,7 +5,9 @@ import { BirthForm } from "@/components/BirthForm";
 import { RestoreFromStorage } from "@/components/report/RestoreFromStorage";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { TierBadge } from "@/components/ui/Chrome";
+import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { SceneShell } from "@/components/ui/SceneShell";
+import { SAJU_OVERVIEW_IMAGE } from "@/lib/sajuAssets";
 
 /**
  * "내 결과 다시 보기" 입구.
@@ -34,8 +36,22 @@ export default async function SajuEntryPage() {
       </header>
       <RestoreFromStorage />
       <section className="border-t border-ink-700 py-12" aria-labelledby="new-saju-heading">
-        <h1 id="new-saju-heading" className="text-2xl font-medium tracking-tight text-hobun">{t("newTitle")}</h1>
-        <p className="mt-3 text-sm leading-relaxed text-hobun-dim">{t("newIntro")}</p>
+        <div className="grid items-center gap-8 sm:grid-cols-[minmax(0,1fr)_minmax(180px,0.48fr)]">
+          <div>
+            <h1 id="new-saju-heading" className="text-2xl font-medium tracking-tight text-hobun">{t("newTitle")}</h1>
+            <p className="mt-3 text-sm leading-relaxed text-hobun-dim">{t("newIntro")}</p>
+          </div>
+          <div className="assessment-hero-art relative mx-auto aspect-[4/3] w-full max-w-[320px] overflow-hidden rounded-[1.25rem] border border-ink-900/20 bg-ink-900 shadow-[0_22px_50px_-24px_rgba(0,0,0,0.75)]">
+            <MotionSafeImage
+              src={SAJU_OVERVIEW_IMAGE}
+              alt={t("heroImageAlt")}
+              sizes="(min-width: 640px) 320px, 82vw"
+              priority
+              className="object-cover"
+              fallbackLabel={t("newTitle")}
+            />
+          </div>
+        </div>
         <div className="mt-8">
           <BirthForm />
         </div>

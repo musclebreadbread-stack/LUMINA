@@ -63,6 +63,13 @@ export function proxy(request: NextRequest): NextResponse {
     return response;
   }
 
+  // 크롤러(카카오톡·X 링크 미리보기 봇)가 Accept-Language: en 을 보내면 og 이미지가
+  // 307 리다이렉트로 응답해 미리보기 카드가 깨진다 — 확장자 없는 메타데이터 라우트라
+  // matcher 에서 걸러지지 않으므로 여기서 직접 우회한다.
+  if (pathname.endsWith("/opengraph-image") || pathname.endsWith("/twitter-image")) {
+    return NextResponse.next({ request: { headers } });
+  }
+
   if (locale === "en") {
     const url = request.nextUrl.clone();
     url.pathname = pathname === "/" ? "/en" : `/en${pathname}`;

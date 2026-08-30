@@ -1,6 +1,6 @@
-import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { Locale } from "@/i18n/locale";
+import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import type { FactorView } from "@/lib/psychometricsModel";
 
 /**
@@ -31,8 +31,14 @@ export async function FactorBar({ factor }: { readonly factor: FactorView }) {
 
   return (
     <div id={`calculation-psychometric-factor-${factor.key}`} className="border-b border-ink-800 py-5 last:border-b-0 scroll-mt-24">
-      <div className="relative mb-4 aspect-[3/2] w-full max-w-[220px] overflow-hidden border border-ink-800">
-        <Image src={factor.imageSrc} alt="" aria-hidden fill sizes="220px" className="object-cover" />
+      <div className="assessment-result-art relative mb-4 aspect-[3/2] w-full max-w-[220px] overflow-hidden border border-ink-800">
+        <MotionSafeImage
+          src={factor.imageSrc}
+          alt=""
+          sizes="220px"
+          className="object-cover"
+          fallbackLabel={name}
+        />
       </div>
 
       <div className="flex items-baseline justify-between">

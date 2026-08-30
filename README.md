@@ -48,8 +48,8 @@ pnpm fonts:prepare
 ## 구조와 데이터 경계
 
 - 엔진 함수는 현재 시각이나 브라우저 API를 직접 읽지 않고 입력으로 받습니다.
-- 기존 프로필·탐색형 검사 초안은 브라우저 `localStorage`에 저장되고, 인지능력 표준화 파일럿의 실행·응답은 소유권이 확인된 Supabase 세션에 저장됩니다. 표준화 파일럿 결과는 URL에 넣지 않습니다.
-- 인지능력 파일럿은 Supabase 마이그레이션·RLS·server-only DAL을 포함하지만, 대상 프로젝트에 아직 적용하지 않았습니다. 적용 전 `docs/assessment/cognitive-supabase-vercel-setup.md`의 승인 게이트를 따르며 `service_role` 키를 클라이언트에 노출하지 않습니다.
+- 기존 프로필·탐색형 검사 초안은 브라우저 `localStorage`에 저장되고, 인지능력 표준화 파일럿의 실행·응답은 Neon Postgres의 server-only DAL에 저장됩니다. 표준화 파일럿 결과는 URL에 넣지 않습니다.
+- 인지능력 파일럿은 Neon Postgres RLS·서명된 익명 주체 쿠키·server-only DAL을 사용합니다. 연결 및 원격 마이그레이션 승인 게이트는 `docs/assessment/cognitive-neon-vercel-setup.md`에 기록되어 있으며, 연결 문자열과 비밀값은 클라이언트에 노출하지 않습니다.
 - 사주·점성술·타로·수비학·운세는 문화적 해석 또는 엔터테인먼트 계층입니다. IPIP-50은 영어권 온라인 공개 표본의 전체 집단 규준을 사용하며 한국인 인구 규준이나 의료 진단이 아닙니다.
 
 ## 운영 전 사람이 확인할 항목
@@ -60,4 +60,4 @@ pnpm fonts:prepare
 - `/privacy`, `/terms` 초안에 대한 법률 검토와 시행일 확정
 - 타로·조디악 원본 PNG를 삭제하거나 외부 전송하기 전 백업 및 확인
 - 실제 AdSense 게시자 ID와 Google 인증 CMP를 연결하기 전 정책 검토
-- 배포·Supabase 프로젝트 생성·마이그레이션·git push
+- 배포·Neon 프로젝트 연결·마이그레이션·git push

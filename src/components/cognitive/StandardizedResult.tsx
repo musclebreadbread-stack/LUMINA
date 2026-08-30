@@ -1,17 +1,20 @@
 import type { StandardizedScore } from "@engine/cognitive-standardized/types";
 import { standardizedIqBand } from "@engine/cognitive-standardized/norming";
+import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
+import { COGNITIVE_OVERVIEW_IMAGE } from "@/lib/psychometricsAssets";
 import type { Locale } from "@/i18n/locale";
 
 interface StandardizedResultProps {
   readonly score: StandardizedScore;
   readonly locale: Locale;
+  readonly imageAlt: string;
 }
 
 /**
  * 승인된 규준으로 변환된 결과만 받는 표시 컴포넌트입니다.
  * 정답·원점수·θ·문항 파라미터는 이 DTO에 없으므로 결과 화면으로 전달되지 않습니다.
  */
-export function StandardizedResult({ score, locale }: StandardizedResultProps) {
+export function StandardizedResult({ score, locale, imageAlt }: StandardizedResultProps) {
   const korean = locale === "ko";
   const [lower, upper] = score.confidenceInterval95;
   const band = standardizedIqBand(score.fullScaleIq);
@@ -36,6 +39,16 @@ export function StandardizedResult({ score, locale }: StandardizedResultProps) {
       <h1 id="standardized-result-title" className="text-3xl font-semibold text-hobun">
         {korean ? "표준화 결과" : "Standardized result"}
       </h1>
+      <div className="assessment-result-art relative aspect-[3/2] w-full max-w-[260px] overflow-hidden rounded-[1.25rem] border border-ink-700 bg-ink-900">
+        <MotionSafeImage
+          src={COGNITIVE_OVERVIEW_IMAGE}
+          alt={imageAlt}
+          sizes="(min-width: 640px) 260px, 82vw"
+          priority
+          className="object-cover"
+          fallbackLabel={korean ? "인지능력" : "Cognitive ability"}
+        />
+      </div>
       <p className="text-6xl font-semibold tabular text-hobun" aria-label={korean ? "전체 IQ 추정치" : "Full-scale IQ estimate"}>{score.fullScaleIq}</p>
       <p className="text-sm text-hobun-dim">{korean ? `연령 규준 백분위 ${score.percentile}` : `Age-norm percentile ${score.percentile}`}</p>
       <p className="text-sm text-hobun-dim">{korean ? `95% 신뢰구간 ${lower}–${upper}` : `95% confidence interval ${lower}–${upper}`}</p>

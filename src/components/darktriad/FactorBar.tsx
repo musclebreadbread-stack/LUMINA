@@ -1,6 +1,8 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import type { Locale } from "@/i18n/locale";
+import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import type { FactorView } from "@/lib/darktriadModel";
+import { darkTriadImagePath } from "@/lib/psychometricsAssets";
 
 export async function FactorBar({ factor }: { readonly factor: FactorView }) {
   const t = await getTranslations("darktriad");
@@ -15,6 +17,15 @@ export async function FactorBar({ factor }: { readonly factor: FactorView }) {
 
   return (
     <div className="border-b border-ink-800 py-5 last:border-b-0">
+      <div className="assessment-result-art reveal relative aspect-[16/9] overflow-hidden rounded-[1.25rem] border border-ink-700 bg-ink-900/70">
+        <MotionSafeImage
+          src={darkTriadImagePath(factor.key)}
+          alt={t("factorImageAlt", { factor: name })}
+          sizes="(min-width: 640px) 640px, 100vw"
+          className="object-cover"
+          fallbackLabel={name}
+        />
+      </div>
       <div className="flex items-baseline justify-between">
         <span className="text-sm font-medium text-hobun">{name}</span>
         <span className="tabular font-mono text-[13px] text-hobun-faint">

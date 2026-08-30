@@ -52,9 +52,11 @@ next-env.d.ts
 /public/numerology/numbers/*.png
 /public/psychometrics/factors/*.png
 /public/fonts/og/
+/public/og/
 
 # 규준 산출용 원자료 — 라이선스 불명확, 요약 통계(data/norms*.json)만 커밋한다
 /raw/
 
 # 로컬 개발 로그
 *.log
+.neon

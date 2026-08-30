@@ -71,6 +71,19 @@
     --motion-state: 360ms;
     --motion-scene: 900ms;
     --ease-lumina: cubic-bezier(0.16, 1, 0.3, 1);
+
+    /*
+      배경에서 계속 도는 앰비언트/궤도/부유 애니메이션 전용 눈금. 아래는 이름만 붙였을 뿐,
+      기존에 각 규칙에 박혀 있던 실제 초 단위 값을 그대로 옮긴 것이다(시각적 결과는 그대로) —
+      느린 쪽부터 --motion-ambient-slow(67s, 먹 번짐 B) → --motion-ambient-medium-slow(52s, 먹 번짐 A)
+      → --motion-ambient-medium(12s, 만다라 고리 호흡) → --motion-ambient-medium-fast(11s, 결과 삽화 부유)
+      → --motion-ambient-fast(9s, 히어로 삽화 부유) 순서다.
+    */
+    --motion-ambient-slow: 67s;
+    --motion-ambient-medium-slow: 52s;
+    --motion-ambient-medium: 12s;
+    --motion-ambient-medium-fast: 11s;
+    --motion-ambient-fast: 9s;
   }
 
   html {
@@ -216,7 +229,7 @@
     height: 78vmax;
     opacity: 0.14;
     background: radial-gradient(circle, var(--ambient-tint), transparent 64%);
-    animation: ink-drift-a 52s ease-in-out infinite;
+    animation: ink-drift-a var(--motion-ambient-medium-slow) ease-in-out infinite;
   }
 
   .ambient-orb-b {
@@ -226,7 +239,7 @@
     height: 74vmax;
     opacity: 0.1;
     background: radial-gradient(circle, var(--color-hobun), transparent 62%);
-    animation: ink-drift-b 67s ease-in-out infinite;
+    animation: ink-drift-b var(--motion-ambient-slow) ease-in-out infinite;
   }
 
   .ambient-grid {
@@ -345,6 +358,31 @@
   .scene-shell-psychometrics .ambient-orb-a,
   .scene-shell-psychometrics .ambient-orb-b {
     opacity: 0.055;
+  }
+
+  .scene-shell-darktriad .ambient-orb-a {
+    opacity: 0.18;
+    background: radial-gradient(circle, #b47a4e, transparent 64%);
+  }
+
+  .scene-shell-attachment .ambient-orb-a {
+    opacity: 0.18;
+    background: radial-gradient(circle, #6f9b83, transparent 64%);
+  }
+
+  .scene-shell-eq .ambient-orb-a {
+    opacity: 0.18;
+    background: radial-gradient(circle, #7f93bd, transparent 64%);
+  }
+
+  .scene-shell-cognitive .ambient-grid {
+    background-size: 44px 44px;
+    opacity: 0.14;
+  }
+
+  .scene-shell-cognitive .ambient-orb-a {
+    opacity: 0.16;
+    background: radial-gradient(circle, #8a8fa6, transparent 64%);
   }
 
   .scene-shell-horoscope .ambient-grid {
@@ -530,6 +568,10 @@
     background: var(--color-geum);
   }
 
+  .home-flow-atlas::before {
+    background: var(--color-hwa);
+  }
+
   .mandala-live-mark {
     display: inline-flex;
     align-items: center;
@@ -596,7 +638,7 @@
     mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
     mask-composite: exclude;
     opacity: 0.54;
-    animation: mandala-ring-breathe 12s ease-in-out infinite;
+    animation: mandala-ring-breathe var(--motion-ambient-medium) ease-in-out infinite;
   }
 
   .mandala-3d-layer {
@@ -941,6 +983,19 @@
     animation: result-cover-in var(--motion-scene) var(--ease-lumina) both;
   }
 
+  /*
+    완료 연출의 껍데기. 구조(위치·크기·쌓임 순서)만 여기 두고 실제로 보이는 먹빛과
+    애니메이션은 no-preference 매체 쿼리 안에서만 붙인다 — 움직임 축소에서는 배경조차
+    칠해지지 않아 아무 것도 그려지지 않는 것이 기본값이 된다.
+  */
+  .completion-cinematic {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: block;
+    pointer-events: none;
+  }
+
   .result-cover-glow {
     position: absolute;
     top: -7rem;
@@ -960,6 +1015,44 @@
 
   .result-cover-art:hover {
     transform: rotate(0deg) translateY(-5px) scale(1.02);
+  }
+
+  .assessment-hero-art,
+  .assessment-art,
+  .assessment-result-art {
+    isolation: isolate;
+  }
+
+  .assessment-hero-art,
+  .assessment-gallery-card,
+  .assessment-result-art {
+    transition: transform var(--motion-state) var(--ease-lumina), box-shadow var(--motion-state) var(--ease-lumina);
+  }
+
+  .assessment-hero-art::after,
+  .assessment-art::after,
+  .assessment-result-art::after {
+    position: absolute;
+    inset: -30% auto -30% -35%;
+    width: 28%;
+    content: "";
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(100deg, transparent, rgba(255, 248, 231, 0.28), transparent);
+    transform: translateX(-140%) rotate(12deg);
+  }
+
+  .assessment-hero-art:hover,
+  .assessment-gallery-card:hover,
+  .assessment-result-art:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 28px 58px -34px rgba(0, 0, 0, 0.95);
+  }
+
+  .assessment-hero-art:hover::after,
+  .assessment-gallery-card:hover .assessment-art::after,
+  .assessment-result-art:hover::after {
+    animation: assessment-glint 1.1s var(--ease-lumina) both;
   }
 
   .chapter-nav {
@@ -1181,6 +1274,56 @@
     transform: translateY(16px) scale(0.985);
   }
   to {
+    transform: none;
+  }
+}
+
+/* 설문 제출 직후 도착한 결과 커버 위로 먹물이 한 번 번졌다가 걷힌다. */
+@keyframes completion-ink-bloom {
+  0% {
+    opacity: 0.92;
+    transform: scale(0.97);
+  }
+  55% {
+    opacity: 0.86;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+}
+
+@keyframes assessment-glint {
+  from {
+    opacity: 0;
+    transform: translateX(-140%) rotate(12deg);
+  }
+  35% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateX(520%) rotate(12deg);
+  }
+}
+
+@keyframes assessment-art-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(0.4deg);
+  }
+}
+
+@keyframes assessment-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
     transform: none;
   }
 }
@@ -1573,6 +1716,11 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  /* 수화 직후 0 에서 실제 진행도로 채워지는 것은 장식이므로 여기에서만 부여한다. */
+  .atlas-ring-progress {
+    transition: stroke-dashoffset 900ms var(--ease-lumina);
+  }
+
   .spirit-seal {
     animation: spirit-seal 1s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
@@ -1593,6 +1741,39 @@
     animation: reveal-rise linear both;
     animation-timeline: view();
     animation-range: entry 0% entry 42%;
+  }
+
+  /*
+    설문 다섯 개(빅파이브·융 유형·다크 트라이어드·EQ·애착·인지능력) 제출 직후에만 켜지는 완료 연출.
+    result-cover-in과 같은 --motion-scene을 써서 커버 자체의 등장과 한 호흡으로 묶는다.
+  */
+  .completion-cinematic {
+    background: radial-gradient(circle at 50% 42%, var(--color-ink-900), var(--color-ink-950) 74%);
+    animation: completion-ink-bloom var(--motion-scene) var(--ease-lumina) both;
+  }
+
+  .assessment-hero-art {
+    animation: assessment-art-float var(--motion-ambient-fast) ease-in-out 0.4s infinite;
+  }
+
+  .assessment-result-art {
+    animation: assessment-art-float var(--motion-ambient-medium-fast) ease-in-out 0.5s infinite;
+  }
+
+  .assessment-gallery-card {
+    animation: assessment-card-in 700ms var(--ease-lumina) both;
+  }
+
+  .assessment-gallery-card:nth-child(2) {
+    animation-delay: 90ms;
+  }
+
+  .assessment-gallery-card:nth-child(3) {
+    animation-delay: 180ms;
+  }
+
+  .assessment-gallery-card:nth-child(4) {
+    animation-delay: 270ms;
   }
 
   .pillar-stand {
@@ -1664,6 +1845,11 @@
   .portal-card,
   .result-cover,
   .result-cover-art,
+  .completion-cinematic,
+  .assessment-hero-art,
+  .assessment-gallery-card,
+  .assessment-result-art,
+  .assessment-art,
   .jungian-axis-card,
   .jungian-type-glyph,
   .jungian-axis-letter,

@@ -86,7 +86,9 @@ function assertMonotone(values: readonly number[], label: string): void {
   }
 }
 
-function validateNormTable(norm: NormTable): void {
+/** Exported so the offline norm-approval script (scripts/neon-approve-cognitive-norm.ts) can
+ * reject a malformed payload with the exact rule the live scoring engine will apply. */
+export function validateNormTable(norm: NormTable): void {
   if (norm.byAge.length === 0) throw new Error("norm table requires age rows");
   const rows = [...norm.byAge].sort((left, right) => left.minimumAge - right.minimumAge);
   let previousMaximum = 17;

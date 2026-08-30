@@ -100,4 +100,11 @@ describe("메시지 카탈로그 — ko/en 키 완전 일치", () => {
       }
     }
   });
+
+  it("공개 유형 분석 문구는 MBTI 명칭을 사용한다", () => {
+    expect(JSON.stringify(ko)).not.toContain("융 유형 렌즈");
+    expect(JSON.stringify(en)).not.toContain("Jungian Type Lens");
+    expect(JSON.stringify(ko)).toContain("MBTI 유형 분석");
+    expect(JSON.stringify(en)).toContain("MBTI Type Analysis");
+  });
 });

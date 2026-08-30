@@ -9,11 +9,14 @@ export type AnalysisKey =
   | "jungian"
   | "darktriad"
   | "attachment"
+  | "eq"
+  | "cognitive"
   | "horoscope"
   | "compatibility";
 
 export type MethodCategory =
   | "psychometric"
+  | "ability-sampling"
   | "astronomical-calculation"
   | "traditional-symbolic"
   | "derived-exploratory";
@@ -44,7 +47,7 @@ export interface AnalysisDefinition {
   readonly href: string;
   readonly titleKey: string;
   readonly descKey: string;
-  readonly purpose: "traditional" | "personality" | "career" | "daily";
+  readonly purpose: "traditional" | "personality" | "career" | "ability" | "daily";
   readonly tier: EvidenceTier;
   readonly evidence: EvidenceProfile;
   readonly durationMinutes: number;

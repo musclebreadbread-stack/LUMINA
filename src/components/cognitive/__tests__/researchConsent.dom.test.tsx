@@ -59,4 +59,25 @@ describe("ResearchConsent", () => {
     act(() => button!.click());
     expect(onContinue).not.toHaveBeenCalled();
   });
+
+  it("sends an optional age only when research participation is selected", () => {
+    const onContinue = vi.fn();
+    act(() => root.render(<ResearchConsent onContinue={onContinue} locale="ko" />));
+
+    const operational = container.querySelector<HTMLInputElement>("input[name='operationalStorage']");
+    const research = container.querySelector<HTMLInputElement>("input[name='researchParticipation']");
+    const age = container.querySelector<HTMLSelectElement>("select[name='ageYears']");
+    const button = container.querySelector<HTMLButtonElement>("button[type='submit']");
+    expect(age?.disabled).toBe(true);
+
+    act(() => {
+      operational!.click();
+      research!.click();
+      age!.value = "32";
+      age!.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect(age?.disabled).toBe(false);
+    act(() => button!.click());
+    expect(onContinue).toHaveBeenCalledWith({ operationalStorage: true, researchParticipation: true, ageYears: 32 });
+  });
 });

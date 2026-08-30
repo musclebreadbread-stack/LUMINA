@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, IBM_Plex_Sans_KR, Noto_Serif_KR } from "next/font/google
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import Script from "next/script";
+import { AnalyticsGate } from "@/components/analytics/AnalyticsGate";
 import { ConsentBanner } from "@/components/ads/ConsentBanner";
 import { getSiteUrl } from "@/lib/siteUrl";
 import "./globals.css";
@@ -82,6 +83,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <NextIntlClientProvider locale={locale} messages={messages}>
           <div className="relative z-10">{children}</div>
           <ConsentBanner />
+          <AnalyticsGate />
         </NextIntlClientProvider>
       </body>
     </html>

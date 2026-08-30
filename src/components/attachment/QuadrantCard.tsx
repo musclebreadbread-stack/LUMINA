@@ -1,4 +1,6 @@
 import type { QuadrantClassification } from "@engine/attachment/quadrants";
+import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
+import { attachmentImagePath } from "@/lib/psychometricsAssets";
 
 interface QuadrantCardProps {
   readonly classification: QuadrantClassification;
@@ -38,6 +40,15 @@ export function QuadrantCard({ classification, locale }: QuadrantCardProps) {
   return (
     <div className={`border-2 rounded-xl p-8 ${getQuadrantColor()}`}>
       <div className="space-y-4">
+        <div className="assessment-result-art reveal relative mx-auto aspect-[16/9] max-w-[520px] overflow-hidden rounded-[1.25rem] border border-ink-700 bg-ink-900/70">
+          <MotionSafeImage
+            src={attachmentImagePath(classification.quadrant)}
+            alt={label}
+            sizes="(min-width: 640px) 520px, 100vw"
+            className="object-cover"
+            fallbackLabel={label}
+          />
+        </div>
         {/* 유형 라벨 */}
         <div className="text-center">
           <p className="text-sm text-hobun-dim mb-2">

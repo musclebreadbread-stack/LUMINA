@@ -1,16 +1,29 @@
 import type { AxisView } from "@/lib/attachmentModel";
+import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
+import { attachmentImagePath } from "@/lib/psychometricsAssets";
 
 interface AxisBarProps {
   readonly axis: AxisView;
   readonly locale: "ko" | "en";
+  readonly axisKey: "anxiety" | "avoidance";
 }
 
-export function AxisBar({ axis, locale }: AxisBarProps) {
+export function AxisBar({ axis, locale, axisKey }: AxisBarProps) {
   const label = locale === "ko" ? axis.labelKo : axis.labelEn;
   const position = ((axis.mean - 1) / 4) * 100; // 1-5 스케일을 0-100%로 변환
 
   return (
-    <div className="space-y-2">
+    <div className="reveal grid items-center gap-4 sm:grid-cols-[minmax(120px,0.28fr)_minmax(0,1fr)]">
+      <div className="assessment-result-art relative aspect-[4/3] overflow-hidden rounded-[1rem] border border-ink-700 bg-ink-900/70">
+        <MotionSafeImage
+          src={attachmentImagePath(axisKey)}
+          alt={label}
+          sizes="(min-width: 640px) 180px, 42vw"
+          className="object-cover"
+          fallbackLabel={label}
+        />
+      </div>
+      <div className="space-y-2">
       {/* 라벨과 점수 */}
       <div className="flex justify-between items-baseline">
         <h3 className="text-base font-medium">{label}</h3>
@@ -53,6 +66,7 @@ export function AxisBar({ axis, locale }: AxisBarProps) {
         {axis.mean >= 2.5 && axis.mean < 3.5 && (locale === "ko" ? "평균 수준" : "Average")}
         {axis.mean >= 3.5 && (locale === "ko" ? "높은 수준" : "High")}
       </p>
+      </div>
     </div>
   );
 }

@@ -52,17 +52,31 @@ const MANDALA_VISUALS: readonly MandalaVisualConfig[] = Object.freeze([
   },
   {
     key: "darktriad",
-    imageSrc: assetPath("psychometrics/factors", "intellect"),
+    imageSrc: assetPath("psychometrics/darktriad", "mandala"),
     textureSrc: mandalaTexturePath("psychometrics"),
     planetKey: "mars" as PlanetKey,
     orbitInset: 12,
   },
   {
     key: "attachment",
-    imageSrc: assetPath("psychometrics/factors", "agreeableness"),
+    imageSrc: assetPath("psychometrics/attachment", "mandala"),
     textureSrc: mandalaTexturePath("psychometrics"),
     planetKey: "moon" as PlanetKey,
     orbitInset: 20,
+  },
+  {
+    key: "eq",
+    imageSrc: assetPath("psychometrics/eq", "mandala"),
+    textureSrc: mandalaTexturePath("psychometrics"),
+    planetKey: "neptune" as PlanetKey,
+    orbitInset: 15,
+  },
+  {
+    key: "cognitive",
+    imageSrc: assetPath("psychometrics/cognitive", "mandala"),
+    textureSrc: mandalaTexturePath("psychometrics"),
+    planetKey: "uranus" as PlanetKey,
+    orbitInset: 13,
   },
   {
     key: "horoscope",

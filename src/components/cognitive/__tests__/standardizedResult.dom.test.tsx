@@ -9,6 +9,7 @@ describe("StandardizedResult", () => {
       <StandardizedResult
         locale="ko"
         score={{ fullScaleIq: 108, percentile: 70, confidenceInterval95: [101, 115], normVersion: "ko-adult-v1" }}
+        imageAlt="인지능력 결과 삽화"
       />,
     );
     expect(markup).toContain("108");

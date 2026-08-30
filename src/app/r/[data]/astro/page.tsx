@@ -14,6 +14,7 @@ import { ResultCover } from "@/components/ui/ResultCover";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { Tilt } from "@/components/ui/Tilt";
 import { buildAstroView, formatPlanetPosition, type AstroNote } from "@/lib/astroModel";
+import { ASTRO_OVERVIEW_IMAGE } from "@/lib/astroAssets";
 import { formatBirthLabel } from "@/lib/reportModel";
 import { placeDisplayLabel } from "@/lib/profile";
 import { decodeProfile } from "@/lib/share";
@@ -182,6 +183,9 @@ export default async function AstroPage({
           eyebrow={t("navLabel")}
           title={birthLabel}
           summary={t("metaDescription", { birthLabel })}
+          imageSrc={ASTRO_OVERVIEW_IMAGE}
+          imageAlt={t("heroImageAlt")}
+          imageFrameClassName="aspect-[4/3] max-w-[260px]"
           tier="cultural"
         />
         <p className="mt-3 font-mono text-[13px] text-hobun-faint">

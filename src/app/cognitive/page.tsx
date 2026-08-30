@@ -56,6 +56,12 @@ export default async function CognitivePage() {
                   {t("heroTitle")}
                 </h1>
                 <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-ink-800/85">{t("heroBody")}</p>
+                <Link
+                  href="#standardized-pilot"
+                  className="mt-6 inline-flex min-h-11 items-center border border-ink-950 px-5 py-3 text-sm font-medium text-ink-950 transition-colors hover:bg-ink-950 hover:text-hobun"
+                >
+                  {t("runStart")}
+                </Link>
               </div>
               <div className="assessment-hero-art relative mx-auto aspect-[4/3] w-full max-w-[360px] overflow-hidden rounded-[1.25rem] border border-ink-900/20 bg-ink-900 shadow-[0_22px_50px_-24px_rgba(0,0,0,0.75)]">
                 <MotionSafeImage
@@ -88,7 +94,7 @@ export default async function CognitivePage() {
         </section>
 
         <section className="mb-10 rounded-[1.5rem] border border-ink-700 bg-ink-950/75 p-5 sm:p-8">
-          <p className="font-mono text-[12px] tracking-[0.18em] text-hobun-faint">LUMINA / FOUR FORMATS</p>
+          <p className="font-mono text-[12px] tracking-[0.18em] text-hobun-faint">LUMINA / PRACTICE FORMATS</p>
           <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-hobun">{t("formatsTitle")}</h2>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-hobun-dim">{t("formatsBody")}</p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -118,7 +124,7 @@ export default async function CognitivePage() {
           </div>
         </section>
 
-        <section className="rounded-[1.5rem] border border-ink-700 bg-ink-950/90 p-5 shadow-[0_24px_70px_-44px_rgba(0,0,0,0.95)] sm:p-8">
+        <section id="standardized-pilot" className="scroll-mt-6 rounded-[1.5rem] border border-ink-700 bg-ink-950/90 p-5 shadow-[0_24px_70px_-44px_rgba(0,0,0,0.95)] sm:p-8">
           <p className="font-mono text-[12px] tracking-[0.18em] text-hobun-faint">{t("standardizedKicker")}</p>
           <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-hobun">{t("standardizedTitle")}</h2>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-hobun-dim">{t("standardizedBody")}</p>
@@ -128,7 +134,6 @@ export default async function CognitivePage() {
               locale={locale as Locale}
               labels={{
                 setupRequired: t("setupRequired"),
-                signInRequired: t("setupRequired"),
                 starting: t("runStart"),
                 ineligible: t("deviceUnsupported"),
               }}

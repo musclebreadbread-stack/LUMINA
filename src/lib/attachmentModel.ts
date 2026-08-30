@@ -19,7 +19,8 @@ export interface AxisView extends AxisScore {
   readonly labelEn: string;
 }
 
-const AXIS_LABELS = {
+/** OG 카드 등 다른 화면이 같은 축 이름을 다시 하드코딩하지 않도록 export한다. */
+export const AXIS_LABELS = {
   anxiety: { ko: "불안", en: "Anxiety" },
   avoidance: { ko: "회피", en: "Avoidance" },
 } as const;

@@ -4,9 +4,11 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
+import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { Disclaimer } from "@/components/ui/Chrome";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { analysisDefinition } from "@/lib/analysisCatalog";
+import { COGNITIVE_OVERVIEW_IMAGE } from "@/lib/psychometricsAssets";
 
 interface Query {
   readonly r?: string;
@@ -43,6 +45,16 @@ export default async function CognitiveLegacyResultPage({
         <section className="py-24">
           <p className="font-mono text-xs tracking-[0.18em] text-hobun-faint">{evidence.key.toUpperCase()} / LEGACY</p>
           <h1 className="mt-4 text-3xl font-semibold text-hobun">{t("legacyNotice")}</h1>
+          <div className="assessment-result-art relative mt-6 aspect-[3/2] w-full max-w-[260px] overflow-hidden rounded-[1.25rem] border border-ink-700 bg-ink-900">
+            <MotionSafeImage
+              src={COGNITIVE_OVERVIEW_IMAGE}
+              alt={t("resultImageAlt")}
+              sizes="(min-width: 640px) 260px, 82vw"
+              priority
+              className="object-cover"
+              fallbackLabel={t("legacyNotice")}
+            />
+          </div>
           <p className="mt-5 max-w-xl text-sm leading-relaxed text-hobun-dim">{t("pilotNotice")}</p>
           <Link href="/cognitive" className="mt-8 inline-block min-h-11 bg-hobun px-5 py-3 text-sm font-medium text-ink-900">{t("pilotResultCta")}</Link>
         </section>

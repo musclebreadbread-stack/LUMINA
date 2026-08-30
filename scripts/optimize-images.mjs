@@ -7,8 +7,16 @@ const GROUPS = [
   { directory: "public/tarot/cards", maxWidth: 640, maxHeight: 960 },
   { directory: "public/horoscope/zodiac", maxWidth: 480, maxHeight: 720 },
   { directory: "public/saju/zodiac", maxWidth: 480, maxHeight: 720 },
+  { directory: "public/astro", maxWidth: 640, maxHeight: 480 },
+  { directory: "public/horoscope", maxWidth: 640, maxHeight: 480 },
+  { directory: "public/saju", maxWidth: 640, maxHeight: 480 },
+  { directory: "public/compatibility", maxWidth: 640, maxHeight: 427 },
   { directory: "public/numerology/numbers", maxWidth: 480, maxHeight: 720 },
   { directory: "public/psychometrics/factors", maxWidth: 640, maxHeight: 427 },
+  { directory: "public/psychometrics/darktriad", maxWidth: 640, maxHeight: 427 },
+  { directory: "public/psychometrics/attachment", maxWidth: 640, maxHeight: 427 },
+  { directory: "public/psychometrics/eq", maxWidth: 640, maxHeight: 427 },
+  { directory: "public/psychometrics/cognitive", maxWidth: 640, maxHeight: 427 },
   { directory: "public/psychometrics/types/axes", maxWidth: 1536, maxHeight: 1024 },
 ];
 

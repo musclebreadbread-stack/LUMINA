@@ -42,7 +42,11 @@ export default async function CognitiveRunResultPage({ params }: PageProps) {
           <LocaleSwitcher />
         </header>
         <section className="py-10">
-          {validRun ? <PilotResult result={result} locale={locale as Locale} /> : <p className="text-sm text-hobun-dim">{t("runInvalid")}</p>}
+          {validRun ? (
+            <PilotResult result={result} locale={locale as Locale} imageAlt={t("resultImageAlt")} />
+          ) : (
+            <p className="text-sm text-hobun-dim">{t("runInvalid")}</p>
+          )}
         </section>
       </main>
     </SceneShell>

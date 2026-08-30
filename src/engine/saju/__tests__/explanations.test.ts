@@ -7,6 +7,7 @@ import {
   luckExplanation,
   pillarExplanation,
   sajuMethodExplanation,
+  stageEvidenceRef,
   stageExplanation,
   strengthExplanation,
   tenGodExplanation,
@@ -43,6 +44,19 @@ describe("사주 구조화 해설", () => {
     expect(sajuMethodExplanation().evidenceRefs).toContain("saju-calculation-record");
   });
 
+  it("자정 경계론과 신강·중화 판정 문구가 각각 반영된다", () => {
+    expect(sajuMethodExplanation("midnight").detail.ko).toContain("자정 경계론");
+    expect(strengthExplanation({ ratio: 0.6, verdict: "strong", seasonal: true, root: true, peer: true }).summary.ko).toContain("신강");
+    expect(strengthExplanation({ ratio: 0.5, verdict: "balanced", seasonal: false, root: false, peer: false }).summary.ko).toContain("중화");
+  });
+
+  it("알 수 없는 단계 이름은 안전한 기본값과 원문 라벨로 되돌린다", () => {
+    expect(stageEvidenceRef("존재하지-않는-단계")).toBe("saju-stage-unknown");
+    const fallback = stageExplanation("존재하지-않는-단계");
+    expect(fallback.id).toBe("saju-stage-존재하지-않는-단계");
+    expect(fallback.detail).toEqual(stageExplanation(TWELVE_STAGES[0]!).detail);
+  });
+
   it("공포·결정론 대신 문화적 자기성찰의 한계를 명시한다", () => {
     const blocks = [
       ...TEN_GODS.map((god) => tenGodExplanation(god)),
@@ -73,5 +87,22 @@ describe("사주 구조화 해설", () => {
     expect(block.evidenceRefs).toContain("saju-luck-periods");
     expect(block.detail.ko).toContain("4세");
     expect(block.detail.en).toContain("ages 4 through 13");
+  });
+
+  it("역행 대운과 알 수 없는 십이운성 라벨도 안전하게 처리한다", () => {
+    const period = {
+      ordinal: 1,
+      pillar: pillarFromSexagenary(13),
+      fromAge: 14,
+      toAge: 24,
+      fromYear: 2004,
+      toYear: 2014,
+      stemTenGod: "비견",
+      branchTenGod: "정인",
+      stage: "존재하지-않는-단계",
+    } as const;
+    const block = luckExplanation(period, "backward");
+    expect(block.detail.ko).toContain("역행");
+    expect(block.detail.ko).toContain("존재하지-않는-단계");
   });
 });

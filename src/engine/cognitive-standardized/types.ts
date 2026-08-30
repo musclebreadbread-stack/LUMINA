@@ -88,14 +88,36 @@ export interface Blueprint {
   readonly maximumItems: number;
 }
 
+export type GenderBand = "male" | "female" | "self_described" | "prefer_not_to_say";
+
+export type EducationBand =
+  | "middle_school_or_below"
+  | "high_school"
+  | "college_or_associate"
+  | "bachelor"
+  | "graduate_or_above"
+  | "prefer_not_to_say";
+
+export type RegionClass =
+  | "capital_region"
+  | "chungcheong"
+  | "honam"
+  | "yeongnam"
+  | "gangwon_jeju"
+  | "overseas_or_unknown"
+  | "prefer_not_to_say";
+
 export interface StartRunInput {
   readonly consent: Readonly<{
     operationalStorage: true;
     researchParticipation: boolean;
   }>;
   readonly capability: DeviceCapability;
-  /** Optional until the product collects an age-band consent field; without it IQ release remains withheld. */
+  /** Optional norming input; the server accepts these only with research consent. */
   readonly ageYears?: number;
+  readonly genderBand?: GenderBand;
+  readonly educationBand?: EducationBand;
+  readonly regionClass?: RegionClass;
 }
 
 export interface ScoreRunInput {

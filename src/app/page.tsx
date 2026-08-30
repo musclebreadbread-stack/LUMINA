@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { FeatureHub } from "@/components/home/FeatureHub";
 import { Mandala, type MomentSnapshot } from "@/components/home/Mandala";
 import { SajuFormReveal } from "@/components/home/SajuFormReveal";
+import { SelfAtlas } from "@/components/home/SelfAtlas";
 import { SajuRevealProvider } from "@/components/home/SajuRevealContext";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { Disclaimer, TierBadge } from "@/components/ui/Chrome";
@@ -61,6 +62,8 @@ const REPORT_GROUP_KEYS: readonly AnalysisKey[] = [
   "jungian",
   "darktriad",
   "attachment",
+  "eq",
+  "cognitive",
   "horoscope",
 ];
 
@@ -72,8 +75,15 @@ const REPORT_ITEM_KEYS: Readonly<Partial<Record<AnalysisKey, readonly string[]>>
   jungian: ["axes", "typeSummary"],
   darktriad: ["factors", "norms"],
   attachment: ["dimensions", "quadrants"],
+  eq: ["factors", "experiments"],
+  cognitive: ["domains", "review"],
   horoscope: ["zodiac", "animal"],
 });
+
+/** 항목 번호. 그룹이 열 개를 넘으면 "0" + 10 이 "010" 이 되므로 자릿수를 채워서 만든다. */
+function sectionNumber(index: number): string {
+  return String(index + 1).padStart(2, "0");
+}
 
 const TRUST_GROUPS = [
   { key: "scientific", titleKey: "trustScientificTitle", bodyKey: "trustScientificBody" },
@@ -123,6 +133,9 @@ export default async function Home() {
         <div id="feature-hub" className="home-flow-section home-flow-hub border-t border-ink-700 pt-12">
           <FeatureHub />
         </div>
+
+        {/* 자기 탐색 지도 — 이 플랫폼이 "한 가지 점술"이 아니라는 사실을 진행 상황으로 보여 준다. */}
+        <SelfAtlas />
 
         {/* 지금 이 순간 — 만다라가 장식이 아니라는 근거 */}
         <section id="now" className="home-flow-section home-flow-now mt-16 border-t border-ink-700 pt-12" aria-labelledby="now-heading">
@@ -202,7 +215,7 @@ export default async function Home() {
             const itemKeys = REPORT_ITEM_KEYS[key] ?? [];
             return (
               <article key={key} className="report-group-card">
-                <p className="font-mono text-xs tracking-[0.18em] text-ink-700/60">0{index + 1}</p>
+                <p className="font-mono text-xs tracking-[0.18em] text-ink-700/60">{sectionNumber(index)}</p>
                 <h3 className="mt-3 text-xl font-semibold text-ink-950">{t(definition.titleKey)}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-ink-700/75">{t(definition.descKey)}</p>
                 <dl className="mt-5 space-y-4">

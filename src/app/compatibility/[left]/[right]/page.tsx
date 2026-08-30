@@ -27,6 +27,8 @@ import {
 } from "@engine/synastry";
 import type { BranchRelationKind } from "@engine/saju/relations";
 import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
+import { CompatibilityRelationMatrix } from "@/components/synastry/CompatibilityRelationMatrix";
+import { CompatibilitySignalBalance } from "@/components/synastry/CompatibilitySignalBalance";
 
 export const dynamic = "force-dynamic";
 
@@ -131,6 +133,14 @@ export default async function CompatibilityResultPage({
   const leftDayBranch = branchAt(leftSaju.pillars.day.branch);
   const rightDayBranch = branchAt(rightSaju.pillars.day.branch);
   const tone = toneLabel(result.summary.tone, t);
+  const relationLabels: Readonly<Record<BranchRelationKind, string>> = {
+    clash: t("relationClash"),
+    combination: t("relationCombination"),
+    trine: t("relationTrine"),
+    punishment: t("relationPunishment"),
+    harm: t("relationHarm"),
+    destruction: t("relationDestruction"),
+  };
 
   return (
     <SceneShell tone="saju">
@@ -197,6 +207,16 @@ export default async function CompatibilityResultPage({
             <Metric label={t("challenging")} value={result.summary.challengingCount} />
             <Metric label={t("stemCount")} value={result.summary.stemRelationCount} />
           </div>
+          <CompatibilitySignalBalance
+            title={t("signalChartTitle")}
+            description={t("signalChartDescription")}
+            supportiveLabel={t("signalChartSupportive")}
+            challengingLabel={t("signalChartChallenging")}
+            stemLabel={t("signalChartStem")}
+            supportiveCount={result.summary.supportiveCount}
+            challengingCount={result.summary.challengingCount}
+            stemRelationCount={result.summary.stemRelationCount}
+          />
           <div className="mt-6">
             <ProgressiveBlock
               block={result.explanation}
@@ -210,6 +230,16 @@ export default async function CompatibilityResultPage({
         </Section>
 
         <Section index="02" title={t("sectionBranches")} aside={<span>{result.summary.branchRelationCount} {t("branchCount")}</span>}>
+          <CompatibilityRelationMatrix
+            title={t("relationMatrixTitle")}
+            description={t("relationMatrixDescription")}
+            emptyLabel={t("relationMatrixEmpty")}
+            rowLabel={t("relationMatrixRows")}
+            columnLabel={t("relationMatrixColumns")}
+            pillars={result.pillars.map((pillar) => ({ key: pillar.key, label: pillarLabel(pillar.key, locale) }))}
+            relations={result.branchRelations}
+            relationLabels={relationLabels}
+          />
           {result.branchRelations.length === 0 ? (
             <p className="text-sm leading-relaxed text-hobun-dim">{t("noBranches")}</p>
           ) : (

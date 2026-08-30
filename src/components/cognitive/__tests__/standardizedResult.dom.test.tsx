@@ -15,6 +15,7 @@ describe("StandardizedResult", () => {
     expect(markup).toContain("108");
     expect(markup).toContain("평균에 가까운 점수 범위");
     expect(markup).toContain("95% 신뢰구간");
+    expect(markup).toContain('data-testid="standardized-score-plot"');
     expect(markup).toContain("임상 진단");
     expect(markup).not.toContain("correctOptionId");
     expect(markup).not.toContain("theta");

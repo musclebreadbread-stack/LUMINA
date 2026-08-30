@@ -230,6 +230,7 @@ test.describe("integrated self portrait capture boundary", () => {
     await expect(page.getByTestId("integrated-scientific-lane")).toContainText("과학적 관찰");
     await expect(page.getByTestId("integrated-cultural-lane")).toContainText("상징적 관점");
     await expect(page.getByTestId("integrated-character")).toBeVisible();
+    await expect(page.getByTestId("integrated-evidence-composition")).toBeVisible();
   });
 
   test("uses a static character fallback when reduced motion is requested", async ({ page }) => {

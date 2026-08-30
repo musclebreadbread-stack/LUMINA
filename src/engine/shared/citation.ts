@@ -1,6 +1,6 @@
 export interface Citation {
   readonly authors: readonly string[];
-  readonly year: number;
+  readonly year: number | "n.d.";
   readonly title: string;
   readonly venue: string;
   readonly url?: string;
@@ -29,7 +29,8 @@ export function citationKey(citation: Citation): string {
 }
 
 export function isValidCitation(citation: Citation): boolean {
-  if (citation.authors.length === 0 || !Number.isInteger(citation.year)) return false;
+  const validYear = citation.year === "n.d." || (typeof citation.year === "number" && Number.isInteger(citation.year));
+  if (citation.authors.length === 0 || !validYear) return false;
   if (!citation.title.trim() || !citation.venue.trim()) return false;
   if (!citation.url) return true;
   try {

@@ -305,6 +305,58 @@ function estimateTheta(items: readonly InternalItem[], assignments: readonly Cog
   return { theta, information };
 }
 
+export interface FinalCognitiveEstimate {
+  readonly theta: number;
+  readonly information: number;
+  readonly sem: number | null;
+  readonly answeredCount: number;
+}
+
+/**
+ * 완료된 run의 theta/SE를 응답 20개 전체로 다시 계산한다. `ensureNextAssignment`의
+ * scoring_state 갱신은 "다음 문항을 배정할 때"만 일어나 마지막 응답 이후로는 절대
+ * 실행되지 않으므로, 완료 시점에 한 번 더 계산해 확정하는 통로가 필요하다.
+ * norms.ts의 resolveScoreForRun이 폴백으로도 재사용한다.
+ */
+export async function computeFinalEstimateForRun(subjectId: string, runId: string): Promise<FinalCognitiveEstimate | null> {
+  try {
+    const items = await loadActiveItems(subjectId);
+    const assignments = await loadAssignments(subjectId, runId);
+    const responses = await loadResponses(subjectId, runId);
+    const scoringState = await loadScoringState(subjectId, runId);
+    const estimate = estimateTheta(items, assignments, responses, scoringState.theta);
+    const answeredCount = assignments.filter((assignment) => assignment.state === "answered").length;
+    return {
+      theta: estimate.theta,
+      information: estimate.information,
+      sem: estimate.information > 0 ? 1 / Math.sqrt(estimate.information) : null,
+      answeredCount,
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function finalizeScoringState(subjectId: string, ownedRun: OwnedRun): Promise<void> {
+  const estimate = await computeFinalEstimateForRun(subjectId, ownedRun.id);
+  if (estimate === null) return;
+  const sql = createNeonSql();
+  try {
+    await queryAsSubject(subjectId, sql`
+      update private_cognitive.scoring_state
+         set theta = ${estimate.theta},
+             information = ${estimate.information},
+             standard_error = ${estimate.sem},
+             answered_count = ${estimate.answeredCount},
+             updated_at = now()
+       where run_id = ${ownedRun.id}::uuid
+    `);
+  } catch {
+    // Best-effort: resolveScoreForRun (norms.ts) recomputes via computeFinalEstimateForRun
+    // on demand when this write didn't happen, so a failure here is not fatal.
+  }
+}
+
 function invalidSnapshot(runId: string, targetItemCount = COGNITIVE_PILOT_BLUEPRINT.maximumItems): RunSnapshot {
   return Object.freeze({ runId, status: "invalid", nextItem: null, answeredCount: 0, targetItemCount });
 }
@@ -470,6 +522,9 @@ export class NeonCognitiveRunStore implements CognitiveRunStore {
 
     const current = await getOwnedRun(input.runId);
     if (current === null) return { run: invalidSnapshot(input.runId), error: "invalid_run" };
+    if (current.status === "completed") {
+      await finalizeScoringState(subject.id, current);
+    }
     const nextItem = await ensureNextAssignment(subject.id, current);
     const refreshed = await getOwnedRun(input.runId);
     const run = refreshed ?? current;

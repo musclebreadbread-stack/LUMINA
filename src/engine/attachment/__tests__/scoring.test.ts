@@ -5,6 +5,16 @@ import { ECR_ITEMS, getAxisItems } from "../items";
 
 describe("ECR Engine", () => {
   describe("scoring", () => {
+    it("keeps the reviewed wording for the relationship-anxiety items", () => {
+      expect(ECR_ITEMS.find((item) => item.id === 2)?.textKo).toBe("나는 버림받을까 걱정한다.");
+      expect(ECR_ITEMS.find((item) => item.id === 6)?.textKo).toBe(
+        "나는 연인이 내가 그 사람을 아끼는 만큼 나를 아껴주지 않을까 걱정한다.",
+      );
+      expect(ECR_ITEMS.find((item) => item.id === 10)?.textKo).toBe(
+        "나는 종종 파트너의 감정이 내 감정만큼 강하기를 바란다.",
+      );
+    });
+
     it("should calculate correct scores for all neutral responses", () => {
       const responses: Record<number, 1 | 2 | 3 | 4 | 5> = {};
       ECR_ITEMS.forEach(item => {

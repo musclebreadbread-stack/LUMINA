@@ -31,12 +31,14 @@ export interface FactorView {
   readonly scalePosition: number;
   readonly mean: number;
   readonly rawSum: number;
+  readonly itemCount: number;
   readonly norm: {
     readonly zScore: number;
     readonly tScore: number;
     readonly percentile: number;
     readonly normGroup: "all" | "age-gender";
     readonly sampleSize: number;
+    readonly standardDeviation: number;
   } | null;
   readonly reliability: {
     readonly alpha: number;
@@ -86,6 +88,7 @@ export function buildBigFiveView(responses: ResponseMap, normContext?: NormConte
       scalePosition: f.scalePosition0to100,
       mean: f.mean,
       rawSum: f.rawSum,
+      itemCount: f.itemCount,
       norm: f.norm,
       reliability: f.reliability,
       consistency: f.consistency,

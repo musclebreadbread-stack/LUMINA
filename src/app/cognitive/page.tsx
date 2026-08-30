@@ -82,7 +82,7 @@ export default async function CognitivePage() {
           <p className="font-mono text-[12px] tracking-[0.18em] text-hobun-faint">LUMINA / WHAT THIS IS</p>
           <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-hobun">{t("notAnIqTitle")}</h2>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-hobun-dim">{t("notAnIqBody")}</p>
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-hobun-dim">{t("noScoreNotice")}</p>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-hobun-dim">{t("estimateNotice")}</p>
           <p className="mt-4 max-w-2xl border-l border-ink-600 pl-3 text-xs leading-relaxed text-hobun-faint">
             {t("provenanceBody")}
           </p>

@@ -76,6 +76,7 @@ test.describe('MBTI Type Analysis', () => {
     await expect(page.getByText(/공식 MBTI® 검사/)).toBeVisible();
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
     await expect(page.locator('[data-evidence-status="derived"]').first()).toBeVisible();
+    await expect(page.getByTestId('scientific-score-plot')).toBeVisible();
   });
 
   test('keeps the light-panel secondary CTA visible and actionable', async ({ page, context }) => {

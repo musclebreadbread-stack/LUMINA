@@ -50,6 +50,7 @@ import {
   type AttachmentSummaryV1,
   type BigFiveSummaryV1,
   type CognitiveSummaryV1,
+  type CognitiveSummaryV2,
   type DarkTriadSummaryV1,
   type EqSummaryV1,
   type JungianSummaryV1,
@@ -146,9 +147,9 @@ export default async function SharePage({ params }: { readonly params: Promise<P
           <AttachmentShareBody summary={summary} />
         ) : summary.kind === "eq" ? (
           <EqShareBody summary={summary} />
-        ) : (
-          <CognitiveShareBody summary={summary} />
-        )}
+        ) : summary.kind === "cognitive" ? (
+          summary.version === 2 ? <CognitiveEstimateShareBody summary={summary} /> : <CognitiveShareBody summary={summary} />
+        ) : null}
       </main>
     </SceneShell>
   );
@@ -549,6 +550,72 @@ async function CognitiveShareBody({ summary }: { readonly summary: CognitiveSumm
               />
             );
           })}
+        </div>
+        <p className="mt-5 text-xs leading-relaxed text-hobun-faint">{tCognitive("coarseResolutionNote")}</p>
+      </section>
+
+      <SummaryOnlyNotice text={tShare("summaryOnlyNotice")} limitation={evidence.evidence.limitations[0] ?? ""} limitationLabel={tShare("limitationLabel")} />
+
+      <ShareCallToAction
+        ctaTitle={tShare("ctaTitle")}
+        ctaBody={tShare("ctaBody")}
+        ctaLabel={tShare("ctaButton", { title: kindTitle })}
+        href={evidence.href}
+        analysisKey={evidence.key}
+      />
+
+      <footer className="mt-10 border-t border-ink-700 pt-8">
+        <Disclaimer tier={evidence.tier} />
+      </footer>
+    </>
+  );
+}
+
+/**
+ * 표준화 인지평가(cognitive-standardized)의 θ~N(0,1) 이론 분포 기반 IQ 추정치 공유 요약.
+ * `estimateTag`("이론 분포 기반 추정치")를 IQ 숫자와 항상 같은 카드 안에 두어, 승인된
+ * 규준 점수와 혼동할 수 없게 한다. 백분위·밴드는 iq에서 그 자리에서 재계산한다.
+ */
+async function CognitiveEstimateShareBody({ summary }: { readonly summary: CognitiveSummaryV2 }) {
+  const [tShare, tHome, tCognitive] = await Promise.all([
+    getTranslations({ locale: summary.locale, namespace: "share" }),
+    getTranslations({ locale: summary.locale, namespace: "home" }),
+    getTranslations({ locale: summary.locale, namespace: "cognitive" }),
+  ]);
+  const evidence = analysisDefinition(SHARE_KIND_ANALYSIS_KEY.cognitive);
+  const kindTitle = tHome(SHARE_KIND_HUB_TITLE_KEY.cognitive);
+  const [lower, upper] = summary.confidenceInterval95;
+
+  return (
+    <>
+      <ShareHero
+        kicker={tShare("fallback.heroKicker")}
+        title={tShare("fallback.heroTitle", { title: kindTitle })}
+        body={tShare("fallback.heroBody", { title: kindTitle })}
+        status={evidence.evidence.validationStatus}
+        imageSrc={COGNITIVE_OVERVIEW_IMAGE}
+        imageAlt={tCognitive("resultImageAlt")}
+      />
+
+      <section className="border-t border-ink-700 pt-8">
+        <h2 className="text-lg font-medium text-hobun">{tCognitive("sectionDomains")}</h2>
+
+        <div className="mt-5 rounded-[1.25rem] border border-ink-700 bg-ink-950/70 p-5">
+          <p className="tabular font-mono text-4xl text-hobun">{summary.iq}</p>
+          <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em] text-hobun-faint">{tCognitive("estimateTag")}</p>
+          <p className="mt-3 text-sm text-hobun-dim">{tCognitive("estimateCiLabel", { low: lower, high: upper })}</p>
+          <p className="mt-3 text-xs leading-relaxed text-hobun-faint">{tCognitive("estimateNotice")}</p>
+        </div>
+
+        <div className="mt-5 flex flex-col gap-4">
+          {summary.domains.map((entry) => (
+            <CognitiveDomainRow
+              key={entry.domain}
+              label={tCognitive(`stdDomains.${entry.domain}.label`)}
+              accuracy0to100={entry.accuracy0to100}
+              countLabel={`${Math.round((entry.accuracy0to100 / 100) * 4)} / 4`}
+            />
+          ))}
         </div>
         <p className="mt-5 text-xs leading-relaxed text-hobun-faint">{tCognitive("coarseResolutionNote")}</p>
       </section>

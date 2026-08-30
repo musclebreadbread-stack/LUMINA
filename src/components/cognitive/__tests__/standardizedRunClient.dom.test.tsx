@@ -48,7 +48,7 @@ describe("StandardizedRunClient", () => {
         <StandardizedRunClient
           initialRun={run}
           locale="ko"
-          labels={{ progress: "{answered} / {total}", submit: "답변 제출", invalid: "실행 오류", stale: "실행 만료", option: "선택지" }}
+          labels={{ progress: "{answered} / {total}", submit: "답변 제출", invalid: "실행 오류", stale: "실행 만료", option: "선택지", timerNote: "채점에 쓰이지 않습니다" }}
         />,
       ),
     );
@@ -57,5 +57,23 @@ describe("StandardizedRunClient", () => {
     expect(submit?.disabled).toBe(true);
     expect(container.textContent).not.toContain("correctOptionId");
     expect(container.textContent).not.toContain("secret");
+  });
+
+  it("exposes progress as an accessible progressbar and shows the scoring-exempt timer", () => {
+    act(() =>
+      root.render(
+        <StandardizedRunClient
+          initialRun={run}
+          locale="ko"
+          labels={{ progress: "{answered} / {total}", submit: "답변 제출", invalid: "실행 오류", stale: "실행 만료", option: "선택지", timerNote: "채점에 쓰이지 않습니다" }}
+        />,
+      ),
+    );
+
+    const progressbar = container.querySelector("[role='progressbar']");
+    expect(progressbar?.getAttribute("aria-valuenow")).toBe("0");
+    expect(progressbar?.getAttribute("aria-valuemax")).toBe("20");
+    expect(container.textContent).toContain("0:00");
+    expect(container.textContent).toContain("채점에 쓰이지 않습니다");
   });
 });

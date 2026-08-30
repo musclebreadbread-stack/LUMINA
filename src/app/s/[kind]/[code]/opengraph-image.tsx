@@ -3,7 +3,7 @@ import type { OgCard } from "@/lib/og/cards/frame";
 import { renderOgFrame } from "@/lib/og/cards/frame";
 import { buildAttachmentOgCard } from "@/lib/og/cards/attachment";
 import { buildBigFiveOgCard } from "@/lib/og/cards/bigfive";
-import { buildCognitiveOgCard } from "@/lib/og/cards/cognitive";
+import { buildCognitiveEstimateOgCard, buildCognitiveOgCard } from "@/lib/og/cards/cognitive";
 import { buildDarkTriadOgCard } from "@/lib/og/cards/darktriad";
 import { buildEqOgCard } from "@/lib/og/cards/eq";
 import { buildJungianOgCard } from "@/lib/og/cards/jungian";
@@ -85,7 +85,9 @@ export default async function Image({
     case "eq":
       return composeCardImage(await buildEqOgCard(summary));
     case "cognitive":
-      return composeCardImage(await buildCognitiveOgCard(summary));
+      return composeCardImage(
+        summary.version === 2 ? await buildCognitiveEstimateOgCard(summary) : await buildCognitiveOgCard(summary),
+      );
     default:
       // ShareKind에 새 kind가 추가되면 여기서 컴파일 타임에 걸린다.
       return summary;

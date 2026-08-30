@@ -29,6 +29,8 @@ import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
 import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
 import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
 import { toJungianSnapshot } from "@/lib/integratedPortrait/adapters";
+import { ScientificScorePlot, type ScientificScorePoint } from "@/components/analysis/ScientificScorePlot";
+import { StatisticalReadingGuide } from "@/components/analysis/StatisticalReadingGuide";
 
 interface Query {
   readonly r?: string;
@@ -123,6 +125,28 @@ export default async function JungianResultPage({
     { id: "section-method", label: t("methodTitle") },
     { id: "section-next-lens", label: tCommon("nextLensKicker") },
   ];
+  const scorePoints: readonly ScientificScorePoint[] = view.axes.map((axis) => ({
+    key: axis.axis,
+    label: t(`jungianAxes.${axis.axis}.label`),
+    value: axis.continuous,
+    minimum: -100,
+    maximum: 100,
+    interval: axis.ci95,
+  }));
+  const scorePlotLabels = {
+    observed: tCommon("statisticalVisual.observed"),
+    interval: tCommon("statisticalVisual.interval"),
+    reference: tCommon("statisticalVisual.reference"),
+    noReference: tCommon("statisticalVisual.noReference"),
+    range: tCommon("statisticalVisual.range"),
+    low: tCommon("statisticalVisual.low"),
+    high: tCommon("statisticalVisual.high"),
+    table: tCommon("statisticalVisual.table"),
+    value: tCommon("statisticalVisual.value"),
+    percentile: tCommon("statisticalVisual.percentile"),
+    tScore: tCommon("statisticalVisual.tScore"),
+    sample: tCommon("statisticalVisual.sample"),
+  } as const;
 
   return (
     <SceneShell tone="psychometrics">
@@ -169,6 +193,22 @@ export default async function JungianResultPage({
         <ChapterNav chapters={chapters} label={tCommon("chapterNavLabel")} />
 
         <Section id="section-axes" index="01" title={t("axesTitle")} aside={t("axesAside")}>
+          <ScientificScorePlot
+            title={t("axesTitle")}
+            description={t("axesBody")}
+            points={scorePoints}
+            labels={scorePlotLabels}
+          />
+          <StatisticalReadingGuide
+            id="jungian-statistical-reading-guide"
+            title={tCommon("statisticalReading.title")}
+            intro={tCommon("statisticalReading.intro")}
+            items={[
+              { label: tCommon("statisticalReading.observedTitle"), body: tCommon("statisticalReading.observedBody") },
+              { label: tCommon("statisticalReading.intervalTitle"), body: tCommon("statisticalReading.intervalBody") },
+              { label: tCommon("statisticalReading.referenceTitle"), body: tCommon("statisticalReading.referenceBody") },
+            ]}
+          />
           <div className="grid gap-5 lg:grid-cols-2">
             {view.axes.map((axis) => (
               <AxisResultCard

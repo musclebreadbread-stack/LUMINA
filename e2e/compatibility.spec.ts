@@ -24,6 +24,8 @@ test.describe("Saju compatibility", () => {
     await expect(page.locator('img[alt^="Symbolic zodiac illustration for"]')).toHaveCount(2);
     await expect(page.locator('img[alt*="relationship current"]')).toHaveCount(1);
     await expect(page.getByRole("heading", { name: "Summary" })).toBeVisible();
+    await expect(page.getByTestId("compatibility-signal-balance")).toBeVisible();
+    await expect(page.getByTestId("compatibility-relation-matrix")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Branch relations" })).toBeVisible();
     await expect(page.getByText("The two charts show", { exact: false })).toBeVisible();
   });

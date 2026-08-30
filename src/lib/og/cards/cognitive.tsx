@@ -11,7 +11,7 @@ import type { OgCard } from "@/lib/og/cards/frame";
 import { loadOgPng } from "@/lib/og/image";
 import { HOBUN, HOBUN_DIM, HOBUN_FAINT, INK_LINE } from "@/lib/og/theme";
 import { SHARE_KIND_ANALYSIS_KEY } from "@/lib/shareMeta";
-import { correctCountFromAccuracy, type CognitiveSummaryV1 } from "@/lib/shareCode";
+import { correctCountFromAccuracy, type CognitiveSummaryV1, type CognitiveSummaryV2 } from "@/lib/shareCode";
 
 /**
  * 인지능력 탐색 공유 카드의 가운데 콘텐츠.
@@ -185,5 +185,120 @@ export async function buildCognitiveOgCard(summary: CognitiveSummaryV1): Promise
     sansText: `${kicker}${correctLabel}${accuracyLabel}${domainsHeading}${bars
       .map((bar) => `${bar.label}${bar.countText}`)
       .join("")}`,
+  };
+}
+
+interface StandardizedDomainBarDatum {
+  readonly domain: string;
+  readonly label: string;
+  readonly fraction: number;
+  readonly countText: string;
+}
+
+/**
+ * 표준화 인지평가(cognitive-standardized)의 θ 이론 분포 기반 IQ 추정치 카드. `estimateTag`를
+ * IQ 숫자와 같은 블록에 두어, 승인 규준 카드와 혼동되지 않게 한다. 표준화 5영역은 전용
+ * 삽화가 없어 buildCognitiveOgCard처럼 이미지를 억지로 끼우지 않고 활자만으로 구성한다.
+ */
+export async function buildCognitiveEstimateOgCard(summary: CognitiveSummaryV2): Promise<OgCard> {
+  const [tCommon, tCognitive, tHome, tShare] = await Promise.all([
+    getTranslations({ locale: summary.locale, namespace: "common" }),
+    getTranslations({ locale: summary.locale, namespace: "cognitive" }),
+    getTranslations({ locale: summary.locale, namespace: "home" }),
+    getTranslations({ locale: summary.locale, namespace: "share" }),
+  ]);
+  const evidence = analysisDefinition(SHARE_KIND_ANALYSIS_KEY.cognitive);
+  const kicker = tHome("hubCognitiveTitle");
+  const estimateTag = tCognitive("estimateTag");
+  const [lower, upper] = summary.confidenceInterval95;
+  const ciLabel = tCognitive("estimateCiLabel", { low: lower, high: upper });
+  const domainsHeading = tShare("cognitive.domainsHeading");
+
+  const bars: readonly StandardizedDomainBarDatum[] = summary.domains.map((entry) => ({
+    domain: entry.domain,
+    label: tCognitive(`stdDomains.${entry.domain}.label`),
+    fraction: Math.max(0, Math.min(1, entry.accuracy0to100 / 100)),
+    countText: `${Math.round((entry.accuracy0to100 / 100) * 4)} / 4`,
+  }));
+
+  const centerContent = (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        width: "100%",
+        height: "100%",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 56,
+      }}
+    >
+      <div style={{ display: "flex", flexDirection: "column", gap: 20, flex: 1 }}>
+        <div style={{ display: "flex", color: HOBUN_FAINT, fontSize: 16, letterSpacing: 4, fontFamily: "Sans" }}>
+          {kicker}
+        </div>
+        <div style={{ display: "flex", fontFamily: "Serif", fontSize: 88, lineHeight: 1.05, color: HOBUN }}>
+          {summary.iq}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, fontFamily: "Sans" }}>
+          <div style={{ display: "flex", color: HOBUN_DIM, fontSize: 18, letterSpacing: 1 }}>{estimateTag}</div>
+          <div style={{ display: "flex", color: HOBUN_FAINT, fontSize: 20 }}>{ciLabel}</div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "flex", color: HOBUN_FAINT, fontSize: 16, letterSpacing: 3, fontFamily: "Sans" }}>
+          {domainsHeading}
+        </div>
+        {bars.map((bar) => (
+          <div key={bar.domain} style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 14 }}>
+            <div style={{ display: "flex", width: LABEL_WIDTH, color: HOBUN_DIM, fontSize: 18, fontFamily: "Sans" }}>
+              {bar.label}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                width: TRACK_WIDTH,
+                height: 10,
+                borderRadius: 5,
+                background: INK_LINE,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  width: Math.max(2, bar.fraction * TRACK_WIDTH),
+                  height: 10,
+                  borderRadius: 5,
+                  background: HOBUN,
+                }}
+              />
+            </div>
+            <div
+              style={{
+                display: "flex",
+                width: COUNT_WIDTH,
+                justifyContent: "flex-end",
+                color: HOBUN_DIM,
+                fontSize: 18,
+                fontFamily: "Sans",
+              }}
+            >
+              {bar.countText}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  return {
+    centerContent,
+    statusLabel: tCommon(STATUS_KEYS[evidence.evidence.validationStatus]),
+    footerText: tShare("cognitive.footerNoticeV2"),
+    // IQ 숫자는 어떤 로케일 문장에도 나오지 않으므로 세리프 서브셋에 직접 넣어야 한다.
+    serifText: `${summary.iq}`,
+    sansText: `${kicker}${estimateTag}${ciLabel}${domainsHeading}${bars.map((bar) => `${bar.label}${bar.countText}`).join("")}`,
   };
 }

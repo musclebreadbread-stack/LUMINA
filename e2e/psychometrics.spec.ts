@@ -76,9 +76,15 @@ test.describe('IPIP-50 psychometrics survey (Korean, default locale)', () => {
 
     await expect(page.getByRole('heading', { name: '성향 검사 결과' })).toBeVisible();
 
-    const factorNames = ['외향성', '우호성', '성실성', '정서 안정성', '개방성'];
-    for (const name of factorNames) {
-      await expect(page.getByText(name, { exact: true })).toBeVisible();
+    const factorNames = [
+      ['extraversion', '외향성'],
+      ['agreeableness', '우호성'],
+      ['conscientiousness', '성실성'],
+      ['emotionalStability', '정서 안정성'],
+      ['intellect', '개방성'],
+    ] as const;
+    for (const [key, name] of factorNames) {
+      await expect(page.locator(`#calculation-psychometric-factor-${key}`).getByText(name, { exact: true })).toBeVisible();
     }
     // Each of the 5 factor bars shows a "평균 X.X / 5.0" mean readout.
     await expect(page.getByText(/^평균 \d\.\d \/ 5\.0$/)).toHaveCount(5);
@@ -117,16 +123,17 @@ test.describe('IPIP-50 psychometrics survey (English locale)', () => {
     await dismissConsentBanner(page);
 
     await expect(page.getByRole('heading', { name: 'Personality Test Result' })).toBeVisible();
+    await expect(page.getByTestId('scientific-score-plot')).toBeVisible();
 
     const factorNames = [
-      'Extraversion',
-      'Agreeableness',
-      'Conscientiousness',
-      'Emotional Stability',
-      'Openness',
-    ];
-    for (const name of factorNames) {
-      await expect(page.getByText(name, { exact: true })).toBeVisible();
+      ['extraversion', 'Extraversion'],
+      ['agreeableness', 'Agreeableness'],
+      ['conscientiousness', 'Conscientiousness'],
+      ['emotionalStability', 'Emotional Stability'],
+      ['intellect', 'Openness'],
+    ] as const;
+    for (const [key, name] of factorNames) {
+      await expect(page.locator(`#calculation-psychometric-factor-${key}`).getByText(name, { exact: true })).toBeVisible();
     }
     // Each of the 5 factor bars shows a "Mean X.X / 5.0" mean readout.
     await expect(page.getByText(/^Mean \d\.\d \/ 5\.0$/)).toHaveCount(5);

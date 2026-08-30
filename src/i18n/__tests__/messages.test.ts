@@ -107,4 +107,10 @@ describe("메시지 카탈로그 — ko/en 키 완전 일치", () => {
     expect(JSON.stringify(ko)).toContain("MBTI 유형 분석");
     expect(JSON.stringify(en)).toContain("MBTI Type Analysis");
   });
+
+  it("다크 트라이어드 문구는 한국판 연구의 2요인 한계를 숨기지 않는다", () => {
+    expect(ko.darktriad.heroBody).toContain("2요인");
+    expect(en.darktriad.heroBody).toContain("two-factor");
+    expect(ko.darktriad.heroBody).not.toContain("한국어 문항과 3요인 구조는 표적 집단에서 추가 검증이 필요");
+  });
 });

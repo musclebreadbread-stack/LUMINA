@@ -17,7 +17,15 @@ interface StandardizedRunClientProps {
     readonly invalid: string;
     readonly stale: string;
     readonly option: string;
+    readonly timerNote: string;
   }>;
+}
+
+function formatElapsed(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
 export function StandardizedRunClient({ initialRun, locale, labels }: StandardizedRunClientProps) {
@@ -26,6 +34,7 @@ export function StandardizedRunClient({ initialRun, locale, labels }: Standardiz
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [visibleElapsedMs, setVisibleElapsedMs] = useState(0);
   const startedAt = useRef<number | null>(null);
   const item = run.nextItem;
   const assignmentId = item?.assignmentId;
@@ -36,6 +45,34 @@ export function StandardizedRunClient({ initialRun, locale, labels }: Standardiz
 
   useEffect(() => {
     startedAt.current = assignmentId === undefined ? null : Date.now();
+  }, [assignmentId]);
+
+  // 표시 전용 타이머 — 채점에는 쓰이지 않는다(elapsedMs 제출 로직과 별개). 탭이 보이지 않는
+  // 동안은 세지 않아, 자리를 비운 시간까지 "생각한 시간"처럼 보여주지 않는다.
+  useEffect(() => {
+    if (assignmentId === undefined) return;
+    let accumulated = 0;
+    let segmentStart = document.visibilityState === "visible" ? performance.now() : null;
+
+    function handleVisibilityChange(): void {
+      if (document.visibilityState === "visible") {
+        segmentStart = performance.now();
+      } else if (segmentStart !== null) {
+        accumulated += performance.now() - segmentStart;
+        segmentStart = null;
+        setVisibleElapsedMs(accumulated);
+      }
+    }
+
+    const intervalId = window.setInterval(() => {
+      if (segmentStart === null) return;
+      setVisibleElapsedMs(accumulated + (performance.now() - segmentStart));
+    }, 1000);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [assignmentId]);
 
   if (item === null || run.status === "completed") return <p className="text-sm text-hobun-dim">{labels.invalid}</p>;
@@ -62,6 +99,7 @@ export function StandardizedRunClient({ initialRun, locale, labels }: Standardiz
       router.push(`/cognitive/result/${run.runId}`);
       return;
     } else {
+      setVisibleElapsedMs(0);
       setRun(response.run);
       setSelectedOptionId(null);
       startedAt.current = Date.now();
@@ -71,13 +109,24 @@ export function StandardizedRunClient({ initialRun, locale, labels }: Standardiz
 
   return (
     <section className="space-y-6" aria-labelledby="standardized-item-title">
-      <div className="flex items-center justify-between gap-4 border-b border-ink-700 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-ink-700 pb-4">
         <p className="tabular font-mono text-sm text-hobun-faint">
           {labels.progress.replace("{answered}", String(run.answeredCount)).replace("{total}", String(run.targetItemCount))}
         </p>
-        <div className="h-1 w-40 bg-ink-800" aria-hidden>
+        <div
+          className="h-1 w-40 bg-ink-800"
+          role="progressbar"
+          aria-valuenow={run.answeredCount}
+          aria-valuemin={0}
+          aria-valuemax={run.targetItemCount}
+          aria-label={labels.progress.replace("{answered}", String(run.answeredCount)).replace("{total}", String(run.targetItemCount))}
+        >
           <div className="h-1 bg-hobun-dim transition-[width]" style={{ width: `${(run.answeredCount / run.targetItemCount) * 100}%` }} />
         </div>
+        <p className="tabular font-mono text-xs text-hobun-faint" aria-live="off">
+          {formatElapsed(visibleElapsedMs)}
+          <span className="ml-2 font-sans normal-case tracking-normal opacity-80">{labels.timerNote}</span>
+        </p>
       </div>
       <article className="border border-ink-700 p-5 sm:p-8">
         <p className="font-mono text-xs tracking-[0.18em] text-hobun-faint">{currentItem.domain.toUpperCase()}</p>

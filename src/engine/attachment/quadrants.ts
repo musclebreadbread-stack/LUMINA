@@ -18,7 +18,7 @@ export interface QuadrantClassification {
  * - Avoidant (회피형/소거형): 낮은 불안 + 높은 회피
  * - Fearful (두려움형/혼란형): 높은 불안 + 높은 회피
  *
- * 기준: 평균 3.5점 (5점 척도의 중간값)
+ * 기준: 평균 3.5점 (5점 척도의 운영상 중간값). 공식 ECR-R 절단점이나 한국판 타당화 기준은 아니다.
  */
 export function classifyQuadrant(
   anxiety: AxisScore,

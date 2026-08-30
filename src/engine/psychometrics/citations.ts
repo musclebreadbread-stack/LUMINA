@@ -18,7 +18,7 @@ export const GOW_2005: Citation = Object.freeze({
 
 export const IPIP_TABLE: Citation = Object.freeze({
   authors: Object.freeze(["International Personality Item Pool"]),
-  year: 2026,
+  year: "n.d.",
   title: "Big Five broad-domain scale characteristics",
   venue: "Oregon Research Institute IPIP reference table",
   url: "https://ipip.ori.org/newBigFive5broadTable.htm",

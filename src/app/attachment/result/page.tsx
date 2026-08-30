@@ -10,6 +10,7 @@ import { SceneShell } from "@/components/ui/SceneShell";
 import { AxisBar } from "@/components/attachment/AxisBar";
 import { AttachmentResultClient } from "@/components/attachment/AttachmentResultClient";
 import { QuadrantCard } from "@/components/attachment/QuadrantCard";
+import { AttachmentQuadrantPlot } from "@/components/attachment/AttachmentQuadrantPlot";
 import { attachmentResultChapters } from "@/components/attachment/resultChapters";
 import { NextLens } from "@/components/report/NextLens";
 import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
@@ -144,6 +145,29 @@ export default async function AttachmentResultPage({ searchParams }: ResultPageP
               classification={view.classification}
               locale={resolvedLocale}
             />
+            <div className="mt-6">
+              <AttachmentQuadrantPlot
+                anxiety={view.anxiety.mean}
+                avoidance={view.avoidance.mean}
+                title={t("quadrantPlotTitle")}
+                description={t("quadrantPlotDescription")}
+                scaleLabel={t("quadrantPlotScale")}
+                boundaryLabel={t("quadrantBoundary")}
+                selectedLabel={t("quadrantPlotSelected")}
+                noNormLabel={t("quadrantPlotNoNorm")}
+                anxietyLabel={t("axes.anxiety.label")}
+                avoidanceLabel={t("axes.avoidance.label")}
+                lowLabel={t("quadrantPlotLow")}
+                highLabel={t("quadrantPlotHigh")}
+                quadrantLabels={{
+                  secure: t("styles.secure.label"),
+                  anxious: t("styles.anxious.label"),
+                  avoidant: t("styles.avoidant.label"),
+                  fearful: t("styles.fearful.label"),
+                }}
+                classificationLabel={resolvedLocale === "ko" ? view.classification.labelKo : view.classification.labelEn}
+              />
+            </div>
           </div>
 
           {/* 축별 점수 */}

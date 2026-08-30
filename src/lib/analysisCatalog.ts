@@ -153,7 +153,7 @@ export const ANALYSIS_CATALOG: readonly AnalysisDefinition[] = Object.freeze([
       methodCategory: "psychometric",
       validationStatus: "translation-not-validated",
       targetPopulation: "SD3 원척도와 한국 타당화 연구를 참고하는 성인 응답자",
-      normSource: "내부 참고 표본(한국 3요인 구조 미확정)",
+      normSource: "OpenPsychometrics SD3 공개 참고 표본(한국 3요인 구조 미확정)",
       instrumentVersion: "SD3-27/Jones-Paulhus-2014",
       licenseStatus: "permission-required",
       limitations: ["임상 진단·도덕성 판정이 아니며, 한국 연구에서 원척도의 3요인 구조가 그대로 재현되지 않았습니다."],
@@ -222,14 +222,15 @@ export const ANALYSIS_CATALOG: readonly AnalysisDefinition[] = Object.freeze([
       methodCategory: "ability-sampling",
       validationStatus: "experimental",
       targetPopulation: "정답이 있는 추론 문항을 스스로 풀어 보려는 사용자",
-      // 이 문항에 답한 표본이 존재한 적이 없다. 규준이 "아직 없다"가 아니라 "있을 수 없다".
+      // 승인된 한국 성인 규준 표본은 아직 없다. 그 전까지는 θ~N(0,1) 이론 분포
+      // 가정만으로 계산한 추정치를 보여주며, 승인 규준이 생기면 자동으로 대체된다.
       normSource: null,
       instrumentVersion: "lumina-cognitive-standardized-pilot/2026-08",
       licenseStatus: "verified",
       limitations: [
         "문항은 ICAR(Condon & Revelle, 2014)의 네 가지 형식만 따라 LUMINA가 직접 쓴 것이며 ICAR 원문 문항이 아닙니다.",
-        "이 문항에 답한 규준 표본이 없어 백분위나 IQ 환산치를 낼 수 없습니다. 보고하는 값은 영역별·전체 정답률뿐입니다.",
-        "16문항은 능력을 안정적으로 추정하기에 턱없이 적은 수입니다.",
+        "IQ·백분위는 실측 규준 표본이 아니라 θ가 표준정규분포를 따른다는 이론적 가정만으로 환산한 추정치이며, 항상 95% 신뢰구간과 함께만 보고합니다.",
+        "20문항 적응형 검사는 능력을 안정적으로 추정하기에 짧아 표준오차가 크고 신뢰구간이 넓습니다.",
         "임상 지능검사가 아니라 스스로를 살펴보기 위한 탐색이며, 결과는 도움 없이 혼자 풀었을 때만 의미가 있습니다.",
       ],
       referenceIds: ["cognitive"],

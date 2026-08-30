@@ -41,6 +41,7 @@ test.describe('SSEIT emotional intelligence survey', () => {
     await dismissConsentBanner(page);
 
     await expect(page.getByRole('heading', { name: 'Emotional Intelligence Result', exact: true })).toBeVisible();
+    await expect(page.getByTestId('scientific-score-plot')).toBeVisible();
 
     await page.getByRole('button', { name: 'Copy Link', exact: true }).click();
     const copied = await page.evaluate(() => navigator.clipboard.readText());

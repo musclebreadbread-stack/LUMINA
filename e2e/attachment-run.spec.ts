@@ -33,6 +33,7 @@ test("attachment results use an opaque browser session run", async ({ page, cont
   await expect(page).not.toHaveURL(/\?r=/);
   await expect(page.locator('[data-evidence-status="experimental"]')).toBeVisible();
   await expect(page.getByRole("heading", { name: "당신의 애착 유형", exact: true })).toBeVisible();
+  await expect(page.getByTestId("attachment-quadrant-plot")).toBeVisible();
 });
 
 test("blocks submission inline — no native alert — until every item is answered", async ({

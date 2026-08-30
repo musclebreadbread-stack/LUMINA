@@ -19,6 +19,7 @@ import {
   type PortraitVaultStatus,
 } from "@/lib/integratedPortrait/vault.client";
 import { EvidenceLanes } from "./EvidenceLanes";
+import { EvidenceComposition } from "./EvidenceComposition";
 import { IntegratedPortraitHero } from "./IntegratedPortraitHero";
 import { PortraitControls } from "./PortraitControls";
 
@@ -166,6 +167,18 @@ export function IntegratedReportClient() {
       {state === "unlocked" ? (
         <div className="integrated-portrait-unlocked">
           <IntegratedPortraitHero recipe={recipe} eligibility={eligibility} />
+          <EvidenceComposition
+            title={t("composition.title")}
+            description={t("composition.description")}
+            analysesLabel={t("composition.analyses")}
+            provenanceLabel={t("composition.provenance")}
+            scientificLabel={t("composition.scientificSignals")}
+            culturalLabel={t("composition.culturalSignals")}
+            analyses={eligibility.distinctAnalysisCount}
+            provenanceGroups={eligibility.scientificProvenanceCount}
+            scientificSignals={report.scientificClaims.length}
+            culturalSignals={report.culturalObservations.length}
+          />
           <EvidenceLanes report={report} snapshots={currentSnapshots} />
           <PortraitControls
             snapshots={currentSnapshots}

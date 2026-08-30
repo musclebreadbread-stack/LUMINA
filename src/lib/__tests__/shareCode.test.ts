@@ -171,7 +171,7 @@ describe("shareCode 그리드/골든/거부 매트릭스", () => {
 
     it("cognitive: 골든 코드를 디코드하면 영역이 선언된 순서 그대로, 오차 없이 되돌아온다", () => {
       const decoded = decodeShareCode("1ck030204010Af");
-      if (decoded?.kind !== "cognitive") throw new Error("expected cognitive");
+      if (decoded?.kind !== "cognitive" || decoded.version !== 1) throw new Error("expected cognitive v1");
       expect(decoded.domains.map((entry) => entry.domain)).toEqual([...COGNITIVE_DOMAINS]);
       // 0.1 스텝을 쓰는 다른 kind와 달리 여기서는 근사가 아니라 정확히 같은 값이어야 한다.
       expect(decoded.domains.map((entry) => entry.accuracy0to100)).toEqual([75, 50, 100, 25]);
@@ -180,7 +180,7 @@ describe("shareCode 그리드/골든/거부 매트릭스", () => {
 
     it("cognitive: 코드에는 백분위·IQ 환산치로 읽힐 수 있는 필드가 아예 없다", () => {
       const decoded = decodeShareCode(encodeShareCode(GOLDEN_COGNITIVE));
-      if (decoded?.kind !== "cognitive") throw new Error("expected cognitive");
+      if (decoded?.kind !== "cognitive" || decoded.version !== 1) throw new Error("expected cognitive v1");
       expect(Object.keys(decoded).sort()).toEqual(["accuracy0to100", "domains", "kind", "locale", "version"]);
     });
 
@@ -332,7 +332,7 @@ describe("shareCode 그리드/골든/거부 매트릭스", () => {
               const summary = cognitiveSummaryFromResult(result, "en");
               const decoded = decodeShareCode(encodeShareCode(summary));
 
-              if (decoded?.kind !== "cognitive") throw new Error("expected cognitive");
+              if (decoded?.kind !== "cognitive" || decoded.version !== 1) throw new Error("expected cognitive v1");
               // 양자화 스텝이 한 문항 몫이라 근사가 아니라 정확한 동일값이어야 한다.
               expect(decoded.accuracy0to100).toBe(summary.accuracy0to100);
               expect(decoded.domains.map((entry) => entry.domain)).toEqual([...COGNITIVE_DOMAINS]);
@@ -358,7 +358,7 @@ describe("shareCode 그리드/골든/거부 매트릭스", () => {
       for (const locale of ["ko", "en"] as const) {
         const summary = cognitiveSummaryFromResult(cognitiveResultWith((item) => item.id % 2 === 0), locale);
         const decoded = decodeShareCode(encodeShareCode(summary));
-        if (decoded?.kind !== "cognitive") throw new Error("expected cognitive");
+        if (decoded?.kind !== "cognitive" || decoded.version !== 1) throw new Error("expected cognitive v1");
         expect(decoded.locale).toBe(locale);
       }
     });

@@ -4,8 +4,9 @@
  * 원문 출처: Jones, D. N., & Paulhus, D. L. (2014). Introducing the Short Dark Triad (SD3):
  * A brief measure of dark personality traits. Assessment, 21(1), 28–41.
  *
- * 계층 1(과학적 검증)로 분류된다 — 동료검토를 거친 학술 척도이며,
- * OpenPsychometrics.org의 대규모 응답자 데이터(n=18,192)로 규준을 산출했다.
+ * 원척도는 동료검토를 거친 학술 척도다. 현재 한국어 문항과 원척도의 3요인 구조는
+ * 한국 표본에서 검증된 결과로 취급하지 않으며, OpenPsychometrics.org 공개 표본은
+ * 한국 규준이 아닌 참고 분포를 산출하는 데만 사용한다.
  *
  * 3요인 × 9문항 = 27문항. 5점 Likert(1=전혀 동의하지 않는다 ~ 5=매우 동의한다).
  * 역채점 문항은 key="minus"로 표시하며, 채점 시 (6 − 응답값)을 적용한다.
@@ -85,7 +86,7 @@ export const FACTORS: readonly DarkTriadFactor[] = Object.freeze([
 
 export const ITEMS_PER_FACTOR = 9 as const;
 
-/** 원논문(Jones & Paulhus, 2014) 보고 내부일관성. 규준 빌드 시 ±0.05 이내 검증. */
+/** 원논문(Jones & Paulhus, 2014) 보고 내부일관성. 공개 참고 표본 비교는 ±0.10 게이트일 뿐 한국판 타당화를 뜻하지 않는다. */
 export const PUBLISHED_ALPHAS: Readonly<Record<DarkTriadFactor, number>> = Object.freeze({
   machiavellianism: 0.77,
   narcissism: 0.74,

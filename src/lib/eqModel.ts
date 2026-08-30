@@ -59,6 +59,7 @@ export interface ScoreView {
     readonly tScore: number;
     readonly percentile: number;
     readonly sampleSize: number;
+    readonly standardDeviation: number;
   } | null;
   readonly reliability: {
     readonly alpha: number;

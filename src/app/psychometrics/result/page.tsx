@@ -25,6 +25,8 @@ import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
 import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
 import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
 import { toBigFiveSnapshot } from "@/lib/integratedPortrait/adapters";
+import { ScientificScorePlot, type ScientificScorePoint } from "@/components/analysis/ScientificScorePlot";
+import { StatisticalReadingGuide } from "@/components/analysis/StatisticalReadingGuide";
 
 interface Query {
   readonly r?: string;
@@ -107,6 +109,39 @@ export default async function PsychometricsResultPage({
     { id: "section-method", label: td("methodTitle") },
     { id: "section-next-lens", label: tCommon("nextLensKicker") },
   ];
+  const scorePoints: readonly ScientificScorePoint[] = view.factors.map((factor) => ({
+    key: factor.key,
+    label: resolvedLocale === "en" ? factor.en : factor.ko,
+    value: factor.rawSum,
+    minimum: factor.itemCount,
+    maximum: factor.itemCount * 5,
+    ...(factor.norm
+      ? {
+          interval: factor.reliability.ci95,
+          reference: {
+            mean: factor.rawSum - factor.norm.zScore * factor.norm.standardDeviation,
+            standardDeviation: factor.norm.standardDeviation,
+            percentile: factor.norm.percentile,
+            tScore: factor.norm.tScore,
+            sampleSize: factor.norm.sampleSize,
+          },
+        }
+      : {}),
+  }));
+  const scorePlotLabels = {
+    observed: tCommon("statisticalVisual.observed"),
+    interval: tCommon("statisticalVisual.interval"),
+    reference: tCommon("statisticalVisual.reference"),
+    noReference: tCommon("statisticalVisual.noReference"),
+    range: tCommon("statisticalVisual.range"),
+    low: tCommon("statisticalVisual.low"),
+    high: tCommon("statisticalVisual.high"),
+    table: tCommon("statisticalVisual.table"),
+    value: tCommon("statisticalVisual.value"),
+    percentile: tCommon("statisticalVisual.percentile"),
+    tScore: tCommon("statisticalVisual.tScore"),
+    sample: tCommon("statisticalVisual.sample"),
+  } as const;
 
   return (
     <SceneShell tone="psychometrics">
@@ -141,6 +176,22 @@ export default async function PsychometricsResultPage({
       <ChapterNav chapters={chapters} label={tCommon("chapterNavLabel")} />
 
       <Section id="section-factors" index="01" title={t("sectionFactors")} aside={<>{t("factorsAside")}</>}>
+        <ScientificScorePlot
+          title={t("sectionFactors")}
+          description={t("scaleNote")}
+          points={scorePoints}
+          labels={scorePlotLabels}
+        />
+        <StatisticalReadingGuide
+          id="big-five-statistical-reading-guide"
+          title={tCommon("statisticalReading.title")}
+          intro={tCommon("statisticalReading.intro")}
+          items={[
+            { label: tCommon("statisticalReading.observedTitle"), body: tCommon("statisticalReading.observedBody") },
+            { label: tCommon("statisticalReading.intervalTitle"), body: tCommon("statisticalReading.intervalBody") },
+            { label: tCommon("statisticalReading.referenceTitle"), body: tCommon("statisticalReading.referenceBody") },
+          ]}
+        />
         <div>
           {view.factors.map((f) => (
             <FactorBar key={f.key} factor={f} />

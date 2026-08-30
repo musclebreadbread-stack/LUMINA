@@ -8,6 +8,7 @@ import type { AttachmentView } from "@/lib/attachmentModel";
 import { readAssessmentRun } from "@/lib/assessmentRun";
 import { AxisBar } from "@/components/attachment/AxisBar";
 import { QuadrantCard } from "@/components/attachment/QuadrantCard";
+import { AttachmentQuadrantPlot } from "@/components/attachment/AttachmentQuadrantPlot";
 import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
 import { ShareBar } from "@/components/report/ShareBar";
 import { ChapterNav, type Chapter } from "@/components/ui/ChapterNav";
@@ -150,6 +151,29 @@ export function AttachmentResultClient({
 
       <div id="section-quadrant" className="scroll-mt-24">
         <QuadrantCard classification={view.classification} locale={locale} />
+        <div className="mt-6">
+          <AttachmentQuadrantPlot
+            anxiety={view.anxiety.mean}
+            avoidance={view.avoidance.mean}
+            title={t("quadrantPlotTitle")}
+            description={t("quadrantPlotDescription")}
+            scaleLabel={t("quadrantPlotScale")}
+            boundaryLabel={t("quadrantBoundary")}
+            selectedLabel={t("quadrantPlotSelected")}
+            noNormLabel={t("quadrantPlotNoNorm")}
+            anxietyLabel={t("axes.anxiety.label")}
+            avoidanceLabel={t("axes.avoidance.label")}
+            lowLabel={t("quadrantPlotLow")}
+            highLabel={t("quadrantPlotHigh")}
+            quadrantLabels={{
+              secure: t("styles.secure.label"),
+              anxious: t("styles.anxious.label"),
+              avoidant: t("styles.avoidant.label"),
+              fearful: t("styles.fearful.label"),
+            }}
+            classificationLabel={locale === "ko" ? view.classification.labelKo : view.classification.labelEn}
+          />
+        </div>
       </div>
 
       <div id="section-axes" className="space-y-8 scroll-mt-24">

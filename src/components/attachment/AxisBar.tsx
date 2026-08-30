@@ -62,9 +62,9 @@ export function AxisBar({ axis, locale, axisKey }: AxisBarProps) {
 
       {/* 해석 */}
       <p className="text-sm text-hobun-dim mt-2">
-        {axis.mean < 2.5 && (locale === "ko" ? "낮은 수준" : "Low")}
-        {axis.mean >= 2.5 && axis.mean < 3.5 && (locale === "ko" ? "평균 수준" : "Average")}
-        {axis.mean >= 3.5 && (locale === "ko" ? "높은 수준" : "High")}
+        {axis.mean < 2.5 && (locale === "ko" ? "척도 낮은 구간" : "Lower part of scale")}
+        {axis.mean >= 2.5 && axis.mean < 3.5 && (locale === "ko" ? "척도 중간 구간" : "Middle part of scale")}
+        {axis.mean >= 3.5 && (locale === "ko" ? "척도 높은 구간" : "Higher part of scale")}
       </p>
       </div>
     </div>

@@ -37,6 +37,9 @@ describe("인용 유틸리티", () => {
     expect(formatCitation(baseCitation)).toBe(
       "Ada Lovelace (1843). Notes. Scientific Journal.",
     );
+    expect(formatCitation({ ...baseCitation, year: "n.d." })).toBe(
+      "Ada Lovelace (n.d.). Notes. Scientific Journal.",
+    );
     expect(
       formatCitation({
         ...baseCitation,
@@ -59,6 +62,7 @@ describe("인용 유틸리티", () => {
     expect(citationKey(baseCitation)).toBe("adalovelace-1843-Notes");
     expect(isValidCitation({ ...baseCitation, url: undefined })).toBe(true);
     expect(isValidCitation(baseCitation)).toBe(true);
+    expect(isValidCitation({ ...baseCitation, year: "n.d." })).toBe(true);
     expect(isValidCitation({ ...baseCitation, authors: [] })).toBe(false);
     expect(isValidCitation({ ...baseCitation, year: 1843.5 })).toBe(false);
     expect(isValidCitation({ ...baseCitation, title: " " })).toBe(false);

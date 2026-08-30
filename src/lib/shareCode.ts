@@ -19,6 +19,7 @@ import {
   type CognitiveDomain,
 } from "@engine/cognitive/items";
 import type { CognitiveResult } from "@engine/cognitive/scoring";
+import type { EstimatedScore, StandardizedDomain } from "@engine/cognitive-standardized/types";
 import type { AttachmentQuadrant } from "@engine/attachment/quadrants";
 import type { AttachmentView } from "./attachmentModel";
 
@@ -39,20 +40,6 @@ const ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
 const ALPHABET_INDEX: ReadonlyMap<string, number> = new Map([...ALPHABET].map((ch, index) => [ch, index] as const));
 
 export type ShareKind = "jungian" | "bigfive" | "darktriad" | "attachment" | "eq" | "cognitive";
-
-/**
- * The version character every NEW code is encoded with, per kind. Only jungian has moved to "2"
- * (64-type, 6 axes) — every other kind is unchanged. decodeShareCode still accepts "1" for
- * jungian so links shared before the 64-type expansion keep opening (as the old 4-axis result).
- */
-const CURRENT_VERSION_CHAR: Readonly<Record<ShareKind, string>> = Object.freeze({
-  jungian: "2",
-  bigfive: "1",
-  darktriad: "1",
-  attachment: "1",
-  eq: "1",
-  cognitive: "1",
-});
 
 const SHARE_KINDS: readonly ShareKind[] = ["jungian", "bigfive", "darktriad", "attachment", "eq", "cognitive"];
 
@@ -163,13 +150,38 @@ export interface CognitiveSummaryV1 {
   readonly accuracy0to100: number;
 }
 
+const STANDARDIZED_DOMAINS: readonly StandardizedDomain[] = ["gf", "gc", "gv", "gwm", "gs"];
+
+interface StandardizedCognitiveDomainEntry {
+  readonly domain: StandardizedDomain;
+  /** 0~100. 이 영역 4문항 안에서의 정답 비율 — 25%p 단위로만 존재한다. */
+  readonly accuracy0to100: number;
+}
+
+/**
+ * 표준화 인지평가(cognitive-standardized)의 θ~N(0,1) 이론 분포 기반 IQ 추정치 공유 요약.
+ * 승인된 규준이 아니므로 `iq`는 항상 "추정치" 표시와 함께만 카드·랜딩에 노출해야 한다.
+ * 백분위·밴드는 싣지 않는다 — 둘 다 iq에서 순수 공식(정규분포 근사)으로 그 자리에서
+ * 다시 계산할 수 있어, 규준이 갱신돼도 옛 링크가 옛 수치에 얼어붙지 않는다.
+ * theta 원값·소요 시간·문항별 응답은 CognitiveSummaryV1과 같은 이유로 담지 않는다.
+ */
+export interface CognitiveSummaryV2 {
+  readonly kind: "cognitive";
+  readonly version: 2;
+  readonly locale: Locale;
+  readonly domains: readonly StandardizedCognitiveDomainEntry[];
+  readonly iq: number;
+  readonly confidenceInterval95: readonly [number, number];
+}
+
 export type ShareSummaryV1 =
   | JungianSummaryV1
   | BigFiveSummaryV1
   | DarkTriadSummaryV1
   | AttachmentSummaryV1
   | EqSummaryV1
-  | CognitiveSummaryV1;
+  | CognitiveSummaryV1
+  | CognitiveSummaryV2;
 
 /**
  * 정답률에서 정답 수를 되돌린다. 정답률은 정답 수/문항 수에서만 나오고 양자화 스텝이
@@ -248,8 +260,22 @@ const JUNGIAN_FIELD_SPECS_V2: readonly FieldSpec[] = Object.freeze([
   Object.freeze({ name: "flags", min: 0, max: 4095, step: 1 }),
 ]);
 
+/**
+ * cognitive v2 field spec — 표준화 5영역(gf/gc/gv/gwm/gs) 정답률 뒤에 IQ, 95% 신뢰구간
+ * 하한·상한을 정수로 그대로 싣는다. 하한·상한을 따로 실어서(iq±margin 역산 대신) 40/160
+ * 클램프 경계에서도 왕복 오차가 생기지 않는다. 백분위·밴드는 iq에서 순수 공식으로
+ * 재계산하므로 필드가 없다.
+ */
+const COGNITIVE_FIELD_SPECS_V2: readonly FieldSpec[] = Object.freeze([
+  ...STANDARDIZED_DOMAINS.map((domain) => Object.freeze({ name: domain, min: 0, max: 100, step: 25 })),
+  Object.freeze({ name: "iq", min: 40, max: 160, step: 1 }),
+  Object.freeze({ name: "ciLower", min: 40, max: 160, step: 1 }),
+  Object.freeze({ name: "ciUpper", min: 40, max: 160, step: 1 }),
+]);
+
 function fieldSpecsFor(kind: ShareKind, versionChar: string): readonly FieldSpec[] {
   if (kind === "jungian" && versionChar === "2") return JUNGIAN_FIELD_SPECS_V2;
+  if (kind === "cognitive" && versionChar === "2") return COGNITIVE_FIELD_SPECS_V2;
   return FIELD_SPECS[kind];
 }
 
@@ -269,6 +295,11 @@ for (const kind of SHARE_KINDS) {
 for (const spec of JUNGIAN_FIELD_SPECS_V2) {
   if (fieldSteps(spec) > 4095) {
     throw new Error(`shareCode: field "jungian(v2).${spec.name}" needs more than 12 bits`);
+  }
+}
+for (const spec of COGNITIVE_FIELD_SPECS_V2) {
+  if (fieldSteps(spec) > 4095) {
+    throw new Error(`shareCode: field "cognitive(v2).${spec.name}" needs more than 12 bits`);
   }
 }
 
@@ -357,6 +388,11 @@ function fieldValuesFor(summary: ShareSummaryV1): readonly number[] {
       return [...EQ_FACTORS.map((factor) => byFactor.get(factor) ?? 50), summary.totalRawSum];
     }
     case "cognitive": {
+      if (summary.version === 2) {
+        const byDomain = new Map(summary.domains.map((entry) => [entry.domain, entry.accuracy0to100] as const));
+        const [lower, upper] = summary.confidenceInterval95;
+        return [...STANDARDIZED_DOMAINS.map((domain) => byDomain.get(domain) ?? 0), summary.iq, lower, upper];
+      }
       const byDomain = new Map(summary.domains.map((entry) => [entry.domain, entry.accuracy0to100] as const));
       return [
         ...COGNITIVE_DOMAINS.map((domain) => byDomain.get(domain) ?? 0),
@@ -434,6 +470,22 @@ function buildSummaryFromValues(
       });
     }
     case "cognitive": {
+      if (versionChar === "2") {
+        const domains: readonly StandardizedCognitiveDomainEntry[] = STANDARDIZED_DOMAINS.map((domain, index) =>
+          Object.freeze({ domain, accuracy0to100: values[index]! }),
+        );
+        const iq = Math.round(values[STANDARDIZED_DOMAINS.length]!);
+        const lower = Math.round(values[STANDARDIZED_DOMAINS.length + 1]!);
+        const upper = Math.round(values[STANDARDIZED_DOMAINS.length + 2]!);
+        return Object.freeze({
+          kind: "cognitive" as const,
+          version: 2 as const,
+          locale,
+          domains: Object.freeze(domains),
+          iq,
+          confidenceInterval95: [lower, upper] as const,
+        });
+      }
       const domains = COGNITIVE_DOMAINS.map((domain, index) =>
         Object.freeze({ domain, accuracy0to100: values[index]! }),
       );
@@ -451,7 +503,7 @@ function buildSummaryFromValues(
 }
 
 export function encodeShareCode(summary: ShareSummaryV1): string {
-  const versionChar = CURRENT_VERSION_CHAR[summary.kind];
+  const versionChar = String(summary.version);
   const specs = fieldSpecsFor(summary.kind, versionChar);
   const rawValues = fieldValuesFor(summary);
   const payload = specs.map((spec, index) => encodeField(rawValues[index] ?? spec.min, spec)).join("");
@@ -469,8 +521,9 @@ export function decodeShareCode(code: string, expectedKind?: ShareKind): ShareSu
 
   const kind = CHAR_TO_KIND.get(code[1]!);
   if (!kind) return null;
-  // v2는 jungian(64유형 확장)에만 존재한다 — 다른 kind가 "2"로 시작하면 알 수 없는 코드다.
-  if (versionChar === "2" && kind !== "jungian") return null;
+  // v2는 jungian(64유형 확장)과 cognitive(표준화 IQ 추정치)에만 존재한다 — 그 외 kind가
+  // "2"로 시작하면 알 수 없는 코드다.
+  if (versionChar === "2" && kind !== "jungian" && kind !== "cognitive") return null;
   if (expectedKind !== undefined && kind !== expectedKind) return null;
 
   const locale = CHAR_TO_LOCALE.get(code[2]!);
@@ -590,5 +643,27 @@ export function cognitiveSummaryFromResult(result: CognitiveResult, locale: Loca
     locale,
     domains: Object.freeze(domains),
     accuracy0to100: result.accuracy0to100,
+  });
+}
+
+/**
+ * EstimatedScore(표준화 엔진의 θ~N(0,1) 이론 분포 기반 IQ 추정치) → 공유 요약. 도메인별
+ * 정답률로 다시 환산해서 싣는다 — correctCount/itemCount 자체(어떤 문항을 맞혔는지의 흔적)는
+ * 담지 않는다.
+ */
+export function cognitiveSummaryFromEstimate(score: EstimatedScore, locale: Locale): CognitiveSummaryV2 {
+  const byDomain = new Map(
+    score.domains.map((entry) => [entry.domain, entry.itemCount > 0 ? (entry.correctCount / entry.itemCount) * 100 : 0] as const),
+  );
+  const domains: readonly StandardizedCognitiveDomainEntry[] = STANDARDIZED_DOMAINS.map((domain) =>
+    Object.freeze({ domain, accuracy0to100: byDomain.get(domain) ?? 0 }),
+  );
+  return Object.freeze({
+    kind: "cognitive",
+    version: 2,
+    locale,
+    domains: Object.freeze(domains),
+    iq: score.fullScaleIq,
+    confidenceInterval95: score.confidenceInterval95,
   });
 }

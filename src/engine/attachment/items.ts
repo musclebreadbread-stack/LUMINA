@@ -45,11 +45,11 @@ export const ECR_ITEMS: readonly ECRItem[] = [
   { id: 35, axis: "avoidance", reverseScored: false, textKo: "나는 파트너와 매우 친밀한 관계를 맺는 것을 꺼린다.", textEn: "I am reluctant to form very close relationships with my partner." },
 
   // Anxiety (불안) - 짝수 번호
-  { id: 2, axis: "anxiety", reverseScored: false, textKo: "나는 버림받을 까 걱정한다.", textEn: "I worry about being abandoned." },
+  { id: 2, axis: "anxiety", reverseScored: false, textKo: "나는 버림받을까 걱정한다.", textEn: "I worry about being abandoned." },
   { id: 4, axis: "anxiety", reverseScored: false, textKo: "나는 연애에 대해 많은 걱정을 한다.", textEn: "I worry a lot about my relationships." },
-  { id: 6, axis: "anxiety", reverseScored: false, textKo: "나는 연인이 나를 아끼는 만큼 나를 아껴주지 않을까 걱정한다.", textEn: "I worry that romantic partners wont care about me as much as I care about them." },
+  { id: 6, axis: "anxiety", reverseScored: false, textKo: "나는 연인이 내가 그 사람을 아끼는 만큼 나를 아껴주지 않을까 걱정한다.", textEn: "I worry that romantic partners won't care about me as much as I care about them." },
   { id: 8, axis: "anxiety", reverseScored: false, textKo: "나는 파트너를 잃을까 봐 상당히 걱정한다.", textEn: "I worry a fair amount about losing my partner." },
-  { id: 10, axis: "anxiety", reverseScored: false, textKo: "나는 종종 파트너의 감정이 내 감정만큼 강하지 않을까 바란다.", textEn: "I often wish that my partner's feelings for me were as strong as my feelings for him/her." },
+  { id: 10, axis: "anxiety", reverseScored: false, textKo: "나는 종종 파트너의 감정이 내 감정만큼 강하기를 바란다.", textEn: "I often wish that my partner's feelings for me were as strong as my feelings for him/her." },
   { id: 12, axis: "anxiety", reverseScored: false, textKo: "나는 종종 연인과 완전히 하나가 되고 싶어 하며, 이것이 때때로 그들을 멀리하게 만든다.", textEn: "I often want to merge completely with romantic partners, and this sometimes scares them away." },
   { id: 14, axis: "anxiety", reverseScored: false, textKo: "나는 혼자가 될까 봐 걱정한다.", textEn: "I worry about being alone." },
   { id: 16, axis: "anxiety", reverseScored: false, textKo: "나의 매우 가까워지고 싶은 욕구가 때때로 사람들을 멀어지게 한다.", textEn: "My desire to be very close sometimes scares people away." },

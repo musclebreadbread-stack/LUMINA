@@ -1,15 +1,17 @@
 import "server-only";
 
-import type { ScoredRun } from "@engine/cognitive-standardized/types";
+import type { EstimatedDomainAccuracy, ScoredRun, StandardizedDomain } from "@engine/cognitive-standardized/types";
 import {
   thetaToStandardizedScore,
   type AgeNormRow,
   type ApprovedNormVersion,
 } from "@engine/cognitive-standardized/norming";
+import { estimateFromTheta } from "@engine/cognitive-standardized/estimate";
 import { createNeonSql, neonRows, type NeonSql } from "@/lib/neon/server";
 
 import { requireCognitiveSubject } from "./auth";
-import { getOwnedRun } from "./repository";
+import { getOwnedRun, type OwnedRun } from "./repository";
+import { computeFinalEstimateForRun } from "./runs";
 
 interface NormReleasePayload {
   readonly iqPointsPerTheta: unknown;
@@ -103,6 +105,69 @@ async function loadScoringState(subjectId: string, runId: string): Promise<Scori
   }
 }
 
+function isStandardizedDomain(value: unknown): value is StandardizedDomain {
+  return value === "gf" || value === "gc" || value === "gv" || value === "gwm" || value === "gs";
+}
+
+/**
+ * 도메인별 정답 수를 집계만 해서 반환한다 — 정답 옵션 id 자체는 어떤 형태로도
+ * 클라이언트로 나가지 않는다(join에 answer_keys를 쓰지만 select 목록에는 없음).
+ */
+async function loadDomainAccuracies(subjectId: string, runId: string): Promise<readonly EstimatedDomainAccuracy[] | null> {
+  const sql = createNeonSql();
+  try {
+    const rows = await queryAsSubject(subjectId, sql`
+      select iv.domain,
+             count(*)::int as answered,
+             count(*) filter (where rr.option_id = ak.correct_option_id)::int as correct
+        from private_cognitive.raw_responses rr
+        join private_cognitive.run_assignments ra on ra.assignment_id = rr.assignment_id
+        join private_cognitive.item_versions iv on iv.version_id = ra.item_version_id
+        join private_cognitive.answer_keys ak on ak.version_id = iv.version_id
+       where rr.run_id = ${runId}::uuid
+       group by iv.domain
+    `);
+    const domains = rows.flatMap((row): readonly EstimatedDomainAccuracy[] => {
+      if (!isStandardizedDomain(row.domain) || typeof row.answered !== "number" || typeof row.correct !== "number") return [];
+      return [{ domain: row.domain, correctCount: row.correct, itemCount: row.answered }];
+    });
+    return domains.length === rows.length ? domains : null;
+  } catch {
+    return null;
+  }
+}
+
+function tryStandardizedScore(
+  norm: ApprovedNormVersion | null,
+  scoringState: ScoringState | null,
+  ownedRun: OwnedRun,
+): ScoredRun | null {
+  if (
+    norm === null ||
+    scoringState === null ||
+    scoringState.standard_error === null ||
+    scoringState.age_years === null ||
+    scoringState.answered_count < ownedRun.targetItemCount
+  ) {
+    return null;
+  }
+  try {
+    const score = thetaToStandardizedScore(
+      {
+        theta: scoringState.theta,
+        sem: scoringState.standard_error,
+        age: scoringState.age_years,
+        itemBankVersion: ownedRun.itemBankVersion,
+        algorithmVersion: ownedRun.algorithmVersion,
+      },
+      norm,
+    );
+    return Object.freeze({ status: "standardized_scored", score });
+  } catch {
+    return null;
+  }
+}
+
 export async function loadApprovedNormForRun(runId: string): Promise<ApprovedNormVersion | null> {
   const ownedRun = await getOwnedRun(runId);
   if (ownedRun === null || ownedRun.status !== "completed") return null;
@@ -136,17 +201,27 @@ export async function resolveScoreForRun(runId: string): Promise<ScoredRun> {
   const subject = await requireCognitiveSubject().catch(() => null);
   if (subject === null) return pilot;
   const [norm, scoringState] = await Promise.all([loadApprovedNormForRun(runId), loadScoringState(subject.id, runId)]);
-  if (norm === null || scoringState === null || scoringState.standard_error === null || scoringState.age_years === null || scoringState.answered_count < ownedRun.targetItemCount) return pilot;
+
+  // 승인된 규준 트랙이 항상 우선한다 — 이 분기는 기존 동작 그대로다.
+  const standardized = tryStandardizedScore(norm, scoringState, ownedRun);
+  if (standardized !== null) return standardized;
+
+  // 승인 규준이 없거나 아직 적용 대상이 아니면, θ~N(0,1) 이론 분포 기반 추정치로
+  // 대체한다. 연령 동의 여부와 무관하게 계산 가능하다.
+  const finalized =
+    scoringState !== null && scoringState.standard_error !== null && scoringState.answered_count >= ownedRun.targetItemCount
+      ? { theta: scoringState.theta, sem: scoringState.standard_error, answeredCount: scoringState.answered_count }
+      : await computeFinalEstimateForRun(subject.id, runId).then((estimate) =>
+          estimate === null || estimate.sem === null ? null : { theta: estimate.theta, sem: estimate.sem, answeredCount: estimate.answeredCount },
+        );
+  if (finalized === null) return pilot;
+
+  const domains = await loadDomainAccuracies(subject.id, runId);
+  if (domains === null) return pilot;
 
   try {
-    const score = thetaToStandardizedScore({
-      theta: scoringState.theta,
-      sem: scoringState.standard_error,
-      age: scoringState.age_years,
-      itemBankVersion: ownedRun.itemBankVersion,
-      algorithmVersion: ownedRun.algorithmVersion,
-    }, norm);
-    return Object.freeze({ status: "standardized_scored", score });
+    const score = estimateFromTheta({ theta: finalized.theta, sem: finalized.sem, answeredCount: finalized.answeredCount, domains });
+    return Object.freeze({ status: "estimated_scored", score });
   } catch {
     return pilot;
   }

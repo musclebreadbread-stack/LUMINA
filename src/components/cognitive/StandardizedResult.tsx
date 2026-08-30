@@ -3,6 +3,7 @@ import { standardizedIqBand } from "@engine/cognitive-standardized/norming";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { COGNITIVE_OVERVIEW_IMAGE } from "@/lib/psychometricsAssets";
 import type { Locale } from "@/i18n/locale";
+import { StandardizedScorePlot } from "./StandardizedScorePlot";
 
 interface StandardizedResultProps {
   readonly score: StandardizedScore;
@@ -49,6 +50,15 @@ export function StandardizedResult({ score, locale, imageAlt }: StandardizedResu
           fallbackLabel={korean ? "인지능력" : "Cognitive ability"}
         />
       </div>
+      <StandardizedScorePlot
+        score={score}
+        title={korean ? "점수와 95% 신뢰구간" : "Score and 95% confidence interval"}
+        description={korean ? "점은 산출된 전체 IQ 추정치이고, 가로선은 측정 오차를 반영한 95% 신뢰구간입니다. 구간 밖의 의미를 추정하지 말고 숫자와 함께 읽어 주세요." : "The dot is the full-scale IQ estimate and the line is its 95% confidence interval. Read the interval with the number; do not infer precision beyond it."}
+        scoreLabel={korean ? "전체 IQ 추정치" : "Full-scale IQ estimate"}
+        intervalLabel={korean ? "95% 신뢰구간" : "95% confidence interval"}
+        referenceLabel={korean ? "설명 기준 100" : "Descriptive reference 100"}
+        scaleLabel={korean ? "40–160 표시 범위 · 눈금과 100 기준선은 설명용이며 연령 규준 환산을 대신하지 않습니다." : "Displayed range 40–160 · ticks and the 100 reference line are descriptive and do not replace age-norm conversion."}
+      />
       <p className="text-6xl font-semibold tabular text-hobun" aria-label={korean ? "전체 IQ 추정치" : "Full-scale IQ estimate"}>{score.fullScaleIq}</p>
       <p className="text-sm text-hobun-dim">{korean ? `연령 규준 백분위 ${score.percentile}` : `Age-norm percentile ${score.percentile}`}</p>
       <p className="text-sm text-hobun-dim">{korean ? `95% 신뢰구간 ${lower}–${upper}` : `95% confidence interval ${lower}–${upper}`}</p>

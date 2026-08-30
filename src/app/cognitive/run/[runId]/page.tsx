@@ -63,6 +63,7 @@ export default async function CognitiveRunPage({ params }: PageProps) {
                 invalid: t("runInvalid"),
                 stale: t("runInvalid"),
                 option: t("optionsLabel"),
+                timerNote: t("timerNote"),
               }}
             />
           )}

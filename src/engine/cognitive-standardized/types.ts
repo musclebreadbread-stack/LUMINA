@@ -9,7 +9,7 @@ export type StandardizedDomain = "gf" | "gc" | "gv" | "gwm" | "gs";
 
 export type RunStatus = "active" | "paused" | "completed" | "invalid";
 
-export type ResultStatus = "pilot_withheld" | "standardized_scored" | "ineligible";
+export type ResultStatus = "pilot_withheld" | "estimated_scored" | "standardized_scored" | "ineligible";
 
 export type MatrixShape = "circle" | "square" | "triangle" | "diamond" | "arrow" | null;
 
@@ -43,6 +43,35 @@ export interface StandardizedScore {
   readonly percentile: number;
   readonly confidenceInterval95: readonly [lower: number, upper: number];
   readonly normVersion: string;
+}
+
+export type EstimatedIqBand =
+  | "well_below_average"
+  | "below_average"
+  | "average"
+  | "above_average"
+  | "well_above_average"
+  | "exceptionally_high";
+
+export interface EstimatedDomainAccuracy {
+  readonly domain: StandardizedDomain;
+  readonly correctCount: number;
+  readonly itemCount: number;
+}
+
+/**
+ * 승인된 규준이 아니라 θ~N(0,1) 이론 분포 가정(IQ = 100 + 15θ)만으로 계산한
+ * 연구용 추정치다. `basis`가 이 사실을 타입 레벨에서도 못 박아, StandardizedScore와
+ * 혼동해 그대로 렌더하는 실수를 막는다.
+ */
+export interface EstimatedScore {
+  readonly fullScaleIq: number;
+  readonly percentile: number;
+  readonly confidenceInterval95: readonly [lower: number, upper: number];
+  readonly sem: number;
+  readonly basis: "theoretical-prior";
+  readonly answeredCount: number;
+  readonly domains: readonly EstimatedDomainAccuracy[];
 }
 
 export type CognitiveStimulus =
@@ -129,6 +158,7 @@ export interface ScoreRunInput {
 
 export type ScoredRun =
   | Readonly<{ status: "pilot_withheld"; score: null }>
+  | Readonly<{ status: "estimated_scored"; score: EstimatedScore }>
   | Readonly<{ status: "standardized_scored"; score: StandardizedScore }>;
 
 export interface RunSnapshot {

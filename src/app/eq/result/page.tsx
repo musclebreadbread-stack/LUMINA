@@ -25,6 +25,8 @@ import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
 import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
 import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
 import { toEqSnapshot } from "@/lib/integratedPortrait/adapters";
+import { ScientificScorePlot, type ScientificScorePoint } from "@/components/analysis/ScientificScorePlot";
+import { StatisticalReadingGuide } from "@/components/analysis/StatisticalReadingGuide";
 
 interface Query {
   readonly r?: string;
@@ -99,6 +101,60 @@ export default async function EqResultPage({
     { id: "section-method", label: tCommon("methodNote") },
     { id: "section-next-lens", label: tCommon("nextLensKicker") },
   ];
+  const scorePoints: readonly ScientificScorePoint[] = [
+    {
+      key: "total",
+      label: t("totalLabel"),
+      value: view.total.rawSum,
+      minimum: view.total.itemCount,
+      maximum: view.total.itemCount * 5,
+      interval: view.total.reliability.ci95,
+      ...(view.total.norm
+        ? {
+            reference: {
+              mean: view.total.rawSum - view.total.norm.zScore * view.total.norm.standardDeviation,
+              standardDeviation: view.total.norm.standardDeviation,
+              percentile: view.total.norm.percentile,
+              tScore: view.total.norm.tScore,
+              sampleSize: view.total.norm.sampleSize,
+            },
+          }
+        : {}),
+    },
+    ...view.factors.map((factor) => ({
+      key: factor.key,
+      label: resolvedLocale === "en" ? factor.en : factor.ko,
+      value: factor.rawSum,
+      minimum: factor.itemCount,
+      maximum: factor.itemCount * 5,
+      ...(factor.norm
+        ? {
+            interval: factor.reliability.ci95,
+            reference: {
+              mean: factor.rawSum - factor.norm.zScore * factor.norm.standardDeviation,
+              standardDeviation: factor.norm.standardDeviation,
+              percentile: factor.norm.percentile,
+              tScore: factor.norm.tScore,
+              sampleSize: factor.norm.sampleSize,
+            },
+          }
+        : {}),
+    } satisfies ScientificScorePoint)),
+  ];
+  const scorePlotLabels = {
+    observed: tCommon("statisticalVisual.observed"),
+    interval: tCommon("statisticalVisual.interval"),
+    reference: tCommon("statisticalVisual.reference"),
+    noReference: tCommon("statisticalVisual.noReference"),
+    range: tCommon("statisticalVisual.range"),
+    low: tCommon("statisticalVisual.low"),
+    high: tCommon("statisticalVisual.high"),
+    table: tCommon("statisticalVisual.table"),
+    value: tCommon("statisticalVisual.value"),
+    percentile: tCommon("statisticalVisual.percentile"),
+    tScore: tCommon("statisticalVisual.tScore"),
+    sample: tCommon("statisticalVisual.sample"),
+  } as const;
 
   return (
     <SceneShell tone="eq">
@@ -128,6 +184,22 @@ export default async function EqResultPage({
         <ChapterNav chapters={chapters} label={tCommon("chapterNavLabel")} />
 
         <Section id="section-factors" index="01" title={t("sectionFactors")} aside={<>{t("factorsAside")}</>}>
+          <ScientificScorePlot
+            title={t("sectionFactors")}
+            description={t("scaleNote")}
+            points={scorePoints}
+            labels={scorePlotLabels}
+          />
+          <StatisticalReadingGuide
+            id="eq-statistical-reading-guide"
+            title={tCommon("statisticalReading.title")}
+            intro={tCommon("statisticalReading.intro")}
+            items={[
+              { label: tCommon("statisticalReading.observedTitle"), body: tCommon("statisticalReading.observedBody") },
+              { label: tCommon("statisticalReading.intervalTitle"), body: tCommon("statisticalReading.intervalBody") },
+              { label: tCommon("statisticalReading.referenceTitle"), body: tCommon("statisticalReading.referenceBody") },
+            ]}
+          />
           <TotalScoreCard total={view.total} />
           <div className="mt-6">
             {view.factors.map((factor) => (

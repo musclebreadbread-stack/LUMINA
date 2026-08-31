@@ -27,9 +27,9 @@ function renderStimulus(item: PracticeItem, locale: Locale, index: number) {
     return <p className="text-base leading-relaxed text-hobun">{locale === "ko" ? item.stimulus.textKo : item.stimulus.textEn}</p>;
   }
   if (item.stimulus.kind === "matrix") {
-    return <MatrixBoard figure={item.stimulus} label={label} idPrefix={`practice-${index}-stem`} maxWidth={280} className="text-hobun" />;
+    return <MatrixBoard figure={item.stimulus} label={label} idPrefix={`practice-${index}-stem`} maxWidth={320} className="text-hobun" />;
   }
-  return <SpatialSolid cubes={item.stimulus.cubes} label={label} idPrefix={`practice-${index}-stem`} maxWidth={220} className="text-hobun" />;
+  return <SpatialSolid cubes={item.stimulus.cubes} label={label} idPrefix={`practice-${index}-stem`} maxWidth={300} className="text-hobun" />;
 }
 
 export function PracticeForm({ items, locale }: PracticeFormProps) {
@@ -59,30 +59,35 @@ export function PracticeForm({ items, locale }: PracticeFormProps) {
             <div className="mt-4">{renderStimulus(item, locale, itemIndex)}</div>
             <fieldset className="mt-5 space-y-2">
               <legend className="sr-only">{locale === "ko" ? "선택지" : "Options"}</legend>
-              {item.options.map((option, optionIndex) => (
-                <label key={option.id} className="flex min-h-11 cursor-pointer items-center gap-3 border border-ink-700 px-3 py-3 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-hobun">
-                  <input
-                    type="radio"
-                    name={`practice-${item.id}`}
-                    value={option.id}
-                    checked={answer === option.id}
-                    onChange={() => choose(item.id, option.id)}
-                    className="sr-only"
-                  />
-                  <span className="tabular font-mono text-xs text-hobun-faint">{optionIndex + 1}</span>
-                  {option.figure === null ? (
-                    <span className="text-sm text-hobun-dim">{locale === "ko" ? option.labelKo : option.labelEn}</span>
-                  ) : (
-                    <OptionFigure
-                      figure={option.figure}
-                      label={optionLabel(locale, optionIndex)}
-                      idPrefix={`${item.id}-option-${optionIndex}`}
-                      maxWidth={110}
-                      className="text-hobun"
+              {item.options.map((option, optionIndex) => {
+                const isVisualOption = option.figure !== null;
+                return (
+                  <label key={option.id} className={`flex cursor-pointer items-center gap-3 border border-ink-700 px-3 py-3 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-hobun ${isVisualOption ? "min-h-28" : "min-h-11"}`}>
+                    <input
+                      type="radio"
+                      name={`practice-${item.id}`}
+                      value={option.id}
+                      checked={answer === option.id}
+                      onChange={() => choose(item.id, option.id)}
+                      className="sr-only"
                     />
-                  )}
-                </label>
-              ))}
+                    <span className="tabular font-mono text-xs text-hobun-faint">{optionIndex + 1}</span>
+                    {option.figure === null ? (
+                      <span className="text-sm text-hobun-dim">{locale === "ko" ? option.labelKo : option.labelEn}</span>
+                    ) : (
+                      <span className="flex min-w-0 flex-1 items-center justify-center">
+                        <OptionFigure
+                          figure={option.figure}
+                          label={optionLabel(locale, optionIndex)}
+                          idPrefix={`${item.id}-option-${optionIndex}`}
+                          maxWidth={148}
+                          className="text-hobun"
+                        />
+                      </span>
+                    )}
+                  </label>
+                );
+              })}
             </fieldset>
             <button
               type="button"

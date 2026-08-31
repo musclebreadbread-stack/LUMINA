@@ -32,6 +32,8 @@ describe("standardized figure renderers", () => {
     expect(markup).toContain('aria-label="3×3 도형 행렬, 빈칸 하나"');
     expect(markup).toContain("<pattern");
     expect(markup).toContain("stroke-dasharray");
+    expect(markup).toContain('shape-rendering="geometricPrecision"');
+    expect(markup).toContain('vector-effect="non-scaling-stroke"');
   });
 
   it("renders every cube with three visible isometric faces", () => {
@@ -48,6 +50,9 @@ describe("standardized figure renderers", () => {
 
     expect(markup).toContain('role="img"');
     expect(markup.match(/<polygon /g)).toHaveLength(6);
+    expect(markup).toContain('shape-rendering="geometricPrecision"');
+    expect(markup).toContain('stroke-width="2.4"');
+    expect(markup).toContain('vector-effect="non-scaling-stroke"');
   });
 
   it("renders a matrix option as one figure cell without placeholder marks", () => {
@@ -59,5 +64,7 @@ describe("standardized figure renderers", () => {
     expect(markup).toContain('transform="rotate(90)"');
     expect(markup.match(/<rect /g)).toHaveLength(1);
     expect(markup).not.toContain("?");
+    expect(markup).toContain('shape-rendering="geometricPrecision"');
+    expect(markup).toContain('vector-effect="non-scaling-stroke"');
   });
 });

@@ -14,10 +14,10 @@ import type { PolycubeFigure } from "@engine/cognitive/items";
  */
 
 /** 정육면체 한 변의 화면 길이. viewBox가 내용에 맞춰 잘리므로 절대 크기는 중요하지 않다. */
-const UNIT = 22;
+const UNIT = 28;
 const COS30 = Math.sqrt(3) / 2;
 const SIN30 = 0.5;
-const PAD = 5;
+const PAD = 8;
 
 function project(x: number, y: number, z: number): readonly [number, number] {
   // z가 클수록 화면에서 위로 간다(SVG의 y는 아래로 자라므로 빼 준다).
@@ -43,9 +43,9 @@ const FACES: readonly {
   readonly corners: readonly (readonly [number, number, number])[];
   readonly opacity: number;
 }[] = Object.freeze([
-  { corners: [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]], opacity: 0.34 },
-  { corners: [[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], opacity: 0.18 },
-  { corners: [[0, 1, 0], [1, 1, 0], [1, 1, 1], [0, 1, 1]], opacity: 0.12 },
+  { corners: [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]], opacity: 0.78 },
+  { corners: [[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], opacity: 0.58 },
+  { corners: [[0, 1, 0], [1, 1, 0], [1, 1, 1], [0, 1, 1]], opacity: 0.44 },
 ]);
 
 function round(value: number): number {
@@ -107,7 +107,7 @@ interface RotationStimulusProps {
   readonly className?: string;
 }
 
-export function RotationStimulus({ figure, label, maxWidth = 208, className }: RotationStimulusProps) {
+export function RotationStimulus({ figure, label, maxWidth = 288, className }: RotationStimulusProps) {
   const voxels = resolveVoxels(figure.voxels, figure.rotation);
   const bounds = boundsOf(voxels);
 
@@ -117,6 +117,7 @@ export function RotationStimulus({ figure, label, maxWidth = 208, className }: R
       role="img"
       aria-label={label}
       className={className}
+      shapeRendering="geometricPrecision"
       style={{ width: "100%", maxWidth, height: "auto" }}
     >
       {paintOrder(voxels).map((voxel) => (
@@ -128,9 +129,11 @@ export function RotationStimulus({ figure, label, maxWidth = 208, className }: R
               fill="currentColor"
               fillOpacity={face.opacity}
               stroke="currentColor"
-              strokeOpacity={0.75}
-              strokeWidth={1}
+              strokeOpacity={1}
+              strokeWidth={2.4}
               strokeLinejoin="round"
+              strokeLinecap="round"
+              vectorEffect="non-scaling-stroke"
             />
           ))}
         </g>

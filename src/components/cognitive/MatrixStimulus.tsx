@@ -30,9 +30,10 @@ function CellFrame({ x, y, blank }: { readonly x: number; readonly y: number; re
       height={CELL_SIZE}
       fill="none"
       stroke="currentColor"
-      strokeOpacity={blank ? 0.55 : 0.22}
-      strokeWidth={1}
+      strokeOpacity={blank ? 0.95 : 0.48}
+      strokeWidth={blank ? 2 : 1.6}
       strokeDasharray={blank ? "4 3" : undefined}
+      vectorEffect="non-scaling-stroke"
     />
   );
 }
@@ -87,7 +88,7 @@ interface MatrixStimulusProps {
   readonly className?: string;
 }
 
-export function MatrixStimulus({ figure, label, idPrefix, maxWidth = 264, className }: MatrixStimulusProps) {
+export function MatrixStimulus({ figure, label, idPrefix, maxWidth = 320, className }: MatrixStimulusProps) {
   const hatchId = `${idPrefix}-hatch`;
 
   return (
@@ -96,6 +97,7 @@ export function MatrixStimulus({ figure, label, idPrefix, maxWidth = 264, classN
       role="img"
       aria-label={label}
       className={className}
+      shapeRendering="geometricPrecision"
       style={{ width: "100%", maxWidth, height: "auto" }}
     >
       <defs>
@@ -133,6 +135,7 @@ export function MatrixCellFigure({
       role="img"
       aria-label={label}
       className={className}
+      shapeRendering="geometricPrecision"
       style={{ width: "100%", maxWidth, height: "auto" }}
     >
       <defs>

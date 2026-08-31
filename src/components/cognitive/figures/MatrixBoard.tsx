@@ -55,7 +55,7 @@ export function HatchPattern({ id }: { readonly id: string }) {
       patternUnits="userSpaceOnUse"
       patternTransform="rotate(45)"
     >
-      <line x1={0} y1={0} x2={0} y2={PATTERN_SIZE} stroke="currentColor" strokeWidth={2} />
+      <line x1={0} y1={0} x2={0} y2={PATTERN_SIZE} stroke="currentColor" strokeOpacity={0.95} strokeWidth={2.4} />
     </pattern>
   );
 }
@@ -72,8 +72,10 @@ export function FigureGlyph({ cell, hatchId }: { readonly cell: MatrixCell; read
   const common = {
     fill,
     stroke: "currentColor",
-    strokeWidth: 3,
+    strokeWidth: 3.4,
     strokeLinejoin: "round" as const,
+    strokeLinecap: "round" as const,
+    vectorEffect: "non-scaling-stroke" as const,
   };
 
   return (
@@ -103,9 +105,10 @@ function MatrixCellView({ cell, index, hatchId }: { readonly cell: MatrixCell; r
         height={CELL_SIZE}
         fill="none"
         stroke="currentColor"
-        strokeOpacity={isBlank ? 0.8 : 0.3}
-        strokeWidth={2}
+        strokeOpacity={isBlank ? 0.95 : 0.52}
+        strokeWidth={isBlank ? 2.6 : 2}
         strokeDasharray={isBlank ? "8 6" : undefined}
+        vectorEffect="non-scaling-stroke"
       />
       {isBlank ? (
         <text
@@ -140,6 +143,7 @@ export function MatrixBoard({ figure, label, idPrefix, maxWidth = 320, className
       aria-label={label}
       aria-labelledby={titleId}
       className={className}
+      shapeRendering="geometricPrecision"
       style={{ width: "100%", maxWidth, height: "auto" }}
     >
       <title id={titleId}>{label}</title>

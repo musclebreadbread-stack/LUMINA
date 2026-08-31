@@ -79,9 +79,10 @@ interface OptionContentProps {
   readonly figureLabel: string;
   readonly idPrefix: string;
   readonly maxWidth?: number;
+  readonly className?: string;
 }
 
-export function OptionContent({ option, locale, figureLabel, idPrefix, maxWidth }: OptionContentProps) {
+export function OptionContent({ option, locale, figureLabel, idPrefix, maxWidth, className }: OptionContentProps) {
   if (option.kind === "matrixCell") {
     return (
       <MatrixCellFigure
@@ -89,12 +90,13 @@ export function OptionContent({ option, locale, figureLabel, idPrefix, maxWidth 
         label={figureLabel}
         idPrefix={idPrefix}
         maxWidth={maxWidth}
+        className={className}
       />
     );
   }
 
   if (option.kind === "polycube") {
-    return <RotationStimulus figure={option.figure} label={figureLabel} maxWidth={maxWidth} />;
+    return <RotationStimulus figure={option.figure} label={figureLabel} maxWidth={maxWidth} className={className} />;
   }
 
   return <span>{locale === "en" ? option.labelEn : option.labelKo}</span>;
@@ -126,11 +128,12 @@ interface StandardizedOptionContentProps {
   readonly figureLabel: string;
   readonly idPrefix: string;
   readonly maxWidth?: number;
+  readonly className?: string;
 }
 
-export function StandardizedOptionContent({ option, locale, figureLabel, idPrefix, maxWidth }: StandardizedOptionContentProps) {
+export function StandardizedOptionContent({ option, locale, figureLabel, idPrefix, maxWidth, className }: StandardizedOptionContentProps) {
   if (option.figure !== null) {
-    return <OptionFigure figure={option.figure} label={figureLabel} idPrefix={idPrefix} maxWidth={maxWidth} />;
+    return <OptionFigure figure={option.figure} label={figureLabel} idPrefix={idPrefix} maxWidth={maxWidth} className={className} />;
   }
   return <span>{locale === "en" ? option.labelEn : option.labelKo}</span>;
 }

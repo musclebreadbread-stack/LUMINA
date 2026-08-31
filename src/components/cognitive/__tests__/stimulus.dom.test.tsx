@@ -40,6 +40,8 @@ describe("matrix stimulus renderer", () => {
       expect(markup.match(/stroke-dasharray="4 3"/g)).toHaveLength(1);
       expect(markup).toContain('role="img"');
       expect(markup).toContain('aria-label="task"');
+      expect(markup).toContain('shape-rendering="geometricPrecision"');
+      expect(markup).toContain('vector-effect="non-scaling-stroke"');
     },
   );
 
@@ -68,6 +70,9 @@ describe("rotation stimulus renderer", () => {
       const cubeCount = resolveVoxels(item.stimulus.voxels, item.stimulus.rotation).length;
       expect(markup.match(/<polygon /g)).toHaveLength(cubeCount * 3);
       expect(markup).toContain('role="img"');
+      expect(markup).toContain('shape-rendering="geometricPrecision"');
+      expect(markup).toContain('stroke-width="2.4"');
+      expect(markup).toContain('vector-effect="non-scaling-stroke"');
     },
   );
 

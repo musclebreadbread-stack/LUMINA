@@ -77,6 +77,8 @@ export function StandardizedRunClient({ initialRun, locale, labels }: Standardiz
 
   if (item === null || run.status === "completed") return <p className="text-sm text-hobun-dim">{labels.invalid}</p>;
   const currentItem = item;
+  const isVisualStimulus = currentItem.stimulus.kind !== "text";
+  const stimulusMaxWidth = currentItem.stimulus.kind === "matrix" ? 360 : currentItem.stimulus.kind === "spatial" ? 340 : undefined;
 
   async function submit(): Promise<void> {
     if (selectedOptionId === null || pending) return;
@@ -131,25 +133,31 @@ export function StandardizedRunClient({ initialRun, locale, labels }: Standardiz
       <article className="border border-ink-700 p-5 sm:p-8">
         <p className="font-mono text-xs tracking-[0.18em] text-hobun-faint">{currentItem.domain.toUpperCase()}</p>
         <h1 id="standardized-item-title" className="sr-only">{currentItem.ordinal}</h1>
-        <div className="mt-5">
-          <StandardizedStimulus stimulus={currentItem.stimulus} locale={locale} label={`${currentItem.ordinal}`} idPrefix={`run-${currentItem.assignmentId}-stem`} className="text-hobun" />
+        <div className={`mt-5 ${isVisualStimulus ? "flex min-h-64 items-center justify-center border border-ink-700 bg-ink-950/80 px-4 py-6 sm:min-h-72 sm:px-8 sm:py-8" : ""}`} data-figure-stage={isVisualStimulus ? "stimulus" : undefined}>
+          <StandardizedStimulus stimulus={currentItem.stimulus} locale={locale} label={`${currentItem.ordinal}`} idPrefix={`run-${currentItem.assignmentId}-stem`} maxWidth={stimulusMaxWidth} className="text-hobun" />
         </div>
         <fieldset className="mt-7 space-y-3">
           <legend className="sr-only">{labels.option}</legend>
-          {currentItem.options.map((option, index) => (
-            <label key={option.id} className={`flex min-h-12 cursor-pointer items-center gap-3 border px-4 py-3 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-hobun ${selectedOptionId === option.id ? "border-hobun bg-hobun text-ink-900" : "border-ink-700 text-hobun-dim"}`}>
-              <input
-                type="radio"
-                name={`assignment-${currentItem.assignmentId}`}
-                value={option.id}
-                checked={selectedOptionId === option.id}
-                onChange={() => setSelectedOptionId(option.id)}
-                className="sr-only"
-              />
-              <span className="tabular font-mono text-xs opacity-70">{index + 1}</span>
-              <StandardizedOptionContent option={option} locale={locale} figureLabel={`${labels.option} ${index + 1}`} idPrefix={`run-${currentItem.assignmentId}-option-${index}`} maxWidth={130} />
-            </label>
-          ))}
+          {currentItem.options.map((option, index) => {
+            const isVisualOption = option.figure !== null;
+            const figureColor = selectedOptionId === option.id ? "text-ink-900" : "text-hobun";
+            return (
+              <label key={option.id} className={`flex cursor-pointer items-center gap-3 border px-4 py-3 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-hobun ${isVisualOption ? "min-h-32 sm:min-h-36" : "min-h-12"} ${selectedOptionId === option.id ? "border-hobun bg-hobun text-ink-900" : "border-ink-700 text-hobun-dim"}`}>
+                <input
+                  type="radio"
+                  name={`assignment-${currentItem.assignmentId}`}
+                  value={option.id}
+                  checked={selectedOptionId === option.id}
+                  onChange={() => setSelectedOptionId(option.id)}
+                  className="sr-only"
+                />
+                <span className="tabular font-mono text-xs opacity-70">{index + 1}</span>
+                <span className={isVisualOption ? "flex min-w-0 flex-1 items-center justify-center" : "min-w-0 flex-1"} data-figure-option={isVisualOption ? index + 1 : undefined}>
+                  <StandardizedOptionContent option={option} locale={locale} figureLabel={`${labels.option} ${index + 1}`} idPrefix={`run-${currentItem.assignmentId}-option-${index}`} maxWidth={isVisualOption ? 168 : undefined} className={isVisualOption ? figureColor : undefined} />
+                </span>
+              </label>
+            );
+          })}
         </fieldset>
         <button type="button" onClick={submit} disabled={selectedOptionId === null || pending} className="mt-7 min-h-11 bg-hobun px-5 py-2 text-sm font-medium text-ink-900 transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40">
           {pending ? "…" : labels.submit}

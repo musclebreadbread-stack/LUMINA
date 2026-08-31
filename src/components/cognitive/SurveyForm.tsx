@@ -102,7 +102,7 @@ function ItemBlock({
           locale={locale}
           figureLabel={t(figureLabelKeyFor(item))}
           idPrefix={idPrefix}
-          maxWidth={focused ? undefined : 176}
+          maxWidth={isFiguralOption(item) ? (focused ? undefined : 280) : undefined}
         />
       </div>
 
@@ -119,7 +119,9 @@ function ItemBlock({
                 key={option.id}
                 // 라디오가 sr-only라 포커스 링이 보이지 않는다. 능력 문항을 키보드로 훑는 사람에게
                 // 지금 어느 보기에 서 있는지는 필수 정보이므로 테두리 쪽으로 링을 끌어올린다.
-                className={`flex min-h-11 cursor-pointer items-center gap-3 border px-3 py-3 text-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-hobun ${
+                className={`flex cursor-pointer items-center gap-3 border px-3 py-3 text-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-hobun ${
+                  figural ? "min-h-32" : "min-h-11"
+                } ${
                   figural ? "flex-col justify-center gap-2 text-center" : ""
                 } ${
                   checked
@@ -141,7 +143,8 @@ function ItemBlock({
                   locale={locale}
                   figureLabel={t(optionLabelKeyFor(item), { n: optionIndex + 1 })}
                   idPrefix={`${idPrefix}-o${optionIndex}`}
-                  maxWidth={focused ? undefined : 84}
+                  maxWidth={figural ? (focused ? 148 : 120) : undefined}
+                  className={figural ? (checked ? "text-ink-900" : "text-hobun") : undefined}
                 />
               </label>
             );

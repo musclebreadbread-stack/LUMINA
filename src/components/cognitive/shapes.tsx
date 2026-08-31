@@ -121,6 +121,8 @@ function shapeElement(
     stroke: "currentColor",
     strokeWidth,
     strokeLinejoin: "round" as const,
+    strokeLinecap: "round" as const,
+    vectorEffect: "non-scaling-stroke" as const,
   };
 
   switch (shape) {
@@ -152,7 +154,7 @@ function shapeElement(
 export function HatchPattern({ id }: { readonly id: string }) {
   return (
     <pattern id={id} width={6} height={6} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-      <line x1={0} y1={0} x2={0} y2={6} stroke="currentColor" strokeOpacity={0.8} strokeWidth={1.8} />
+      <line x1={0} y1={0} x2={0} y2={6} stroke="currentColor" strokeOpacity={0.95} strokeWidth={2.2} />
     </pattern>
   );
 }
@@ -169,7 +171,7 @@ interface MatrixGlyphsProps {
  * 6번 문항의 규칙이 "화살표가 돈다"이지 "칸이 돈다"가 아니기 때문이다.
  * 좌표계 원점은 칸의 중심이며, 호출자가 translate로 자리를 잡아 준다.
  */
-export function MatrixGlyphs({ content, hatchId, strokeWidth = 1.6 }: MatrixGlyphsProps) {
+export function MatrixGlyphs({ content, hatchId, strokeWidth = 2.4 }: MatrixGlyphsProps) {
   const baseRadius = SIZE_RADIUS[content.size];
   const fillValue =
     content.fill === "none" ? "none" : content.fill === "hatch" ? `url(#${hatchId})` : "currentColor";

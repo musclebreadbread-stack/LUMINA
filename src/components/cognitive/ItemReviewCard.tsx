@@ -55,7 +55,8 @@ function AnswerSlot({
           locale={locale}
           figureLabel={figureLabel}
           idPrefix={idPrefix}
-          maxWidth={figural ? 96 : undefined}
+          maxWidth={figural ? 132 : undefined}
+          className={figural ? "text-hobun" : undefined}
         />
       </div>
     </div>
@@ -91,7 +92,7 @@ export async function ItemReviewCard({ review }: { readonly review: ItemReview }
           locale={resolvedLocale}
           figureLabel={figural ? t(stimulusAltKey(item)) : ""}
           idPrefix={`${idPrefix}-stem`}
-          maxWidth={figural ? 196 : undefined}
+          maxWidth={figural ? 280 : undefined}
         />
       </div>
 

@@ -31,6 +31,7 @@ export function MatrixOptionCell({ figure, label, idPrefix, maxWidth = OPTION_SI
       aria-label={label}
       aria-labelledby={titleId}
       className={className}
+      shapeRendering="geometricPrecision"
       style={{ width: "100%", maxWidth, height: "auto" }}
     >
       <title id={titleId}>{label}</title>
@@ -44,8 +45,9 @@ export function MatrixOptionCell({ figure, label, idPrefix, maxWidth = OPTION_SI
         height={CELL_SIZE}
         fill="none"
         stroke="currentColor"
-        strokeOpacity={0.3}
-        strokeWidth={2}
+        strokeOpacity={0.64}
+        strokeWidth={2.4}
+        vectorEffect="non-scaling-stroke"
       />
       {cell !== null && (
         <g transform={`translate(${center} ${center})`}>

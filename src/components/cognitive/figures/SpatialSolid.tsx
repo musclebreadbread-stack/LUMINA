@@ -2,18 +2,18 @@ import type { Voxel } from "@engine/cognitive-standardized/types";
 
 import type { SpatialSolidProps } from "./contracts";
 
-const UNIT = 24;
+const UNIT = 30;
 const COS30 = Math.sqrt(3) / 2;
 const SIN30 = 0.5;
-const PADDING = 8;
+const PADDING = 12;
 
 const CUBE_FACES: readonly {
   readonly corners: readonly (readonly [number, number, number])[];
   readonly opacity: number;
 }[] = Object.freeze([
-  { corners: [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]], opacity: 0.36 },
-  { corners: [[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], opacity: 0.2 },
-  { corners: [[0, 1, 0], [1, 1, 0], [1, 1, 1], [0, 1, 1]], opacity: 0.13 },
+  { corners: [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]], opacity: 0.78 },
+  { corners: [[1, 0, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1]], opacity: 0.58 },
+  { corners: [[0, 1, 0], [1, 1, 0], [1, 1, 1], [0, 1, 1]], opacity: 0.44 },
 ]);
 
 function project(x: number, y: number, z: number): readonly [number, number] {
@@ -76,7 +76,7 @@ function boundsOf(cubes: readonly Voxel[]): Bounds {
 }
 
 /** 고정 등각 투영으로 입체를 재작성한다. 색조 없이도 면·윤곽·깊이를 구분한다. */
-export function SpatialSolid({ cubes, label, idPrefix, maxWidth = 240, className }: SpatialSolidProps) {
+export function SpatialSolid({ cubes, label, idPrefix, maxWidth = 320, className }: SpatialSolidProps) {
   const titleId = `${idPrefix}-title`;
   const bounds = boundsOf(cubes);
 
@@ -87,6 +87,7 @@ export function SpatialSolid({ cubes, label, idPrefix, maxWidth = 240, className
       aria-label={label}
       aria-labelledby={titleId}
       className={className}
+      shapeRendering="geometricPrecision"
       style={{ width: "100%", maxWidth, height: "auto" }}
     >
       <title id={titleId}>{label}</title>
@@ -99,9 +100,11 @@ export function SpatialSolid({ cubes, label, idPrefix, maxWidth = 240, className
               fill="currentColor"
               fillOpacity={face.opacity}
               stroke="currentColor"
-              strokeOpacity={0.9}
-              strokeWidth={1.5}
+              strokeOpacity={1}
+              strokeWidth={2.4}
               strokeLinejoin="round"
+              strokeLinecap="round"
+              vectorEffect="non-scaling-stroke"
             />
           ))}
         </g>

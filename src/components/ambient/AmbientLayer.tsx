@@ -34,6 +34,10 @@ export function AmbientLayer({ tone = "neutral", tint }: Props) {
       <span className="ambient-orb ambient-orb-a" />
       <span className="ambient-orb ambient-orb-b" />
       <span className="ambient-grid" />
+      <span className="ambient-constellation" />
+      <span className="ambient-scanline" />
+      <span className="ambient-axis ambient-axis-x" />
+      <span className="ambient-axis ambient-axis-y" />
       <span className="ambient-vignette" />
     </div>
   );

@@ -58,7 +58,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#12100D",
+  themeColor: "#0D1118",
   colorScheme: "dark",
 };
 
@@ -73,7 +73,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       lang={locale}
       className={`${plexKr.variable} ${plexMono.variable} ${notoSerifKr.variable} h-full`}
     >
-      <body className="relative min-h-full">
+      <body className="lumina-app relative min-h-full">
         {/* 게시자 ID가 없으면(지금 상태) 이 스크립트는 아예 렌더되지 않는다. */}
         {adSenseClient && (
           <Script
@@ -84,7 +84,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           />
         )}
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <div className="relative z-10">{children}</div>
+          <div className="lumina-app-shell relative z-10">{children}</div>
           <ConsentBanner />
           <AnalyticsGate />
         </NextIntlClientProvider>

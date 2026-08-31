@@ -16,8 +16,8 @@ async function LoadingContent() {
   ] as const;
 
   return (
-    <main id="landing-fallback" className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
-      <div className="border-b border-ink-700 py-5">
+    <main id="landing-fallback" className="lumina-fallback mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
+      <div className="site-header border-b border-ink-700 py-5">
         <span className="font-mono text-xs tracking-[0.28em] text-hobun">LUMINA</span>
       </div>
       <div className="py-16">
@@ -32,7 +32,7 @@ async function LoadingContent() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="block border border-ink-700 bg-ink-850 px-4 py-4 text-sm text-hobun transition-colors hover:border-hobun focus-visible:border-hobun"
+                  className="theme-control block border border-ink-700 bg-ink-850 px-4 py-4 text-sm text-hobun transition-colors hover:border-hobun focus-visible:border-hobun"
                 >
                   {link.label} <span aria-hidden>↗</span>
                 </Link>

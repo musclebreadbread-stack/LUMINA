@@ -51,7 +51,7 @@ export function LocaleSwitcher() {
           disabled={pending}
           aria-pressed={l === locale}
           onClick={() => choose(l)}
-          className={`inline-flex min-h-11 items-center px-3 font-mono text-[12px] whitespace-nowrap tracking-wide transition-colors disabled:opacity-50 ${
+          className={`theme-control inline-flex min-h-11 items-center px-3 font-mono text-[12px] whitespace-nowrap tracking-wide transition-colors disabled:opacity-50 ${
             l === locale
               ? "border border-hobun bg-hobun text-ink-900"
               : "border border-ink-700 text-hobun-faint hover:border-ink-600"

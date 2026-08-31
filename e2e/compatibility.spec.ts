@@ -21,6 +21,8 @@ test.describe("Saju compatibility", () => {
 
     await expect(page.getByRole("heading", { level: 1, name: "Two charts, several ways to meet" })).toBeVisible();
     await expect(page.locator('img[alt="An illustration of two Saju currents meeting"]')).toBeVisible();
+    await expect(page.locator('[data-scene3d-preset="relationship"]')).toHaveCount(1);
+    await expect(page.locator('.lens-orbit-fallback-relationship')).toHaveCount(1);
     await expect(page.locator('img[alt^="Symbolic zodiac illustration for"]')).toHaveCount(2);
     await expect(page.locator('img[alt*="relationship current"]')).toHaveCount(1);
     await expect(page.getByRole("heading", { name: "Summary" })).toBeVisible();

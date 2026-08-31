@@ -2,8 +2,10 @@ import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { TierBadge } from "@/components/ui/Chrome";
 import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
 import { CompletionCinematic } from "@/components/report/CompletionCinematic";
+import { ResultSceneLayer } from "@/components/scene3d/ResultSceneLayer";
 import type { AnalysisKey, ValidationStatus } from "@engine/shared/evidence";
 import type { EvidenceTier } from "@engine/shared/tier";
+import type { LensScenePreset } from "@/lib/scene3dAssets";
 
 interface Props {
   readonly eyebrow: string;
@@ -17,6 +19,7 @@ interface Props {
   /** derived 상태 라벨을 특정 분석 전용 문구로 바꿔야 할 때 EvidenceStatusBadge로 전달한다. */
   readonly evidenceStatusOverride?: string;
   readonly imageLabel?: string;
+  readonly scenePreset?: LensScenePreset;
   /**
    * 다섯 개 설문형 검사(빅파이브/융 유형·다크 트라이어드·EQ·애착·인지능력)의 결과 화면에서만 전달한다.
    * 설문 제출 직후 도착했을 때만 완료 연출이 한 번 재생되고, 그 외 진입(새로고침·공유 링크·재방문)에는
@@ -37,6 +40,7 @@ export async function ResultCover({
   evidenceStatus,
   evidenceStatusOverride,
   imageLabel,
+  scenePreset = "result",
   completionAnalysisKey,
 }: Props) {
   return (
@@ -69,12 +73,14 @@ export async function ResultCover({
               className="object-cover"
               fallbackLabel={imageLabel ?? title}
             />
+            <ResultSceneLayer preset={scenePreset} />
           </div>
         ) : (
-          <div className="result-cover-mark mx-auto flex aspect-square w-full max-w-[190px] items-center justify-center rounded-full border border-ink-900/15 bg-ink-900/5">
+          <div className="result-cover-mark relative mx-auto flex aspect-square w-full max-w-[190px] items-center justify-center overflow-hidden rounded-full border border-ink-900/15 bg-ink-900/5">
             <span className="font-hanja text-7xl text-ink-900/75" aria-hidden>
               ✦
             </span>
+            <ResultSceneLayer preset={scenePreset} />
           </div>
         )}
       </div>

@@ -7,6 +7,7 @@ import { Disclaimer, TierBadge } from "@/components/ui/Chrome";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { COMPATIBILITY_OVERVIEW_IMAGE, compatibilityToneImagePath } from "@/lib/compatibilityAssets";
+import { ResultSceneLayer } from "@/components/scene3d/ResultSceneLayer";
 
 const COMPATIBILITY_TONES = ["supportive", "challenging", "mixed", "quiet"] as const;
 
@@ -46,6 +47,7 @@ export default async function CompatibilityPage() {
                 className="object-cover"
                 fallbackLabel={t("title")}
               />
+              <ResultSceneLayer preset="relationship" />
             </div>
           </div>
         </section>

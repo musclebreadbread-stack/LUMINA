@@ -153,6 +153,36 @@ function CenterOrb({ frameStep }: { readonly frameStep: 1 | 2 }) {
   );
 }
 
+function LensCompass({ frameStep }: { readonly frameStep: 1 | 2 }) {
+  const group = useRef<THREE.Group>(null);
+  const shouldUpdate = useFrameTicker(frameStep);
+
+  useFrame(({ clock }) => {
+    if (!shouldUpdate() || !group.current) return;
+    const seconds = clock.getElapsedTime();
+    group.current.rotation.x = Math.sin(seconds * 0.1) * 0.14;
+    group.current.rotation.y = seconds * 0.07;
+    group.current.rotation.z = -seconds * 0.045;
+  });
+
+  return (
+    <group ref={group} scale={0.82}>
+      <mesh rotation={[Math.PI / 2, 0.2, 0.15]}>
+        <torusGeometry args={[0.82, 0.01, 6, 48]} />
+        <meshBasicMaterial color="#9badff" transparent opacity={0.34} />
+      </mesh>
+      <mesh rotation={[0.4, Math.PI / 2.3, -0.25]}>
+        <torusGeometry args={[0.68, 0.008, 6, 48]} />
+        <meshBasicMaterial color="#82d8ce" transparent opacity={0.28} />
+      </mesh>
+      <mesh position={[0, 0, 0.34]} rotation={[0, 0, Math.PI / 4]}>
+        <coneGeometry args={[0.045, 0.55, 4]} />
+        <meshBasicMaterial color="#dfa83e" transparent opacity={0.7} />
+      </mesh>
+    </group>
+  );
+}
+
 function SceneContent({
   model,
   frameStep,
@@ -185,6 +215,7 @@ function SceneContent({
       <ElementLights frameStep={frameStep} />
       <StarField frameStep={frameStep} />
       <CenterOrb frameStep={frameStep} />
+      <LensCompass frameStep={frameStep} />
       {model.nodes.map((node, index) => (
         <OrbitTexture key={node.key} node={node} index={index} frameStep={frameStep} />
       ))}

@@ -4,6 +4,7 @@ import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { COGNITIVE_OVERVIEW_IMAGE } from "@/lib/psychometricsAssets";
 import type { Locale } from "@/i18n/locale";
 import { StandardizedScorePlot } from "./StandardizedScorePlot";
+import { ResultSceneLayer } from "@/components/scene3d/ResultSceneLayer";
 
 interface StandardizedResultProps {
   readonly score: StandardizedScore;
@@ -49,6 +50,7 @@ export function StandardizedResult({ score, locale, imageAlt }: StandardizedResu
           className="object-cover"
           fallbackLabel={korean ? "인지능력" : "Cognitive ability"}
         />
+        <ResultSceneLayer preset="evidence" />
       </div>
       <StandardizedScorePlot
         score={score}

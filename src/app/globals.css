@@ -1286,6 +1286,126 @@
     filter: blur(8px);
   }
 
+  .lens-orbit-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0.52;
+    mix-blend-mode: screen;
+  }
+
+  .lens-orbit-layer canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .lens-orbit-fallback {
+    position: absolute;
+    inset: 8%;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--lens-primary) 22%, transparent);
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 48%, color-mix(in srgb, var(--lens-glow) 12%, transparent), transparent 57%);
+    transform: rotate(-12deg);
+  }
+
+  .lens-orbit-layer-result,
+  .lens-orbit-fallback-result {
+    --lens-primary: var(--color-to);
+    --lens-secondary: var(--color-signal);
+    --lens-tertiary: var(--color-hobun);
+    --lens-glow: var(--color-aurora);
+  }
+
+  .lens-orbit-layer-relationship,
+  .lens-orbit-fallback-relationship {
+    --lens-primary: var(--color-hwa);
+    --lens-secondary: var(--color-to);
+    --lens-tertiary: var(--color-su);
+    --lens-glow: var(--color-hobun);
+  }
+
+  .lens-orbit-layer-evidence,
+  .lens-orbit-fallback-evidence {
+    --lens-primary: var(--color-su);
+    --lens-secondary: var(--color-aurora);
+    --lens-tertiary: var(--color-hobun);
+    --lens-glow: var(--color-signal);
+  }
+
+  .lens-orbit-fallback-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: block;
+    width: 68%;
+    aspect-ratio: 1;
+    border: 1px solid color-mix(in srgb, var(--lens-primary) 58%, transparent);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .lens-orbit-fallback-ring-a {
+    animation: lens-orbit-spin 16s linear infinite;
+  }
+
+  .lens-orbit-fallback-ring-b {
+    width: 52%;
+    border-color: color-mix(in srgb, var(--lens-secondary) 54%, transparent);
+    transform: translate(-50%, -50%) rotate(58deg) scaleY(0.62);
+    animation: lens-orbit-spin-reverse 13s linear infinite;
+  }
+
+  .lens-orbit-fallback-ring-c {
+    width: 86%;
+    border-color: color-mix(in srgb, var(--lens-tertiary) 28%, transparent);
+    transform: translate(-50%, -50%) rotate(-34deg) scaleY(0.46);
+    animation: lens-orbit-breathe 4.8s ease-in-out infinite;
+  }
+
+  .lens-orbit-fallback-core {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: block;
+    width: 16%;
+    aspect-ratio: 1;
+    border: 1px solid color-mix(in srgb, var(--lens-tertiary) 72%, transparent);
+    background: color-mix(in srgb, var(--lens-primary) 68%, transparent);
+    box-shadow: 0 0 28px color-mix(in srgb, var(--lens-glow) 42%, transparent);
+    transform: translate(-50%, -50%) rotate(45deg);
+    animation: lens-orbit-core-pulse 3.8s ease-in-out infinite;
+  }
+
+  .lens-orbit-fallback-relationship .lens-orbit-fallback-core::before,
+  .lens-orbit-fallback-relationship .lens-orbit-fallback-core::after {
+    position: absolute;
+    top: 50%;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    content: "";
+    transform: translateY(-50%);
+  }
+
+  .lens-orbit-fallback-relationship .lens-orbit-fallback-core::before {
+    left: -2rem;
+    background: var(--lens-secondary);
+  }
+
+  .lens-orbit-fallback-relationship .lens-orbit-fallback-core::after {
+    right: -2rem;
+    background: var(--lens-primary);
+  }
+
+  .result-cover-mark > span {
+    position: relative;
+    z-index: 2;
+  }
+
   .result-cover-art {
     transform: rotate(2.5deg);
     transition: transform var(--motion-state) var(--ease-lumina);
@@ -1615,6 +1735,46 @@
   }
   50% {
     transform: translateY(-4px) rotate(0.4deg);
+  }
+}
+
+@keyframes lens-orbit-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes lens-orbit-spin-reverse {
+  from {
+    transform: translate(-50%, -50%) rotate(58deg) scaleY(0.62);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(-302deg) scaleY(0.62);
+  }
+}
+
+@keyframes lens-orbit-breathe {
+  0%,
+  100% {
+    opacity: 0.62;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes lens-orbit-core-pulse {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: translate(-50%, -50%) rotate(45deg) scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(135deg) scale(1.08);
   }
 }
 
@@ -2163,7 +2323,10 @@
   .mandala-rings,
   .mandala-orbit,
   .mandala-orbit-node,
-  .mandala-node-link {
+  .mandala-node-link,
+  .lens-orbit-fallback,
+  .lens-orbit-fallback-ring,
+  .lens-orbit-fallback-core {
     animation: none !important;
     transform: none !important;
     transition: none !important;
@@ -2189,6 +2352,26 @@
 
   .mandala-orbit-node {
     transform: translate(-50%, -50%) rotate(var(--mandala-counter-angle)) !important;
+  }
+
+  .lens-orbit-fallback {
+    transform: none;
+  }
+
+  .lens-orbit-fallback-ring-a {
+    transform: translate(-50%, -50%) !important;
+  }
+
+  .lens-orbit-fallback-ring-b {
+    transform: translate(-50%, -50%) rotate(58deg) scaleY(0.62) !important;
+  }
+
+  .lens-orbit-fallback-ring-c {
+    transform: translate(-50%, -50%) rotate(-34deg) scaleY(0.46) !important;
+  }
+
+  .lens-orbit-fallback-core {
+    transform: translate(-50%, -50%) rotate(45deg) !important;
   }
 }
 

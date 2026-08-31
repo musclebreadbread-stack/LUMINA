@@ -11,6 +11,7 @@ import { SceneShell } from "@/components/ui/SceneShell";
 import { analysisDefinition } from "@/lib/analysisCatalog";
 import { COGNITIVE_OVERVIEW_IMAGE, cognitiveImagePath } from "@/lib/psychometricsAssets";
 import type { Locale } from "@/i18n/locale";
+import { ResultSceneLayer } from "@/components/scene3d/ResultSceneLayer";
 
 const STANDARDIZED_ITEM_COUNT = 20;
 
@@ -72,6 +73,7 @@ export default async function CognitivePage() {
                   className="object-cover"
                   fallbackLabel={t("heroTitle")}
                 />
+                <ResultSceneLayer preset="evidence" />
               </div>
             </div>
           </div>

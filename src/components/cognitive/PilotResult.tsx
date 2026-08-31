@@ -6,6 +6,7 @@ import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { COGNITIVE_OVERVIEW_IMAGE } from "@/lib/psychometricsAssets";
 import { EstimatedResult } from "./EstimatedResult";
 import { StandardizedResult } from "./StandardizedResult";
+import { ResultSceneLayer } from "@/components/scene3d/ResultSceneLayer";
 
 interface PilotResultProps {
   readonly result: ScoredRun;
@@ -41,6 +42,7 @@ export function PilotResult({ result, locale, imageAlt }: PilotResultProps) {
           className="object-cover"
           fallbackLabel={korean ? "인지능력" : "Cognitive ability"}
         />
+        <ResultSceneLayer preset="evidence" />
       </div>
       <p className="max-w-xl text-sm leading-relaxed text-hobun-dim">
         {korean

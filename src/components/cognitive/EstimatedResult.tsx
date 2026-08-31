@@ -3,6 +3,7 @@ import { estimatedIqBand } from "@engine/cognitive-standardized/estimate";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { COGNITIVE_OVERVIEW_IMAGE } from "@/lib/psychometricsAssets";
 import type { Locale } from "@/i18n/locale";
+import { ResultSceneLayer } from "@/components/scene3d/ResultSceneLayer";
 
 interface EstimatedResultProps {
   readonly score: EstimatedScore;
@@ -86,6 +87,7 @@ export function EstimatedResult({ score, locale, imageAlt }: EstimatedResultProp
           className="object-cover"
           fallbackLabel={korean ? "인지능력" : "Cognitive ability"}
         />
+        <ResultSceneLayer preset="evidence" />
       </div>
 
       <div className="flex flex-wrap items-baseline gap-3">

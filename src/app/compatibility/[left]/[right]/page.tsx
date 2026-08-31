@@ -162,6 +162,7 @@ export default async function CompatibilityResultPage({
             imageSrc={compatibilityToneImagePath(result.summary.tone)}
             imageAlt={t("resultImageAlt")}
             imageLabel={t("resultTitle")}
+            scenePreset="relationship"
             tier="cultural"
             evidenceStatus={evidence.evidence.validationStatus}
           />

@@ -533,6 +533,12 @@
     isolation: isolate;
   }
 
+  /* 첫 화면 아래 섹션은 뷰포트에 가까워질 때 레이아웃과 페인트를 계산합니다. */
+  .home-flow-section:not(.home-flow-mandala) {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 640px;
+  }
+
   .home-flow-section::before {
     position: absolute;
     z-index: -1;

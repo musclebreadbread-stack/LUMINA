@@ -14,6 +14,7 @@ const plexKr = IBM_Plex_Sans_KR({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   display: "swap",
+  preload: false,
 });
 
 /* 수치·시각·좌표 — 자릿수가 흔들리지 않아야 하는 모든 값. */
@@ -22,6 +23,7 @@ const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   display: "swap",
+  preload: false,
 });
 
 /* 여덟 글자 — 한자 자형 자체가 이 화면의 주인공이다. */
@@ -30,6 +32,7 @@ const notoSerifKr = Noto_Serif_KR({
   subsets: ["latin"],
   weight: ["500", "900"],
   display: "swap",
+  preload: false,
 });
 
 export async function generateMetadata(): Promise<Metadata> {

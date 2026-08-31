@@ -51,7 +51,6 @@ export function SajuHubTrigger({
             src={imageSrc}
             alt={imageAlt}
             sizes={featured ? "(min-width: 1024px) 58vw, 100vw" : "(min-width: 640px) 38vw, 100vw"}
-            priority={featured}
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
             fallbackLabel={title}
           />

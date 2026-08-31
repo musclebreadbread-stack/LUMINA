@@ -1,7 +1,6 @@
 "use client";
 
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import dynamic from "next/dynamic";
 import { useSyncExternalStore } from "react";
 import {
   getConsentServerSnapshot,
@@ -9,6 +8,16 @@ import {
   subscribeConsent,
 } from "@/lib/consent";
 import { scrubAnalyticsUrl } from "@/lib/analyticsScrub";
+
+/* 동의 전에는 분석 SDK가 초기 클라이언트 번들에 포함되거나 실행되지 않도록 지연합니다. */
+const Analytics = dynamic(
+  () => import("@vercel/analytics/next").then((module) => module.Analytics),
+  { ssr: false, loading: () => null },
+);
+const SpeedInsights = dynamic(
+  () => import("@vercel/speed-insights/next").then((module) => module.SpeedInsights),
+  { ssr: false, loading: () => null },
+);
 
 /**
  * beforeSend에서 스크러빙에 실패하면(null) 이벤트 전체를 버린다 — url 없이 보내는

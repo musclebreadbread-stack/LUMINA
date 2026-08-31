@@ -55,7 +55,6 @@ export function MandalaNode({ node, title, desc, tierBadge, cta }: Props) {
               src={node.imageSrc}
               alt=""
               sizes="(min-width: 768px) 112px, 72px"
-              priority={node.key === "saju"}
               className="object-cover transition-transform duration-500 group-hover:scale-110"
               fallbackLabel={title}
             />

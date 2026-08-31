@@ -2,12 +2,12 @@
 
 import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
-import type { LensScenePreset } from "@/lib/scene3dAssets";
+import { LENS_SCENE_PALETTES, type LensScenePreset } from "@/lib/scene3dAssets";
 import { LensSceneFallback } from "./LensSceneFallback";
 import { useScene3dCapability } from "./useScene3dCapability";
 
-const LensOrbitScene = dynamic(
-  () => import("./LensOrbitScene").then((module) => module.LensOrbitScene),
+const PlatformAtmosphereScene = dynamic(
+  () => import("./PlatformAtmosphereScene").then((module) => module.PlatformAtmosphereScene),
   { ssr: false, loading: () => null },
 );
 
@@ -20,6 +20,7 @@ export function ResultSceneLayer({ preset = "result" }: Props) {
   const capability = useScene3dCapability(stageRef);
   const [contextLost, setContextLost] = useState(false);
   const mounted = capability.enabled && !contextLost;
+  const palette = LENS_SCENE_PALETTES[preset];
 
   return (
     <div
@@ -31,8 +32,8 @@ export function ResultSceneLayer({ preset = "result" }: Props) {
     >
       <LensSceneFallback preset={preset} />
       {mounted ? (
-        <LensOrbitScene
-          preset={preset}
+        <PlatformAtmosphereScene
+          palette={palette}
           frameStep={capability.frameStep}
           onContextLost={() => setContextLost(true)}
         />

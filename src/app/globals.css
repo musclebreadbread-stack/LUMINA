@@ -270,6 +270,86 @@
     position: relative;
   }
 
+  /* Blender MCP 관측소 자산을 한 장면만 띄워 전역 깊이감으로 공유한다. */
+  .platform-atmosphere {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0.46;
+    contain: paint;
+    mix-blend-mode: screen;
+  }
+
+  .platform-atmosphere::before,
+  .platform-atmosphere::after {
+    position: absolute;
+    pointer-events: none;
+    content: "";
+  }
+
+  .platform-atmosphere::before {
+    top: 8vh;
+    right: 7vw;
+    width: min(58vw, 46rem);
+    aspect-ratio: 1;
+    border: 1px solid color-mix(in srgb, var(--platform-primary) 13%, transparent);
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--platform-glow) 5%, transparent), transparent 64%);
+    transform: perspective(900px) rotateX(58deg) rotateZ(-14deg);
+  }
+
+  .platform-atmosphere::after {
+    inset: 13vh 3.5vw 9vh 8vw;
+    border: 1px solid color-mix(in srgb, var(--platform-secondary) 7%, transparent);
+    mask-image: linear-gradient(180deg, black, transparent 72%);
+  }
+
+  .platform-atmosphere canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    opacity: 0.58;
+    mask-image: radial-gradient(ellipse 44% 48% at 78% 28%, black 0%, black 34%, transparent 82%);
+  }
+
+  .platform-atmosphere-sweep,
+  .platform-atmosphere-horizon,
+  .platform-atmosphere-crosshair {
+    position: absolute;
+    pointer-events: none;
+  }
+
+  .platform-atmosphere-sweep {
+    top: -30%;
+    right: 0;
+    left: 0;
+    height: 46%;
+    opacity: 0.13;
+    background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--platform-glow) 26%, transparent) 48%, transparent);
+    mask-image: linear-gradient(180deg, transparent, black 30%, black 68%, transparent);
+  }
+
+  .platform-atmosphere-horizon {
+    top: 31%;
+    right: 4vw;
+    left: 4vw;
+    height: 1px;
+    opacity: 0.24;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--platform-primary) 60%, transparent) 32%, color-mix(in srgb, var(--platform-secondary) 42%, transparent) 68%, transparent);
+  }
+
+  .platform-atmosphere-crosshair {
+    top: 18%;
+    right: 18%;
+    width: 0.42rem;
+    aspect-ratio: 1;
+    border: 1px solid color-mix(in srgb, var(--platform-glow) 52%, transparent);
+    border-radius: 50%;
+    box-shadow: 0 0 0 0.4rem color-mix(in srgb, var(--platform-glow) 5%, transparent), 0 0 22px color-mix(in srgb, var(--platform-glow) 30%, transparent);
+  }
+
   .scene-content > main > header {
     position: relative;
     background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-ink-850) 30%, transparent) 50%, transparent);
@@ -1172,10 +1252,20 @@
   }
 
   .portal-card {
+    will-change: transform;
     transform: perspective(1200px)
       rotateX(calc(var(--portal-y, 0) * -1.6deg))
       rotateY(calc(var(--portal-x, 0) * 2.4deg));
     transform-style: preserve-3d;
+  }
+
+  .portal-card > .portal-image {
+    transform: translateZ(10px);
+    transform-style: preserve-3d;
+  }
+
+  .portal-card > div:last-child {
+    transform: translateZ(3px);
   }
 
   .time-dial-node {
@@ -1419,6 +1509,7 @@
   .assessment-art,
   .assessment-result-art {
     isolation: isolate;
+    transform-style: preserve-3d;
   }
 
   .assessment-hero-art,
@@ -1696,6 +1787,37 @@
   }
   to {
     transform: none;
+  }
+}
+
+@keyframes platform-lens-drift {
+  0%,
+  100% {
+    transform: perspective(900px) rotateX(58deg) rotateZ(-14deg) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: perspective(900px) rotateX(58deg) rotateZ(-9deg) translate3d(-1.5%, 1%, 0);
+  }
+}
+
+@keyframes platform-sweep {
+  from {
+    transform: translateY(-18%);
+  }
+  to {
+    transform: translateY(260%);
+  }
+}
+
+@keyframes platform-crosshair-pulse {
+  0%,
+  100% {
+    opacity: 0.42;
+    transform: scale(0.84);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.16);
   }
 }
 
@@ -2213,6 +2335,18 @@
     animation: completion-ink-bloom var(--motion-scene) var(--ease-lumina) both;
   }
 
+  .platform-atmosphere::before {
+    animation: platform-lens-drift 24s ease-in-out infinite;
+  }
+
+  .platform-atmosphere-sweep {
+    animation: platform-sweep 21s linear infinite;
+  }
+
+  .platform-atmosphere-crosshair {
+    animation: platform-crosshair-pulse 4.2s ease-in-out infinite;
+  }
+
   .assessment-hero-art {
     animation: assessment-art-float var(--motion-ambient-fast) ease-in-out 0.4s infinite;
   }
@@ -2305,6 +2439,9 @@
   .ambient-orb,
   .ambient-constellation,
   .ambient-scanline,
+  .platform-atmosphere::before,
+  .platform-atmosphere-sweep,
+  .platform-atmosphere-crosshair,
   .portal-card,
   .result-cover,
   .result-cover-art,
@@ -2422,6 +2559,7 @@
   }
 
   .qi-orbit,
+  .platform-atmosphere,
   .no-print,
   .mandala-stage,
   .integrated-portrait-controls {

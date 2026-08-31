@@ -5,6 +5,7 @@ import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import Script from "next/script";
 import { AnalyticsGate } from "@/components/analytics/AnalyticsGate";
 import { ConsentBanner } from "@/components/ads/ConsentBanner";
+import { PlatformAtmosphere } from "@/components/scene3d/PlatformAtmosphere";
 import { getSiteUrl } from "@/lib/siteUrl";
 import "./globals.css";
 
@@ -64,7 +65,9 @@ export const viewport: Viewport = {
 
 const adSenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 
-export default async function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   const locale = await getLocale();
   const messages = await getMessages();
 
@@ -84,6 +87,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           />
         )}
         <NextIntlClientProvider locale={locale} messages={messages}>
+          <PlatformAtmosphere />
           <div className="lumina-app-shell relative z-10">{children}</div>
           <ConsentBanner />
           <AnalyticsGate />

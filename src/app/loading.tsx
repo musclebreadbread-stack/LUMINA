@@ -22,8 +22,9 @@ async function LoadingContent() {
       </div>
       <div className="py-16">
         <p className="font-mono text-sm tracking-[0.18em] text-hobun-faint">{t("platformEyebrow")}</p>
-        <h1 className="mt-5 max-w-3xl text-[clamp(2rem,6vw,4rem)] leading-tight font-medium tracking-tight text-hobun">
-          {t("platformTitle1")}<br />{t("platformTitle2")}
+        <h1 className="mt-5 max-w-none text-[clamp(2rem,6vw,4rem)] leading-tight font-medium tracking-tight text-hobun">
+          <span className="block sm:whitespace-nowrap">{t("platformTitle1")}</span>
+          <span className="block sm:whitespace-nowrap">{t("platformTitle2")}</span>
         </h1>
         <p className="mt-5 max-w-2xl text-base leading-relaxed text-hobun-dim">{t("platformBody")}</p>
         <nav className="mt-10" aria-label={t("hubHeading")}>

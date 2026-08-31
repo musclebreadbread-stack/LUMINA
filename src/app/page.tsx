@@ -118,10 +118,9 @@ export default async function Home() {
       {/* 플랫폼 히어로 — 고정된 기능 수가 아닌 내면 탐구의 방향을 먼저 전한다. */}
       <section className="pt-12 pb-14 sm:pt-16">
         <p className="font-mono text-sm tracking-[0.18em] text-hobun-faint">{t("platformEyebrow")}</p>
-        <h1 className="mt-5 max-w-3xl text-[clamp(2.25rem,7vw,4.5rem)] leading-[1.04] font-medium tracking-[-0.045em] text-hobun">
-          {t("platformTitle1")}
-          <br />
-          {t("platformTitle2")}
+        <h1 className="mt-5 max-w-none text-[clamp(2rem,6vw,4rem)] leading-[1.04] font-medium tracking-[-0.045em] text-hobun">
+          <span className="block sm:whitespace-nowrap">{t("platformTitle1")}</span>
+          <span className="block sm:whitespace-nowrap">{t("platformTitle2")}</span>
         </h1>
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-hobun-dim">{t("platformBody")}</p>
       </section>

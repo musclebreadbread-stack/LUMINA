@@ -36,6 +36,22 @@ function matrixOption(id, cell) {
   return option(id, "", "", matrix([cell, blankCell(), blankCell(), blankCell(), blankCell(), blankCell(), blankCell(), blankCell(), blankCell()]));
 }
 
+function normalizedRotation(shape, rotationDegrees) {
+  if (shape === "circle") return 0;
+  const symmetryDegrees = shape === "square" || shape === "diamond" ? 90 : shape === "triangle" ? 120 : 360;
+  const normalized = rotationDegrees % symmetryDegrees;
+  return normalized < 0 ? normalized + symmetryDegrees : normalized;
+}
+
+export function optionFigureSignature(figure) {
+  if (!figure || figure.kind !== "matrix" || !Array.isArray(figure.cells)) return null;
+  return figure.cells.map((cell, index) => {
+    if (!cell || cell.kind !== "figure") return `${index}:blank`;
+    const rotation = normalizedRotation(cell.shape, cell.rotationDegrees ?? 0);
+    return `${index}:figure:${cell.shape}:${cell.fill}:${rotation}`;
+  }).join("|");
+}
+
 function spatial(cubes) {
   return { kind: "spatial", cubes };
 }
@@ -99,9 +115,9 @@ const gfMatrix2 = matrix([
 ]);
 
 const gvMatrixShape2 = matrix([
-  matrixCell("square", "none", 90), matrixCell("square", "none", 180), matrixCell("square", "none", 270),
-  matrixCell("square", "none", 180), matrixCell("square", "none", 270), matrixCell("square", "none", 0),
-  matrixCell("square", "none", 270), matrixCell("square", "none", 0), blankCell(),
+  matrixCell("arrow", "none", 90), matrixCell("arrow", "none", 180), matrixCell("arrow", "none", 270),
+  matrixCell("arrow", "none", 180), matrixCell("arrow", "none", 270), matrixCell("arrow", "none", 0),
+  matrixCell("arrow", "none", 270), matrixCell("arrow", "none", 0), blankCell(),
 ]);
 
 const gvMatrixFill2 = matrix([
@@ -133,7 +149,7 @@ export const ITEM_BANK = Object.freeze([
   item({ id: "002", domain: "gv", stimulus: spatial([{ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 0, y: 1, z: 0 }, { x: 0, y: 0, z: 1 }]), options: [option("pilot:gv:002:a", "", "", spatial([{ x: 0, y: 0, z: 0 }, { x: 0, y: 1, z: 0 }, { x: 0, y: 0, z: 1 }, { x: 1, y: 0, z: 0 }])), option("pilot:gv:002:b", "", "", spatial([{ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 1, y: 1, z: 0 }, { x: 0, y: 0, z: 1 }])), option("pilot:gv:002:c", "", "", spatial([{ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 0, y: 1, z: 0 }, { x: 1, y: 1, z: 0 }])), option("pilot:gv:002:d", "", "", spatial([{ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 0, y: 1, z: 0 }, { x: 1, y: 1, z: 1 }]))], correct: "a", difficulty: 0.6, visual: true, rationale: { "pilot:gv:002:b": "한 큐브를 인접한 평면으로 이동", "pilot:gv:002:c": "수직 큐브를 같은 평면으로 접음", "pilot:gv:002:d": "연결 관계를 유지하지 않는 변형" } }),
   item({ id: "003", domain: "gv", stimulus: gvMatrixFill, options: [matrixOption("pilot:gv:003:a", matrixCell("diamond", "none")), matrixOption("pilot:gv:003:b", matrixCell("diamond", "hatch")), matrixOption("pilot:gv:003:c", matrixCell("diamond", "solid")), matrixOption("pilot:gv:003:d", matrixCell("circle", "solid"))], correct: "c", difficulty: 0.4, visual: true, rationale: { "pilot:gv:003:a": "열의 첫 채움을 반복", "pilot:gv:003:b": "열의 두 번째 채움을 반복", "pilot:gv:003:d": "행의 도형 규칙을 채움 규칙과 혼합" } }),
   item({ id: "004", domain: "gv", stimulus: spatial([{ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 1, y: 1, z: 0 }, { x: 1, y: 1, z: 1 }, { x: 2, y: 1, z: 1 }]), options: [option("pilot:gv:004:a", "", "", spatial([{ x: 0, y: 0, z: 0 }, { x: 0, y: 1, z: 0 }, { x: 0, y: 1, z: 1 }, { x: 1, y: 1, z: 1 }, { x: 1, y: 2, z: 1 }])), option("pilot:gv:004:b", "", "", spatial([{ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 1, y: 1, z: 0 }, { x: 1, y: 1, z: 1 }, { x: 2, y: 1, z: 1 }])), option("pilot:gv:004:c", "", "", spatial([{ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 1, y: 1, z: 0 }, { x: 2, y: 1, z: 0 }, { x: 2, y: 1, z: 1 }])), option("pilot:gv:004:d", "", "", spatial([{ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 1, y: 1, z: 0 }, { x: 1, y: 1, z: 1 }, { x: 2, y: 2, z: 1 }]))], correct: "b", difficulty: 1.1, visual: true, rationale: { "pilot:gv:004:a": "회전 뒤의 축을 하나 바꿈", "pilot:gv:004:c": "마지막 두 큐브의 꺾임 위치를 변경", "pilot:gv:004:d": "대각선으로 큐브를 이동" } }),
-  item({ id: "005", domain: "gv", stimulus: gvMatrixShape2, options: [matrixOption("pilot:gv:005:a", matrixCell("square", "none", 0)), matrixOption("pilot:gv:005:b", matrixCell("square", "none", 90)), matrixOption("pilot:gv:005:c", matrixCell("square", "none", 180)), matrixOption("pilot:gv:005:d", matrixCell("square", "none", 270))], correct: "b", difficulty: -1.2, visual: true, rationale: { "pilot:gv:005:a": "회전 순환의 시작 각도로 되돌아감", "pilot:gv:005:c": "직전 행의 각도를 반복", "pilot:gv:005:d": "두 행 전의 각도를 반복" } }),
+  item({ id: "005", domain: "gv", stimulus: gvMatrixShape2, options: [matrixOption("pilot:gv:005:a", matrixCell("arrow", "none", 0)), matrixOption("pilot:gv:005:b", matrixCell("arrow", "none", 90)), matrixOption("pilot:gv:005:c", matrixCell("arrow", "none", 180)), matrixOption("pilot:gv:005:d", matrixCell("arrow", "none", 270))], correct: "b", difficulty: -1.2, visual: true, rationale: { "pilot:gv:005:a": "회전 순환의 시작 각도로 되돌아감", "pilot:gv:005:c": "직전 행의 각도를 반복", "pilot:gv:005:d": "두 행 전의 각도를 반복" } }),
   item({ id: "006", domain: "gv", stimulus: spatial([{ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 0, y: 1, z: 0 }]), options: [option("pilot:gv:006:a", "", "", spatial([{ x: 0, y: 1, z: 0 }, { x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }])), option("pilot:gv:006:b", "", "", spatial([{ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 1, y: 1, z: 0 }])), option("pilot:gv:006:c", "", "", spatial([{ x: 0, y: 0, z: 0 }, { x: 2, y: 0, z: 0 }, { x: 0, y: 1, z: 0 }])), option("pilot:gv:006:d", "", "", spatial([{ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 0, y: 1, z: 1 }]))], correct: "a", difficulty: -0.3, visual: true, rationale: { "pilot:gv:006:b": "꺾인 지점을 원점에서 팔 끝으로 이동", "pilot:gv:006:c": "한 팔의 길이를 2칸으로 늘려 간격을 만듦", "pilot:gv:006:d": "한 큐브를 세로 축으로 들어올림" } }),
   item({ id: "007", domain: "gv", stimulus: gvMatrixFill2, options: [matrixOption("pilot:gv:007:a", matrixCell("circle", "none")), matrixOption("pilot:gv:007:b", matrixCell("circle", "hatch")), matrixOption("pilot:gv:007:c", matrixCell("circle", "solid")), matrixOption("pilot:gv:007:d", matrixCell("diamond", "solid"))], correct: "c", difficulty: 0.7, visual: true, rationale: { "pilot:gv:007:a": "열의 첫 채움을 반복", "pilot:gv:007:b": "열의 두 번째 채움을 반복", "pilot:gv:007:d": "이전 행의 도형과 채움을 혼합" } }),
   item({ id: "008", domain: "gv", stimulus: spatial([{ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 1, y: 1, z: 0 }, { x: 2, y: 1, z: 0 }, { x: 2, y: 2, z: 0 }, { x: 3, y: 2, z: 0 }]), options: [option("pilot:gv:008:a", "", "", spatial([{ x: 1, y: 0, z: 0 }, { x: 0, y: 0, z: 0 }, { x: 2, y: 1, z: 0 }, { x: 1, y: 1, z: 0 }, { x: 3, y: 2, z: 0 }, { x: 2, y: 2, z: 0 }])), option("pilot:gv:008:b", "", "", spatial([{ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 1, y: 1, z: 0 }, { x: 2, y: 1, z: 0 }, { x: 2, y: 2, z: 0 }, { x: 3, y: 3, z: 0 }])), option("pilot:gv:008:c", "", "", spatial([{ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 1, y: 1, z: 0 }, { x: 2, y: 1, z: 0 }, { x: 2, y: 0, z: 0 }, { x: 3, y: 0, z: 0 }])), option("pilot:gv:008:d", "", "", spatial([{ x: 0, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, { x: 1, y: 1, z: 0 }, { x: 1, y: 2, z: 0 }, { x: 2, y: 2, z: 0 }, { x: 3, y: 2, z: 0 }]))], correct: "a", difficulty: 1.6, visual: true, rationale: { "pilot:gv:008:b": "마지막 계단의 위치를 어긋나게 이동", "pilot:gv:008:c": "마지막 두 계단이 다시 내려감", "pilot:gv:008:d": "세 번째 계단을 세로로만 늘림" } }),

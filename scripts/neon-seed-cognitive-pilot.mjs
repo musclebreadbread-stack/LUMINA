@@ -20,7 +20,7 @@ if ([".env.production.admin.local", ".env.local"].includes(envFile) && process.e
 const databaseUrl = process.env.DATABASE_URL_UNPOOLED;
 if (!databaseUrl) throw new Error("DATABASE_URL_UNPOOLED is not configured");
 
-const { ITEM_BANK, CANDIDATE_NORM, ITEM_BANK_EXPECTED_COUNT, ITEM_BANK_EXPECTED_PER_DOMAIN } = await import("../neon/seeds/cognitive-pilot-v1.mjs");
+const { ITEM_BANK, CANDIDATE_NORM, ITEM_BANK_EXPECTED_COUNT, ITEM_BANK_EXPECTED_PER_DOMAIN, optionFigureSignature } = await import("../neon/seeds/cognitive-pilot-v1.mjs");
 const domains = ["gf", "gc", "gv", "gwm", "gs"];
 
 function assertItemBank() {
@@ -41,6 +41,16 @@ function assertItemBank() {
     const optionIds = new Set(item.presentation.options.map((entry) => entry.id));
     if (optionIds.size !== item.presentation.options.length || !optionIds.has(item.correct_option_id)) {
       throw new Error(`pilot answer key does not match options: ${item.version_id}`);
+    }
+    const visualSignatures = new Map();
+    for (const option of item.presentation.options) {
+      const signature = optionFigureSignature(option.figure);
+      if (signature === null) continue;
+      const previousOptionId = visualSignatures.get(signature);
+      if (previousOptionId !== undefined) {
+        throw new Error(`visually overlapping pilot options: ${item.version_id} (${previousOptionId}, ${option.id})`);
+      }
+      visualSignatures.set(signature, option.id);
     }
     const parameters = item.parameters;
     if (!parameters || !Number.isFinite(parameters.discrimination) || parameters.discrimination <= 0 || !Number.isFinite(parameters.difficulty) || !Number.isFinite(parameters.guessing) || parameters.guessing < 0 || parameters.guessing >= 1) {

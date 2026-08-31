@@ -3,9 +3,9 @@ import type { MatrixCell } from "@engine/cognitive-standardized/types";
 import type { MatrixBoardProps } from "./contracts";
 
 const BOARD_SIZE = 300;
-const CELL_SIZE = 88;
+export const CELL_SIZE = 88;
 const CELL_GAP = 12;
-const PADDING = 10;
+export const PADDING = 10;
 const PATTERN_SIZE = 8;
 
 function cellOrigin(index: number): readonly [number, number] {
@@ -46,7 +46,21 @@ function shapePoints(shape: Exclude<MatrixCell["shape"], "circle" | "square" | n
   }
 }
 
-function FigureGlyph({ cell, hatchId }: { readonly cell: MatrixCell; readonly hatchId: string }) {
+export function HatchPattern({ id }: { readonly id: string }) {
+  return (
+    <pattern
+      id={id}
+      width={PATTERN_SIZE}
+      height={PATTERN_SIZE}
+      patternUnits="userSpaceOnUse"
+      patternTransform="rotate(45)"
+    >
+      <line x1={0} y1={0} x2={0} y2={PATTERN_SIZE} stroke="currentColor" strokeWidth={2} />
+    </pattern>
+  );
+}
+
+export function FigureGlyph({ cell, hatchId }: { readonly cell: MatrixCell; readonly hatchId: string }) {
   if (cell.kind === "blank" || cell.shape === null) return null;
 
   const fill =
@@ -130,9 +144,7 @@ export function MatrixBoard({ figure, label, idPrefix, maxWidth = 320, className
     >
       <title id={titleId}>{label}</title>
       <defs>
-        <pattern id={hatchId} width={PATTERN_SIZE} height={PATTERN_SIZE} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <line x1={0} y1={0} x2={0} y2={PATTERN_SIZE} stroke="currentColor" strokeWidth={2} />
-        </pattern>
+        <HatchPattern id={hatchId} />
       </defs>
       {figure.cells.slice(0, 9).map((cell, index) => (
         <MatrixCellView key={index} cell={cell} index={index} hatchId={hatchId} />

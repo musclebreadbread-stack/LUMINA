@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { MatrixBoard } from "../figures/MatrixBoard";
+import { OptionFigure } from "../figures/OptionFigure";
 import { SpatialSolid } from "../figures/SpatialSolid";
 
 const matrixFixture = {
@@ -10,6 +11,14 @@ const matrixFixture = {
     { kind: "figure" as const, shape: "circle" as const, fill: "solid" as const, rotationDegrees: 0 },
     { kind: "figure" as const, shape: "square" as const, fill: "hatch" as const, rotationDegrees: 45 },
     { kind: "blank" as const, shape: null, fill: null, rotationDegrees: null },
+  ],
+};
+
+const matrixOptionFixture = {
+  kind: "matrix" as const,
+  cells: [
+    { kind: "blank" as const, shape: null, fill: null, rotationDegrees: null },
+    { kind: "figure" as const, shape: "arrow" as const, fill: "none" as const, rotationDegrees: 90 },
   ],
 };
 
@@ -39,5 +48,16 @@ describe("standardized figure renderers", () => {
 
     expect(markup).toContain('role="img"');
     expect(markup.match(/<polygon /g)).toHaveLength(6);
+  });
+
+  it("renders a matrix option as one figure cell without placeholder marks", () => {
+    const markup = renderToStaticMarkup(
+      <OptionFigure figure={matrixOptionFixture} label="matrix option" idPrefix="matrix-option-test" />,
+    );
+
+    expect(markup).toContain('viewBox="0 0 108 108"');
+    expect(markup).toContain('transform="rotate(90)"');
+    expect(markup.match(/<rect /g)).toHaveLength(1);
+    expect(markup).not.toContain("?");
   });
 });

@@ -17,6 +17,8 @@
 - 결과 화면(`src/app/r/[data]/page.tsx`, `src/lib/reportModel.ts`)은 타임존·경도보정·균시차·진태양시를 이미 수치로 표시하고, 시간대가 바뀌면 `trueSolarShift` 같은 설명 문구도 자동 생성한다.
 - 한계는 순수하게 입력 쪽이다: `src/lib/profile.ts`의 `PLACES`(16개 고정 배열)와 `src/components/BirthForm.tsx`의 `<select>`.
 - `BirthForm`은 `/saju`와 `/astro`(`resultSuffix="/astro"`)가 공유하므로, 이번 변경은 점성술의 하우스 계산(위도 의존)도 함께 정밀해진다.
+- `src/components/synastry/CompatibilityForm.tsx`(궁합 기능)도 동일한 `PLACES` 배열과 `<select>` 패턴을 별도로 쓰고 있다 — 이번 작업에서 함께 교체해야 깨지지 않는다.
+- `placeDisplayLabel()`은 6곳(`r/[data]/page.tsx`, `r/[data]/opengraph-image.tsx`, `r/[data]/astro/page.tsx`, `r/[data]/all/page.tsx`, `compatibility/[left]/[right]/page.tsx` 등)에서 영어 로케일 표시에 쓰인다. 이 호출들은 대부분 서버 컴포넌트이므로, 해외 수만 건 데이터셋을 매 요청마다 검색해 영어 이름을 찾는 방식은 쓰지 않는다 — 자세한 내용은 7절.
 
 ## 3. 승인된 핵심 결정
 
@@ -58,11 +60,13 @@ interface LocationEntry {
 ```
 타임존은 데이터에 저장하지 않는다 — 이미 쓰는 `tz-lookup`(`src/engine/shared/time.ts`의 `resolveTimeZone`)으로 선택 시점에 위경도로부터 즉석 계산한다.
 
-### 5.2 소스와 출처 기록
-- 국내 228개: 시청/군청/구청 소재지 좌표. 공공데이터(행정안전부/통계청 등 출처가 명시된 것)에서 가져온다.
-- 해외: GeoNames `cities15000` 등 라이선스가 명확한(CC BY 4.0) 공개 데이터셋에서 가공.
-- 구현 단계에서 좌표를 추측해서 만들지 않는다. 각 데이터 파일 상단에 출처 URL과 가져온 날짜를 주석으로 남기고, 출처를 신뢰할 수 없으면 그 사실을 그대로 보고한다(AGENTS.md 원칙).
-- 데이터 생성은 1회성 빌드 스크립트(`scripts/build-location-data.mjs` 등)로 하고, 산출물만 저장소에 커밋한다 — 런타임에 외부 소스를 호출하지 않는다.
+### 5.2 소스와 출처 기록 (설계 단계에서 실제 데이터로 검증 완료)
+- 국내·해외 모두 **GeoNames**(CC BY 4.0, https://download.geonames.org/export/dump/) 하나의 출처로 통일한다 — 라이선스와 파이프라인이 하나라 관리가 단순하다.
+  - 국내: `KR.zip` → `KR.txt`를 받아 `feature code == "ADM2"`(2차 행정구역, 시/군/구에 해당)만 추린다. 실제로 받아 확인한 결과 **정확히 229개, 중복 없음**이었고, 지역별 개수(서울 25개 자치구, 경기도 31개, 부산 16개 등)가 실제 행정구역 수와 일치했다. `feature code == "ADM1"`(17개 — 실제 한국의 17개 광역시/도와 일치)에서 상위 도/광역시명을 얻어 `"{도} {시/군/구}"` 형태로 합성한다(세종특별자치시처럼 ADM2 쪽 이름이 비어 있으면 ADM1 이름만 쓴다 — 실데이터로 확인한 예외 케이스).
+  - 해외: `cities15000.zip`(인구 15,000명 이상 또는 수도, 현재 약 34,000행) → 국가코드가 `KR`인 행은 제외(국내는 위 파이프라인이 이미 담당). `asciiname` 컬럼(항상 채워져 있음, 실데이터로 확인)을 그대로 표시 이름으로 쓴다.
+  - 두 파일 모두 tab-delimited, UTF-8. 정확한 컬럼 순서는 `readme.txt`(같은 디렉터리)에 문서화되어 있다: geonameid, name, asciiname, alternatenames, latitude, longitude, feature class, feature code, country code, cc2, admin1 code, admin2 code, admin3 code, admin4 code, population, elevation, dem, timezone, modification date.
+- 데이터 생성은 1회성 빌드 스크립트(`scripts/build-korea-locations.mjs`, `scripts/build-world-cities.mjs`)로 하고, 산출물만 저장소에 커밋한다 — 런타임에 외부 소스를 호출하지 않는다. 각 산출 파일 상단에 출처 URL과 생성 날짜를 주석으로 남긴다.
+- 예시(실제 검증된 값): "의정부" 검색 시 `{ ko: "경기도 의정부시", en: "Uijeongbu-si, Gyeonggi-do", lat: 37.73865, lng: 127.0477 }`.
 
 ### 5.3 배치와 로딩
 - 국내 228개: `src/data/koreaLocations.ts`에 그대로 포함(수십 KB 수준, 모든 페이지 번들에 넣어도 무리 없음).
@@ -74,14 +78,16 @@ interface LocationEntry {
 - 새 클라이언트 컴포넌트 `src/components/LocationCombobox.tsx`. `BirthForm.tsx`의 "태어난 곳" `<select>` 블록(현재 296~322행)을 대체한다.
 - WAI-ARIA combobox 패턴: 방향키 이동, Enter 선택, Esc 닫기, 스크린리더용 라벨/역할 속성.
 - 검색 로직은 `src/lib/locationSearch.ts`에 분리: 국내 데이터(항상 메모리에 있음) + 해외 데이터(지연 로드분, 로드 전에는 국내만 검색되고 로딩 인디케이터 표시) + 한글 별칭을 합쳐 부분일치/접두어 기준으로 상위 N개를 반환하는 순수 함수. 무거운 퍼지서치 라이브러리는 추가하지 않는다.
-- 선택 시 `onSelect({ ko, en, lat, lng })`로 상위에 전달 → `BirthForm`이 `update({ placeLabel: ..., lat, lng, timeZone: resolveTimeZone({lat, lng}) })` 호출(현재 `PLACES.find` 콜백과 같은 자리).
+- 선택 시 `onSelect({ ko, en, lat, lng })`로 상위에 전달 → `BirthForm`/`CompatibilityForm`이 각각 `update({ placeLabel: ko, placeLabelEn: en, lat, lng, timeZone: resolveTimeZone({lat, lng}) })` 호출(현재 `PLACES.find` 콜백과 같은 자리). 컴포넌트 자체는 두 폼에서 그대로 재사용한다.
 - 해외 도시명은 `Intl.DisplayNames(locale, { type: "region" })`로 국가명만 로케일에 맞춰 붙여 보여준다(예: "일본 · Tokyo"). 도시명 자체는 번역하지 않는다(브라우저 내장 API라 추가 데이터 비용 없음).
 
 ## 7. 상태/엔진 연결과 하위 호환
 
-- `src/lib/profile.ts`의 `PLACES`(16개)와 `placeDisplayLabel()`은 제거하거나, `placeDisplayLabel`은 새 데이터셋 조회로 교체하되 **찾지 못하면 원문을 그대로 반환하는 현재 폴백을 유지**한다 — 과거에 저장된 프로필/공유 링크의 `placeLabel`이 새 데이터셋에 없어도 깨지지 않게 한다.
-- `DEFAULT_PROFILE`은 서울 좌표를 그대로 유지한다.
-- `encodeProfile`/`decodeProfile`, `toBirthInput`, `computeSaju`는 수정하지 않는다 — 이미 임의의 좌표를 받아들이는 구조다.
+- **`StoredProfile`에 `placeLabelEn: string` 필드를 추가한다.** 선택 시점에 콤보박스가 돌려주는 `en` 값을 함께 저장한다. 이렇게 하면 영어 로케일 표시(`placeDisplayLabel`)가 저장된 값을 그대로 읽기만 하면 되고, 서버 컴포넌트가 요청마다 해외 수만 건 데이터셋을 다시 검색할 필요가 없다 — `BirthForm`/`CompatibilityForm`은 클라이언트 컴포넌트라 검색 시점엔 데이터가 이미 메모리에 있지만, 결과를 읽는 `r/[data]/page.tsx` 등은 서버 컴포넌트라 그 데이터를 다시 들고 있을 이유가 없다.
+- `encodeProfile`/`decodeProfile`(`src/lib/share.ts`)의 `Packed` 튜플에 `placeLabelEn`을 추가해야 한다 — **스펙 초안에서는 "수정 불필요"로 잘못 판단했던 부분**이다. 튜플 길이가 12(레거시)/13(현재)/14(신규)까지 세 갈래를 모두 허용해 과거 공유 링크가 깨지지 않게 한다. 새 필드가 없는 링크는 `placeLabelEn`을 빈 문자열로 채우고, `placeDisplayLabel`이 빈 문자열이면 아래 레거시 표 폴백으로 넘어간다.
+- `src/lib/profile.ts`의 `PLACES`(16개)는 제거한다. `placeDisplayLabel(rawLabel, rawLabelEn, locale)`은 다음 순서로 값을 정한다: (1) `locale === "ko"`면 항상 `rawLabel` 그대로, (2) `locale === "en"`이고 `rawLabelEn`이 있으면 그 값, (3) 없으면(과거 저장분) 기존 16개 프리셋만 담은 작은 고정 표(`LEGACY_PLACE_LABELS_EN`, 데이터셋 조회 없이 상수 16줄)에서 찾고, (4) 그래도 없으면 `rawLabel`을 그대로 반환. 새 데이터셋을 조회하지 않으므로 이 함수는 여전히 가볍다.
+- `DEFAULT_PROFILE`은 서울 좌표를 그대로 유지하고 `placeLabelEn: "Seoul"`을 추가한다.
+- `toBirthInput`, `computeSaju`는 수정하지 않는다 — 이미 임의의 좌표를 받아들이는 구조다.
 
 ## 8. 해석 고도화
 

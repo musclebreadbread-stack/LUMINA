@@ -26,6 +26,7 @@
     "vercel:sync-staging-env": "node scripts/vercel-sync-staging-env.mjs",
     "vercel:sync-production-env": "node scripts/vercel-sync-production-env.mjs",
     "images:optimize": "node scripts/optimize-images.mjs",
+    "bgm:generate": "node scripts/generate-bgm.mjs",
     "fonts:prepare": "node scripts/prepare-og-fonts.mjs",
     "og:images": "node scripts/prepare-og-images.mjs"
   },

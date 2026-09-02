@@ -1755,6 +1755,15 @@
     "accept": "Accept",
     "reject": "Decline"
   },
+  "bgm": {
+    "label": "BGM",
+    "on": "ON",
+    "off": "OFF",
+    "turnOn": "Turn BGM on",
+    "turnOff": "Turn BGM off",
+    "retry": "Retry BGM playback",
+    "audioLabel": "LUMINA background music"
+  },
   "share": {
     "kicker": "SHARED RESULT",
     "summaryOnlyNotice": "This page shows a summary someone else shared with you. Item-level responses and detailed subscale breakdowns aren't available or appropriate here.",

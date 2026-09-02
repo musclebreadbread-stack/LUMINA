@@ -5,6 +5,7 @@ import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import Script from "next/script";
 import { AnalyticsGate } from "@/components/analytics/AnalyticsGate";
 import { ConsentBanner } from "@/components/ads/ConsentBanner";
+import { BgmControl } from "@/components/audio/BgmControl";
 import { PlatformAtmosphere } from "@/components/scene3d/PlatformAtmosphere";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildAlternates } from "@/lib/seoAlternates";
@@ -122,6 +123,7 @@ export default async function RootLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <PlatformAtmosphere />
           <div className="lumina-app-shell relative z-10">{children}</div>
+          <BgmControl />
           <ConsentBanner />
           <AnalyticsGate />
         </NextIntlClientProvider>

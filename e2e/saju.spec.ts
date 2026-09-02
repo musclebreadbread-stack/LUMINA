@@ -123,6 +123,24 @@ test.describe('Saju golden path (Korean locale)', () => {
 
     expect(consoleErrors).toEqual([]);
   });
+
+  test('searching a specific birthplace narrates the true-solar-time correction on the result', async ({ page, context }) => {
+    await setLocaleCookie(context, 'ko');
+    await page.goto('/');
+    await dismissConsentBanner(page);
+    await page.locator('#feature-hub').getByRole('heading', { name: '사주', exact: true, level: 3 }).click();
+
+    const placeInput = page.getByRole('combobox', { name: '태어난 곳' });
+    await placeInput.fill('의정부');
+    await page.getByRole('option', { name: '경기도 의정부시' }).click();
+
+    await page.getByRole('button', { name: '사주 원국 보기' }).click();
+    await page.waitForURL(REPORT_URL_PATTERN);
+    await dismissConsentBanner(page);
+
+    await expect(page.getByText('경기도 의정부시', { exact: false }).first()).toBeVisible();
+    await expect(page.getByText(/경기도 의정부시 기준, 표준시보다 약 \d+분 (이른|늦은) 진태양시로 보정되었습니다\./)).toBeVisible();
+  });
 });
 
 test.describe('Saju golden path (English locale)', () => {

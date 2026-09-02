@@ -47,6 +47,10 @@ test.describe('Saju golden path (Korean locale)', () => {
       await expect(page.getByText(mark, { exact: true })).toBeVisible();
     }
 
+    const spiritArtwork = page.locator('.character-result-art .character-result-image');
+    await expect(spiritArtwork).toHaveCount(1);
+    await expect(page.locator('.character-result-art svg')).toHaveCount(0);
+
     // Share / Copy Link / Save as PDF are present.
     await expect(page.getByRole('button', { name: '공유하기' })).toBeVisible();
     await expect(page.getByRole('button', { name: '링크 복사' })).toBeVisible();

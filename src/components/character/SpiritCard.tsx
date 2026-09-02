@@ -1,6 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import Image from "next/image";
-import { ElementSpirit } from "./ElementSpirit";
 import { characterArtworkPath } from "@/lib/characterArtwork";
 import { ELEMENT_STYLE } from "@/lib/elements";
 import type { ReportView } from "@/lib/reportModel";
@@ -45,9 +44,6 @@ export async function SpiritCard({ character }: { readonly character: ReportView
           className="character-result-image object-cover"
           aria-hidden="true"
         />
-        <div className="character-result-art-overlay absolute inset-0" aria-hidden="true">
-          <ElementSpirit character={def} animate size={140} />
-        </div>
       </div>
 
       <div className="relative min-w-0 text-center sm:text-left">

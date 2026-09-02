@@ -2100,13 +2100,6 @@
     pointer-events: none;
   }
 
-  .character-result-art-overlay {
-    display: grid;
-    place-items: center;
-    pointer-events: none;
-    background: linear-gradient(180deg, transparent 58%, rgba(7, 9, 13, 0.16));
-  }
-
   .integrated-portrait-intro {
     max-width: 52rem;
   }

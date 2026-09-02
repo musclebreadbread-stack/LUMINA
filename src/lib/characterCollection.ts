@@ -8,6 +8,7 @@ const STORAGE_KEY = "lumina.character-collection.v1";
 
 let cachedRaw: string | null = null;
 let cachedSnapshot: readonly string[] = Object.freeze([]);
+const serverSnapshot: readonly string[] = Object.freeze([]);
 const listeners = new Set<() => void>();
 
 function parse(raw: string | null): readonly string[] {
@@ -50,7 +51,7 @@ export function getCharacterCollectionSnapshot(): readonly string[] {
 }
 
 export function getCharacterCollectionServerSnapshot(): readonly string[] {
-  return Object.freeze([]);
+  return serverSnapshot;
 }
 
 export function unlockCharacter(id: string): void {

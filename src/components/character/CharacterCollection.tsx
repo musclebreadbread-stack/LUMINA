@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { useSyncExternalStore } from "react";
 import {
@@ -12,6 +13,7 @@ interface CharacterCard {
   readonly id: string;
   readonly name: string;
   readonly tagline: string;
+  readonly artworkSrc: string;
   readonly children: ReactNode;
 }
 
@@ -50,7 +52,26 @@ export function CharacterCollection({ cards, progressLabel, lockedLabel, unlocke
               }`}
             >
               <div className="flex items-center gap-4">
-                <div className={isUnlocked ? undefined : "grayscale"}>{card.children}</div>
+                <div className="character-atlas-thumb relative h-[92px] w-[92px] shrink-0">
+                  {isUnlocked ? (
+                    <>
+                      <Image
+                        src={card.artworkSrc}
+                        alt=""
+                        fill
+                        sizes="92px"
+                        quality={75}
+                        className="character-atlas-image object-cover"
+                        aria-hidden="true"
+                      />
+                      <div className="character-atlas-seal absolute inset-0" aria-hidden="true">
+                        {card.children}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="grayscale">{card.children}</div>
+                  )}
+                </div>
                 <div className="min-w-0">
                   <p className="font-mono text-[11px] tracking-[0.14em] text-hobun-faint">
                     {isUnlocked ? unlockedLabel : lockedLabel}

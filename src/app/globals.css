@@ -1781,6 +1781,15 @@
   }
 }
 
+@keyframes character-art-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @keyframes result-cover-in {
   from {
     transform: translateY(16px) scale(0.985);
@@ -2051,6 +2060,53 @@
 }
 
 @layer components {
+  /* 생성 원화 위에 기존 인장을 얹어 도감의 SVG 문법과 새 회화 자산을 연결한다. */
+  .character-atlas-thumb {
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--color-ink-600) 78%, transparent);
+    background: var(--color-ink-950);
+    box-shadow: 0 12px 28px -22px rgba(0, 0, 0, 0.95);
+  }
+
+  .character-atlas-image,
+  .character-result-image {
+    transition: transform var(--motion-state) var(--ease-lumina), filter var(--motion-state) var(--ease-lumina);
+  }
+
+  .character-atlas-thumb:hover .character-atlas-image,
+  .character-atlas-thumb:focus-within .character-atlas-image {
+    filter: saturate(1.08) contrast(1.04);
+    transform: scale(1.04);
+  }
+
+  .character-atlas-seal {
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    background: radial-gradient(circle, transparent 48%, color-mix(in srgb, var(--color-ink-950) 12%, transparent));
+  }
+
+  .character-result-art {
+    isolation: isolate;
+    box-shadow: 0 24px 54px -34px rgba(0, 0, 0, 0.95);
+  }
+
+  .character-result-art::after {
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(237, 230, 216, 0.22);
+    content: "";
+    pointer-events: none;
+  }
+
+  .character-result-art-overlay {
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    background: linear-gradient(180deg, transparent 58%, rgba(7, 9, 13, 0.16));
+  }
+
   .integrated-portrait-intro {
     max-width: 52rem;
   }
@@ -2320,6 +2376,19 @@
     transform-origin: center;
   }
 
+  .character-atlas-image {
+    animation: character-art-reveal 700ms var(--ease-lumina) both;
+  }
+
+  .character-result-image {
+    animation: character-art-reveal 900ms var(--ease-lumina) both;
+  }
+
+  .character-result-art:hover .character-result-image {
+    filter: saturate(1.06) contrast(1.03);
+    transform: scale(1.025);
+  }
+
   .reveal {
     animation: reveal-rise linear both;
     animation-timeline: view();
@@ -2457,6 +2526,9 @@
   .jungian-axis-marker,
   .tarot-hero-stage,
   .tarot-reveal-back,
+  .character-atlas-image,
+  .character-result-image,
+  .character-result-art,
   .mandala-rings,
   .mandala-orbit,
   .mandala-orbit-node,
@@ -2547,6 +2619,8 @@
   .wheel-node,
   .spirit-seal,
   .spirit-body,
+  .character-atlas-image,
+  .character-result-image,
   .card-flip-in,
   .jungian-type-glyph,
   .jungian-ci-band,

@@ -1,5 +1,7 @@
 import { getLocale, getTranslations } from "next-intl/server";
+import Image from "next/image";
 import { ElementSpirit } from "./ElementSpirit";
+import { characterArtworkPath } from "@/lib/characterArtwork";
 import { ELEMENT_STYLE } from "@/lib/elements";
 import type { ReportView } from "@/lib/reportModel";
 import type { Locale } from "@/i18n/locale";
@@ -33,8 +35,19 @@ export async function SpiritCard({ character }: { readonly character: ReportView
         style={{ background: `radial-gradient(circle, ${style.cssVar}, transparent 68%)` }}
       />
 
-      <div className="relative shrink-0">
-        <ElementSpirit character={def} animate size={140} />
+      <div className="character-result-art relative h-[210px] w-[140px] shrink-0 overflow-hidden border border-ink-700 bg-ink-950/70">
+        <Image
+          src={characterArtworkPath(def.id)}
+          alt=""
+          fill
+          sizes="140px"
+          quality={75}
+          className="character-result-image object-cover"
+          aria-hidden="true"
+        />
+        <div className="character-result-art-overlay absolute inset-0" aria-hidden="true">
+          <ElementSpirit character={def} animate size={140} />
+        </div>
       </div>
 
       <div className="relative min-w-0 text-center sm:text-left">

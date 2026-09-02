@@ -8,6 +8,7 @@ import { InfoNav } from "@/components/ui/InfoNav";
 import { Disclaimer, TierBadge } from "@/components/ui/Chrome";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { ELEMENT_STYLE } from "@/lib/elements";
+import { characterArtworkPath } from "@/lib/characterArtwork";
 import type { Locale } from "@/i18n/locale";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -23,6 +24,7 @@ export default async function CharactersPage() {
       id: character.id,
       name: resolvedLocale === "en" ? character.nameEn : character.name,
       tagline: resolvedLocale === "en" ? character.taglineEn : character.tagline,
+      artworkSrc: characterArtworkPath(character.id),
       children: <ElementSpirit character={character} size={92} />,
     };
   });

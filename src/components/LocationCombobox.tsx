@@ -98,15 +98,17 @@ export function LocationCombobox({ id, value, placeholder, emptyLabel, loadingLa
   }
 
   const showEmpty = isOpen && query.value.trim().length > 0 && results.length === 0 && !worldLoading;
+  const isListboxOpen = isOpen && (results.length > 0 || worldLoading || showEmpty);
 
   return (
     <div ref={containerRef} className="relative">
       <input
         id={id}
         role="combobox"
-        aria-expanded={isOpen}
+        aria-expanded={isListboxOpen}
         aria-controls={listboxId}
         aria-autocomplete="list"
+        aria-activedescendant={activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined}
         autoComplete="off"
         value={query.value}
         placeholder={placeholder}
@@ -119,11 +121,12 @@ export function LocationCombobox({ id, value, placeholder, emptyLabel, loadingLa
         onKeyDown={handleKeyDown}
         className={fieldClass}
       />
-      {isOpen && (results.length > 0 || worldLoading || showEmpty) && (
+      {isListboxOpen && (
         <ul id={listboxId} role="listbox" className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto border border-ink-700 bg-ink-850">
           {results.map((result, index) => (
             <li
               key={`${result.lat},${result.lng}`}
+              id={`${listboxId}-option-${index}`}
               role="option"
               aria-selected={index === activeIndex}
               onMouseDown={(e) => {

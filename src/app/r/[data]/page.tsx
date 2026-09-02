@@ -226,7 +226,7 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
         />
         <p className="mt-3 font-mono text-[13px] leading-relaxed text-hobun-faint">
           {lunarLabel ? `${lunarLabel} · ` : ""}
-          {placeDisplayLabel(view.placeLabel, locale)} · {tBirthForm(genderKey)}
+          {placeDisplayLabel(view.placeLabel, view.placeLabelEn, locale)} · {tBirthForm(genderKey)}
         </p>
       </div>
 

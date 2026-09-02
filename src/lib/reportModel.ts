@@ -122,6 +122,7 @@ export interface ReportView {
   readonly birthLocalISO: string;
   readonly lunar: { readonly year: number; readonly month: number; readonly day: number; readonly isLeapMonth: boolean } | null;
   readonly placeLabel: string;
+  readonly placeLabelEn: string;
   readonly gender: Gender;
   readonly dayBoundaryRule: "zi23" | "midnight";
 
@@ -436,6 +437,7 @@ export function buildReportView(profile: StoredProfile, referenceDate: Date): Re
         }
       : null,
     placeLabel: profile.placeLabel,
+    placeLabelEn: profile.placeLabelEn,
     gender: profile.gender,
     dayBoundaryRule: result.options.dayBoundaryRule,
 

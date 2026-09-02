@@ -59,7 +59,7 @@ export default async function Image({ params }: { params: Promise<{ data: string
   const spiritTagline = locale === "en" ? spirit.taglineEn : spirit.tagline;
   const birthLabel = formatBirthLabel(view.birthLocalISO, view.precision.timeUnknown, locale);
   const tierLabel = t("tierCultural");
-  const placeLabel = placeDisplayLabel(view.placeLabel, locale);
+  const placeLabel = placeDisplayLabel(view.placeLabel, view.placeLabelEn, locale);
 
   // 카드에 실제로 찍히는 글자만 모아 서브셋을 만든다.
   const hanjaText = [

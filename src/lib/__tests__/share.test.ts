@@ -49,6 +49,29 @@ describe("profile share payload", () => {
       lng: 127,
       timeZone: "Asia/Seoul",
       placeLabel: "Seoul",
+      placeLabelEn: "",
+      dayBoundaryRule: "zi23",
+    });
+  });
+
+  it("decodes a fixed 14-field link including placeLabelEn", () => {
+    const fixedLink =
+      "NoRgnGCsA0Bs0hgBmikAmVWDMB2AdDBrtAEQCCAzgJYCGA9AMoCmA9gK4A2pZgOIOAdYzxSkWHbgF0gA";
+
+    expect(decodeProfile(fixedLink)).toEqual({
+      year: 1995,
+      month: 6,
+      day: 15,
+      calendar: "solar",
+      isLeapMonth: false,
+      hour: 12,
+      minute: 0,
+      gender: "unspecified",
+      lat: 37.5,
+      lng: 127,
+      timeZone: "Asia/Seoul",
+      placeLabel: "서울",
+      placeLabelEn: "Seoul",
       dayBoundaryRule: "zi23",
     });
   });

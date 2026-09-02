@@ -128,7 +128,7 @@ export default async function AllReportPage({
         <p className="mt-3 font-mono text-[13px] text-hobun-faint">
           {tNav("saju")} · {tNav("astro")} · {tNumerology("pageTitle")} · {tHoroscope("resultTitleSuffix")}
         </p>
-        <p className="mt-3 text-sm text-hobun-dim">{placeDisplayLabel(profile.placeLabel, locale)}</p>
+        <p className="mt-3 text-sm text-hobun-dim">{placeDisplayLabel(profile.placeLabel, profile.placeLabelEn, locale)}</p>
       </div>
 
       <Section index="01" title={tNav("saju")} aside={<TierBadge tier="cultural" />}>

@@ -167,8 +167,8 @@ export default async function CompatibilityResultPage({
             evidenceStatus={evidence.evidence.validationStatus}
           />
           <div className="mt-4 grid gap-3 text-xs text-hobun-faint sm:grid-cols-2">
-            <p>{t("personA")}: {profileDate(leftProfile)} · {placeDisplayLabel(leftProfile.placeLabel, locale)}</p>
-            <p>{t("personB")}: {profileDate(rightProfile)} · {placeDisplayLabel(rightProfile.placeLabel, locale)}</p>
+            <p>{t("personA")}: {profileDate(leftProfile)} · {placeDisplayLabel(leftProfile.placeLabel, leftProfile.placeLabelEn, locale)}</p>
+            <p>{t("personB")}: {profileDate(rightProfile)} · {placeDisplayLabel(rightProfile.placeLabel, rightProfile.placeLabelEn, locale)}</p>
           </div>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <ProfileVisual

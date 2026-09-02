@@ -28,6 +28,7 @@ type Packed = [
   timeZone: string,
   placeLabel: string,
   dayBoundaryRule: number,
+  placeLabelEn: string,
 ];
 
 export function encodeProfile(profile: StoredProfile): string {
@@ -45,6 +46,7 @@ export function encodeProfile(profile: StoredProfile): string {
     profile.timeZone,
     profile.placeLabel,
     profile.dayBoundaryRule === "midnight" ? 1 : 0,
+    profile.placeLabelEn,
   ];
   return LZString.compressToEncodedURIComponent(JSON.stringify(packed));
 }
@@ -55,9 +57,10 @@ export function decodeProfile(encoded: string): StoredProfile | null {
     if (!json) return null;
 
     const p: unknown = JSON.parse(json);
-    if (!Array.isArray(p) || (p.length !== 12 && p.length !== 13)) return null;
+    if (!Array.isArray(p) || (p.length !== 12 && p.length !== 13 && p.length !== 14)) return null;
 
-    const [year, month, day, calendar, leap, hour, minute, gender, lat, lng, timeZone, placeLabel, dayBoundary] = p;
+    const [year, month, day, calendar, leap, hour, minute, gender, lat, lng, timeZone, placeLabel, dayBoundary, placeLabelEn] =
+      p;
 
     if (
       !Number.isInteger(year) ||
@@ -95,7 +98,8 @@ export function decodeProfile(encoded: string): StoredProfile | null {
       timeZone.length > 100 ||
       typeof placeLabel !== "string" ||
       placeLabel.length > 120 ||
-      (p.length === 13 && dayBoundary !== 0 && dayBoundary !== 1)
+      (p.length >= 13 && dayBoundary !== 0 && dayBoundary !== 1) ||
+      (p.length === 14 && (typeof placeLabelEn !== "string" || placeLabelEn.length > 120))
     ) {
       return null;
     }
@@ -113,7 +117,8 @@ export function decodeProfile(encoded: string): StoredProfile | null {
       lng,
       timeZone,
       placeLabel,
-      dayBoundaryRule: dayBoundary === 1 ? "midnight" : "zi23",
+      placeLabelEn: p.length === 14 ? (placeLabelEn as string) : "",
+      dayBoundaryRule: p.length >= 13 && dayBoundary === 1 ? "midnight" : "zi23",
     };
   } catch {
     return null;

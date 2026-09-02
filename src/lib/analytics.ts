@@ -7,7 +7,16 @@ import { loadConsent } from "./consent";
  * 작지만 의미가 갈리는 신호다. "print"는 지금 어떤 이벤트도 이 값으로 보내지
  * 않지만(savePdf 버튼은 이번 과제 범위 밖), 닫힌 집합 자체는 미리 정의해 둔다.
  */
-export type AnalyticsShareMethod = "web-share" | "clipboard" | "print" | "file-share" | "download";
+export type AnalyticsShareMethod =
+  | "web-share"
+  | "clipboard"
+  | "print"
+  | "file-share"
+  | "download"
+  | "x"
+  | "threads"
+  | "facebook"
+  | "kakao";
 
 interface AnalyticsEventPropsMap {
   readonly test_start: { readonly analysis: AnalysisKey };
@@ -16,6 +25,7 @@ interface AnalyticsEventPropsMap {
   readonly share_image_saved: { readonly analysis: AnalysisKey; readonly method: AnalyticsShareMethod };
   readonly share_landing_view: { readonly analysis: AnalysisKey };
   readonly share_landing_cta: { readonly analysis: AnalysisKey };
+  readonly related_test_click: { readonly analysis: AnalysisKey };
 }
 
 export type AnalyticsEventName = keyof AnalyticsEventPropsMap;
@@ -42,6 +52,10 @@ const SHARE_METHODS: ReadonlySet<string> = new Set<AnalyticsShareMethod>([
   "print",
   "file-share",
   "download",
+  "x",
+  "threads",
+  "facebook",
+  "kakao",
 ]);
 
 const EVENTS_WITH_METHOD: ReadonlySet<AnalyticsEventName> = new Set(["share_open", "share_image_saved"]);

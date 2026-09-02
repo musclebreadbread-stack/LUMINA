@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { IntegratedReportClient } from "@/components/integratedPortrait/IntegratedReportClient";
@@ -8,6 +9,15 @@ import { SceneShell } from "@/components/ui/SceneShell";
  * 통합 자기초상 진입점.
  * 서버는 브라우저 보관함을 읽지 않고 제목·저장 경계·빈 상태 안내를 먼저 렌더한다.
  */
+/**
+ * 색인하지 않는다. 이 페이지의 내용은 방문자 브라우저 보관함에 있는 개인 결과라서
+ * 크롤러에게는 빈 상태 안내만 보인다 — 검색 결과에 올릴 고유 콘텐츠가 아니다.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("integratedPortrait");
+  return { title: t("title"), robots: { index: false, follow: true } };
+}
+
 export default async function IntegratedReportPage() {
   const t = await getTranslations("integratedPortrait");
 

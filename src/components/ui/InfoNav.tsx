@@ -23,6 +23,9 @@ export async function InfoNav() {
         <Link href="/characters" className="theme-control inline-flex min-h-11 items-center border border-ink-700 px-3 text-[13px] text-hobun-dim hover:border-ink-600 hover:text-hobun">
           {t("characters")}
         </Link>
+        <Link href="/about" className="theme-control inline-flex min-h-11 items-center border border-ink-700 px-3 text-[13px] text-hobun-dim hover:border-ink-600 hover:text-hobun">
+          {t("about")}
+        </Link>
         <LocaleSwitcher />
       </nav>
     </header>

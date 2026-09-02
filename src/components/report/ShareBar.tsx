@@ -6,6 +6,7 @@ import { useState } from "react";
 import type { AnalysisKey } from "@engine/shared/evidence";
 import { track } from "@/lib/analytics";
 import type { ShareKind } from "@/lib/shareCode";
+import { ShareTargets } from "./ShareTargets";
 import { StoryCardButton } from "./StoryCardButton";
 
 /**
@@ -82,28 +83,31 @@ export function ShareBar({
   }
 
   return (
-    <div className="no-print flex flex-wrap items-center gap-2">
-      <button type="button" onClick={share} className={buttonClass}>
-        {t("share")}
-      </button>
-      <button type="button" onClick={copyLink} className={buttonClass}>
-        {copied ? t("copyLinkDone") : t("copyLink")}
-      </button>
-      <button type="button" onClick={() => window.print()} className={buttonClass}>
-        {t("savePdf")}
-      </button>
-      {imageCard && (
-        <StoryCardButton
-          kind={imageCard.kind}
-          code={imageCard.code}
-          className={buttonClass}
-          analysisKey={analysisKey}
-          onTrigger={() => onShare?.("saveImage", analysisKey)}
-        />
-      )}
-      <Link href={restartHref} className={buttonClass}>
-        {restartLabel ?? t("restartDefault")}
-      </Link>
+    <div className="no-print space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="button" onClick={share} className={buttonClass}>
+          {t("share")}
+        </button>
+        <button type="button" onClick={copyLink} className={buttonClass}>
+          {copied ? t("copyLinkDone") : t("copyLink")}
+        </button>
+        <button type="button" onClick={() => window.print()} className={buttonClass}>
+          {t("savePdf")}
+        </button>
+        {imageCard && (
+          <StoryCardButton
+            kind={imageCard.kind}
+            code={imageCard.code}
+            className={buttonClass}
+            analysisKey={analysisKey}
+            onTrigger={() => onShare?.("saveImage", analysisKey)}
+          />
+        )}
+        <Link href={restartHref} className={buttonClass}>
+          {restartLabel ?? t("restartDefault")}
+        </Link>
+      </div>
+      <ShareTargets url={shareUrl} text={shareText ?? title} analysisKey={analysisKey} />
     </div>
   );
 }

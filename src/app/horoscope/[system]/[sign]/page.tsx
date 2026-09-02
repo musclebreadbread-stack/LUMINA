@@ -10,10 +10,12 @@ import { EvidenceTable } from "@/components/horoscope/EvidenceTable";
 import { PersonalizeCta } from "@/components/horoscope/PersonalizeCta";
 import { ReadingNotes } from "@/components/horoscope/ReadingNotes";
 import { ShareBar } from "@/components/report/ShareBar";
+import { Breadcrumbs } from "@/components/seo/Breadcrumbs";
 import { Disclaimer, Section, TierBadge } from "@/components/ui/Chrome";
 import { ResultCover } from "@/components/ui/ResultCover";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { buildHoroscopeView, formatHoroscopeDate, isDateString, utcToday } from "@/lib/horoscopeModel";
+import { buildAlternates } from "@/lib/seoAlternates";
 import type { Locale } from "@/i18n/locale";
 import type { HoroscopeSystem } from "@engine/horoscope";
 import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
@@ -50,7 +52,9 @@ export async function generateMetadata({
     const view = buildHoroscopeView(system, sign, isDateString(d) ? d : utcToday());
     const signName = locale === "en" ? view.sign.en : view.sign.ko;
     return {
-      alternates: { canonical: `/horoscope/${system}/${sign}` },
+      // 날짜 쿼리(?d=)가 붙어도 대표 URL은 하나로 모은다. 헬퍼가 쿼리를 떼고
+      // 두 언어의 hreflang까지 함께 만들어 준다.
+      alternates: await buildAlternates(`/horoscope/${system}/${sign}`),
       title: `${signName} ${t("resultTitleSuffix")}`,
       description: locale === "en" ? view.mood.en : view.mood.ko,
     };
@@ -71,10 +75,11 @@ export default async function HoroscopeResultPage({
   if (!isSystem(system)) notFound();
 
   const locale = (await getLocale()) as Locale;
-  const [t, tReading, tCommon] = await Promise.all([
+  const [t, tReading, tCommon, tNav] = await Promise.all([
     getTranslations("horoscope"),
     getTranslations("horoscopeReading"),
     getTranslations("common"),
+    getTranslations("nav"),
   ]);
   const serverDate = isDateString(d) ? d : utcToday();
 
@@ -98,6 +103,14 @@ export default async function HoroscopeResultPage({
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
         <ExplorationRecorder analysisKey="horoscope" />
       <TodaySync serverDate={serverDate} />
+      <Breadcrumbs
+        label={tNav("breadcrumb")}
+        items={[
+          { href: "/", label: "LUMINA" },
+          { href: "/horoscope", label: systemLabel },
+          { label: signName },
+        ]}
+      />
 
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
         <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">

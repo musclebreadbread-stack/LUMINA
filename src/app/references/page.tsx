@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { Breadcrumbs } from "@/components/seo/Breadcrumbs";
 import { CitationList } from "@/components/ui/CitationList";
 import { InfoNav } from "@/components/ui/InfoNav";
 import { ANALYSIS_CATALOG } from "@/lib/analysisCatalog";
@@ -12,10 +13,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ReferencesPage() {
   // scopeNoteKey는 네임스페이스를 가로지르는 전체 경로라 루트 번역기로만 읽을 수 있다.
-  const [t, homeT, rootT] = await Promise.all([
+  const [t, homeT, rootT, tNav] = await Promise.all([
     getTranslations("referencesPage"),
     getTranslations("home"),
     getTranslations(),
+    getTranslations("nav"),
   ]);
   const groups = ANALYSIS_CATALOG.map((definition) =>
     REFERENCE_GROUPS.find((group) => group.key === definition.key),
@@ -23,6 +25,10 @@ export default async function ReferencesPage() {
   return (
     <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
       <InfoNav />
+      <Breadcrumbs
+        label={tNav("breadcrumb")}
+        items={[{ href: "/", label: "LUMINA" }, { label: t("title") }]}
+      />
       <div className="py-10">
         <p className="font-mono text-[13px] tracking-wide text-hobun-faint">{t("kicker")}</p>
         <h1 className="mt-4 text-[clamp(1.8rem,5vw,2.8rem)] leading-tight font-medium tracking-tight">

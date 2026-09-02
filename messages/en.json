@@ -22,6 +22,11 @@
     "share": "Share",
     "copyLink": "Copy Link",
     "copyLinkDone": "Link copied",
+    "shareTargetsLabel": "Share on social",
+    "shareX": "X",
+    "shareThreads": "Threads",
+    "shareFacebook": "Facebook",
+    "shareKakao": "KakaoTalk",
     "savePdf": "Save as PDF",
     "restartDefault": "Re-enter",
     "saveImage": "Save image",
@@ -89,7 +94,10 @@
     "methodology": "Methodology",
     "characters": "Character atlas",
     "privacyView": "View Privacy Policy",
-    "termsView": "View Terms of Service"
+    "termsView": "View Terms of Service",
+    "about": "About",
+    "contact": "Contact",
+    "breadcrumb": "Breadcrumb"
   },
   "localeSwitch": {
     "ko": "한국어",
@@ -1383,6 +1391,29 @@
         "definition": "A marker used when an axis is close to its midpoint, so an arbitrary letter is not forced. It preserves continuity rather than indicating a missing result."
       }
     }
+  },
+  "aboutPage": {
+    "kicker": "LUMINA / ABOUT",
+    "title": "About LUMINA",
+    "intro": "LUMINA is a self-exploration platform that brings personality, emotion, cognition and cultural symbol systems together in one place. Its guiding rule is to show what a result rests on, on the same screen as the result.",
+    "whatHeading": "What it offers",
+    "whatBody": "There are twelve analyses today. Six sit in the scientific tier, built from openly published scales and literature: a Big Five based trait inventory, Jungian type, the Dark Triad, adult attachment, emotional intelligence, and a cognitive ability exploration. The other six — Saju, astrology, tarot, numerology, daily horoscope and compatibility — are classified as cultural interpretation systems.",
+    "tierHeading": "Evidence is labelled by tier",
+    "tierBody": "Every analysis carries an evidence tier badge. Scientific-tier pages name the scales and papers they draw on and state the limits of sample, translation and measurement error alongside the result. Cultural-tier pages say plainly that they are reflective tools built on long-standing symbol systems, not scientifically validated predictions. Never presenting the two as the same kind of claim is a basic rule of this platform.",
+    "dataHeading": "How result data is handled",
+    "dataBody": "Most analyses store neither your input nor your result on a server. A share link carries the result inside the address itself, so the same link always opens the same result. Where response records are genuinely needed for validation — as in the cognitive pilot — they are stored under an anonymous account, and research use happens only with separate, explicit consent.",
+    "limitsHeading": "What LUMINA is not",
+    "limitsBody": "LUMINA is not a medical diagnosis or a clinical assessment, and it cannot be used as grounds for hiring, personnel or legal decisions. The IQ figure shown by the cognitive exploration is not a standardized clinical test result either — it is an estimate derived from a theoretical distribution, and the screen always says so.",
+    "moreHeading": "Read further"
+  },
+  "contactPage": {
+    "kicker": "LUMINA / CONTACT",
+    "title": "Contact",
+    "intro": "We accept reports of service errors, content corrections, and privacy-related requests.",
+    "emailLabel": "Email",
+    "responseNote": "We reply in the order received. For requests about personal data handling, please also read the procedure set out in the privacy policy.",
+    "unavailableTitle": "Contact channel not configured",
+    "unavailableBody": "No public contact email is configured yet. It will appear on this page once the operator registers one."
   },
   "methodologyPage": {
     "kicker": "LUMINA / VALIDATION",

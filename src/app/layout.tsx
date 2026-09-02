@@ -6,6 +6,8 @@ import Script from "next/script";
 import { AnalyticsGate } from "@/components/analytics/AnalyticsGate";
 import { ConsentBanner } from "@/components/ads/ConsentBanner";
 import { PlatformAtmosphere } from "@/components/scene3d/PlatformAtmosphere";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { buildAlternates } from "@/lib/seoAlternates";
 import { getSiteUrl } from "@/lib/siteUrl";
 import "./globals.css";
 
@@ -42,6 +44,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase: getSiteUrl(),
+    // 모든 페이지가 이 canonical/hreflang을 물려받는다. 페이지가 직접 alternates를
+    // 지정하면 그 값이 이긴다(동적 세그먼트 페이지가 자기 경로를 넘기는 경우).
+    alternates: await buildAlternates(),
     title: {
       default: t("metaHome.title"),
       template: "%s · LUMINA",
@@ -70,6 +75,33 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const locale = await getLocale();
   const messages = await getMessages();
+  const t = await getTranslations();
+  const siteUrl = getSiteUrl().toString().replace(/\/$/u, "");
+
+  // 화면에 실제로 있는 것만 기술한다 — 사이트 이름, 발행 주체, 사용 언어.
+  // 사이트 내 검색(SearchAction)·평점·저자는 이 사이트에 없으므로 넣지 않는다.
+  const organizationId = `${siteUrl}/#organization`;
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": organizationId,
+        name: "LUMINA",
+        url: siteUrl,
+        logo: `${siteUrl}/icon.png`,
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${siteUrl}/#website`,
+        name: "LUMINA",
+        url: siteUrl,
+        description: t("metaHome.description"),
+        inLanguage: locale === "ko" ? "ko-KR" : "en-US",
+        publisher: { "@id": organizationId },
+      },
+    ],
+  };
 
   return (
     <html
@@ -77,6 +109,7 @@ export default async function RootLayout({
       className={`${plexKr.variable} ${plexMono.variable} ${notoSerifKr.variable} h-full`}
     >
       <body className="lumina-app relative min-h-full">
+        <JsonLd data={structuredData} />
         {/* 게시자 ID가 없으면(지금 상태) 이 스크립트는 아예 렌더되지 않는다. */}
         {adSenseClient && (
           <Script

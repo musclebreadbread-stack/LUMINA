@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
 import type { AnalysisKey } from "@engine/shared/evidence";
+import { track } from "@/lib/analytics";
 import {
   exploredAnalysisKeys,
   getExplorationLogServerSnapshot,
@@ -53,6 +54,9 @@ export function NextLensList({
             href={option.href}
             data-next-lens={option.key}
             data-next-lens-relation={option.relation}
+            // 어느 추천이 실제로 다음 탐색으로 이어졌는지만 남긴다. 동의가 없으면
+            // track()이 스스로 아무것도 하지 않으므로 이동은 언제나 그대로 일어난다.
+            onClick={() => track("related_test_click", { analysis: option.key })}
             className="flex h-full flex-col border border-ink-700 bg-ink-950/60 p-5 transition-colors hover:border-hobun/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hobun"
           >
             <p className="font-mono text-[11px] tracking-[0.16em] text-hobun-faint">

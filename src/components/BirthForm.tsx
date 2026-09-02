@@ -4,9 +4,9 @@ import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useId, useMemo, useState, useSyncExternalStore } from "react";
 import { branchAt } from "@engine/saju";
+import { LocationCombobox } from "@/components/LocationCombobox";
 import {
   DEFAULT_PROFILE,
-  PLACES,
   clearProfile,
   getProfileServerSnapshot,
   getProfileSnapshot,
@@ -296,28 +296,22 @@ export function BirthForm({ resultSuffix = "" }: { readonly resultSuffix?: strin
           <label className={labelClass} htmlFor={`${uid}-place`}>
             {t("placeLabel")}
           </label>
-          <select
+          <LocationCombobox
             id={`${uid}-place`}
             value={profile.placeLabel}
-            onChange={(e) => {
-              const place = PLACES.find((p) => p.label === e.target.value);
-              if (place) {
-                update({
-                  placeLabel: place.label,
-                  lat: place.lat,
-                  lng: place.lng,
-                  timeZone: place.timeZone,
-                });
-              }
-            }}
-            className={fieldClass}
-          >
-            {PLACES.map((p) => (
-              <option key={p.label} value={p.label}>
-                {locale === "en" ? p.labelEn : p.label}
-              </option>
-            ))}
-          </select>
+            placeholder={t("placeSearchPlaceholder")}
+            emptyLabel={t("placeSearchEmpty")}
+            loadingLabel={t("placeSearchLoadingWorld")}
+            onSelect={(entry) =>
+              update({
+                placeLabel: entry.ko,
+                placeLabelEn: entry.en,
+                lat: entry.lat,
+                lng: entry.lng,
+                timeZone: entry.timeZone,
+              })
+            }
+          />
           <p className="mt-2 text-[13px] text-hobun-faint">{t("placeNote")}</p>
         </div>
 

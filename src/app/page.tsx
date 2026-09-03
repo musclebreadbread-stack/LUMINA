@@ -44,7 +44,7 @@ function momentPillars() {
           ]
         : [],
     ),
-    clock: now.toFormat("yyyy-MM-dd HH:mm"),
+    clock: now.toFormat("yyyy-MM-dd HH:mm:ss"),
     trueSolar: DateTime.fromISO(result.time.trueSolarISO, { setZone: true }).toFormat("HH:mm:ss"),
     correction: result.time.totalCorrectionMinutes,
     day: {

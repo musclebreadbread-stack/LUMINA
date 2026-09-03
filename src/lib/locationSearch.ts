@@ -12,10 +12,22 @@ interface WorldCityRow {
   readonly countryCode: string;
   readonly lat: number;
   readonly lng: number;
+  /** 주/도(예: "Illinois"). 없으면 빈 문자열 — 동명 도시(예: 미국 Springfield 8곳)를 구분한다. */
+  readonly admin1: string;
 }
 
 let worldRows: readonly WorldCityRow[] | null = null;
 let worldPromise: Promise<void> | null = null;
+
+function toWorldCityRow([name, countryCode, lat, lng, admin1]: readonly [
+  string,
+  string,
+  number,
+  number,
+  string,
+]): WorldCityRow {
+  return { name, countryCode, lat, lng, admin1 };
+}
 
 /** 처음 호출될 때만 /data/world-cities.json을 받아 모듈 스코프에 캐싱한다. */
 export function ensureWorldLocationsLoaded(): Promise<void> {
@@ -23,8 +35,8 @@ export function ensureWorldLocationsLoaded(): Promise<void> {
   if (!worldPromise) {
     worldPromise = fetch("/data/world-cities.json")
       .then((res) => res.json())
-      .then((raw: readonly [string, string, number, number][]) => {
-        worldRows = raw.map(([name, countryCode, lat, lng]) => ({ name, countryCode, lat, lng }));
+      .then((raw: readonly [string, string, number, number, string][]) => {
+        worldRows = raw.map(toWorldCityRow);
       })
       .catch((error) => {
         worldPromise = null; // allow retry on next call
@@ -40,9 +52,9 @@ export function isWorldLocationsLoaded(): boolean {
 
 /** 테스트 전용: 실제 fetch 없이 월드 데이터를 주입/초기화한다. */
 export function __resetWorldLocationsForTests(
-  rows: readonly [string, string, number, number][] | null,
+  rows: readonly [string, string, number, number, string][] | null,
 ): void {
-  worldRows = rows ? rows.map(([name, countryCode, lat, lng]) => ({ name, countryCode, lat, lng })) : null;
+  worldRows = rows ? rows.map(toWorldCityRow) : null;
   worldPromise = null;
 }
 
@@ -55,7 +67,8 @@ function countryNameEn(countryCode: string): string {
 }
 
 function toWorldEntry(row: WorldCityRow, koOverride?: string): LocationEntry {
-  const en = `${row.name}, ${countryNameEn(row.countryCode)}`;
+  const country = countryNameEn(row.countryCode);
+  const en = row.admin1 ? `${row.name}, ${row.admin1}, ${country}` : `${row.name}, ${country}`;
   return { ko: koOverride ?? en, en, lat: row.lat, lng: row.lng };
 }
 

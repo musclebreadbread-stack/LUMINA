@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { IntegratedReportClient } from "@/components/integratedPortrait/IntegratedReportClient";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { SceneShell } from "@/components/ui/SceneShell";
+import { IntegratedReportTracker } from "@/components/analytics/AnalysisTracker";
 
 /**
  * 통합 자기초상 진입점.
@@ -23,6 +24,7 @@ export default async function IntegratedReportPage() {
 
   return (
     <SceneShell tone="neutral">
+      <IntegratedReportTracker />
       <main className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
         <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
           <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">

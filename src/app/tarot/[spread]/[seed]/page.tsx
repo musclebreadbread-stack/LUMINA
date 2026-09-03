@@ -15,6 +15,7 @@ import { buildTarotView } from "@/lib/tarotModel";
 import type { Locale } from "@/i18n/locale";
 import type { SpreadKey } from "@engine/tarot";
 import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
+import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
 
 const SPREAD_KEYS: readonly SpreadKey[] = ["single", "three", "celtic-cross"];
 
@@ -80,6 +81,7 @@ export default async function TarotResultPage({ params }: { params: Promise<Para
     <SceneShell tone="tarot">
       <main className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
         <ExplorationRecorder analysisKey="tarot" />
+        <AnalysisResultTracker analysis="tarot" />
 
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
         <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">

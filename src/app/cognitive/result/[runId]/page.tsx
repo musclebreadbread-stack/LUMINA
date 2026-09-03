@@ -5,6 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { PilotResult } from "@/components/cognitive/PilotResult";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { SceneShell } from "@/components/ui/SceneShell";
+import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
 import type { Locale } from "@/i18n/locale";
 import { parseRunId } from "@/lib/cognitiveRunInput";
 import { resolveScoreForRun } from "@/server/cognitive/norms";
@@ -54,7 +55,10 @@ export default async function CognitiveRunResultPage({ params }: PageProps) {
         </header>
         <section className="py-10">
           {validRun ? (
-            <PilotResult result={result} locale={locale as Locale} imageAlt={t("resultImageAlt")} />
+            <>
+              <AnalysisResultTracker analysis="cognitive" />
+              <PilotResult result={result} locale={locale as Locale} imageAlt={t("resultImageAlt")} />
+            </>
           ) : (
             <p className="text-sm text-hobun-dim">{t("runInvalid")}</p>
           )}

@@ -16,6 +16,7 @@ import { decodeProfile } from "@/lib/share";
 import { assetPath } from "@/lib/assets";
 import { toBirthInput } from "@/lib/profile";
 import type { Locale } from "@/i18n/locale";
+import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
 
 export const dynamic = "force-dynamic";
 
@@ -101,6 +102,7 @@ export default async function PersonalTodayPage({
   return (
     <SceneShell tone="horoscope">
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
+      <AnalysisResultTracker analysis="horoscope" />
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
         <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">
           LUMINA

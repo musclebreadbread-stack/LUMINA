@@ -7,6 +7,8 @@ import type { Gender } from "@engine/shared/birth";
 import { DEFAULT_PROFILE, type StoredProfile } from "@/lib/profile";
 import { encodeProfile } from "@/lib/share";
 import { LocationCombobox } from "@/components/LocationCombobox";
+import { track } from "@/lib/analytics";
+import type { Locale } from "@/i18n/locale";
 
 type PersonKey = "a" | "b";
 
@@ -85,6 +87,7 @@ export function CompatibilityForm() {
       setError(t("invalidTime"));
       return;
     }
+    track("compatibility_compare", { analysis: "compatibility" });
     router.push(`/compatibility/${encodeProfile(first)}/${encodeProfile(second)}`);
   }
 

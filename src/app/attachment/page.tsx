@@ -8,6 +8,7 @@ import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { SurveyForm } from "@/components/attachment/SurveyForm";
 import { analysisDefinition } from "@/lib/analysisCatalog";
+import { AnalysisEntryTracker } from "@/components/analytics/AnalysisTracker";
 import { ATTACHMENT_OVERVIEW_IMAGE, attachmentImagePath } from "@/lib/psychometricsAssets";
 
 const ATTACHMENT_STYLES = ["secure", "anxious", "avoidant", "fearful"] as const;
@@ -26,6 +27,7 @@ export default async function AttachmentPage() {
 
   return (
     <SceneShell tone="attachment">
+      <AnalysisEntryTracker analysis="attachment" />
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
         <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
           <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">

@@ -12,6 +12,7 @@ import { SceneShell } from "@/components/ui/SceneShell";
 import { buildNumerologyView, formatNumerologyDate } from "@/lib/numerologyModel";
 import type { Locale } from "@/i18n/locale";
 import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
+import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
 import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
 import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
 import { toNumerologySnapshot } from "@/lib/integratedPortrait/adapters";
@@ -105,6 +106,7 @@ export default async function NumerologyResultPage({
     <SceneShell tone="numerology">
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
         <ExplorationRecorder analysisKey="numerology" />
+        <AnalysisResultTracker analysis="numerology" />
         <IntegratedResultRecorder snapshot={integratedSnapshot} />
       <ReportHeader />
 

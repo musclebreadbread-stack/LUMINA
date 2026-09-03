@@ -11,6 +11,7 @@ import { SceneShell } from "@/components/ui/SceneShell";
 import { analysisDefinition } from "@/lib/analysisCatalog";
 import { COGNITIVE_OVERVIEW_IMAGE, cognitiveImagePath } from "@/lib/psychometricsAssets";
 import type { Locale } from "@/i18n/locale";
+import { AnalysisEntryTracker } from "@/components/analytics/AnalysisTracker";
 import { ResultSceneLayer } from "@/components/scene3d/ResultSceneLayer";
 
 const STANDARDIZED_ITEM_COUNT = 20;
@@ -37,6 +38,7 @@ export default async function CognitivePage() {
 
   return (
     <SceneShell tone="cognitive">
+      <AnalysisEntryTracker analysis="cognitive" />
       <main className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
         <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
           <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">

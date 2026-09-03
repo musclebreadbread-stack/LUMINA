@@ -1,5 +1,5 @@
-import { track as sendVercelEvent } from "@vercel/analytics";
 import type { AnalysisKey } from "@engine/shared/evidence";
+import type { AdminTrackedAnalysis } from "./adminAnalytics";
 import { loadConsent } from "./consent";
 
 /**
@@ -19,8 +19,12 @@ export type AnalyticsShareMethod =
   | "kakao";
 
 interface AnalyticsEventPropsMap {
+  readonly solution_entry: { readonly analysis: AnalysisKey };
   readonly test_start: { readonly analysis: AnalysisKey };
   readonly test_complete: { readonly analysis: AnalysisKey };
+  readonly result_view: { readonly analysis: AnalysisKey };
+  readonly compatibility_compare: { readonly analysis: AnalysisKey };
+  readonly integrated_report_view: { readonly analysis: AdminTrackedAnalysis };
   readonly share_open: { readonly analysis: AnalysisKey; readonly method: AnalyticsShareMethod };
   readonly share_image_saved: { readonly analysis: AnalysisKey; readonly method: AnalyticsShareMethod };
   readonly share_landing_view: { readonly analysis: AnalysisKey };
@@ -31,7 +35,7 @@ interface AnalyticsEventPropsMap {
 export type AnalyticsEventName = keyof AnalyticsEventPropsMap;
 
 /** evidence.ts의 리터럴 유니온을 런타임에서도 검증하려면 그 값 목록이 따로 필요하다. */
-const ANALYSIS_KEYS: ReadonlySet<string> = new Set<AnalysisKey>([
+const ANALYSIS_KEYS: ReadonlySet<string> = new Set<string>([
   "saju",
   "astro",
   "tarot",
@@ -44,6 +48,11 @@ const ANALYSIS_KEYS: ReadonlySet<string> = new Set<AnalysisKey>([
   "cognitive",
   "horoscope",
   "compatibility",
+]);
+
+const TRACKED_ANALYSIS_KEYS: ReadonlySet<string> = new Set<string>([
+  ...ANALYSIS_KEYS,
+  "integrated-report",
 ]);
 
 const SHARE_METHODS: ReadonlySet<string> = new Set<AnalyticsShareMethod>([
@@ -73,9 +82,26 @@ function isShortString(value: unknown, allowed: ReadonlySet<string>): value is s
 function isValidProps(name: AnalyticsEventName, props: Record<string, unknown>): boolean {
   const expectedKeys = EVENTS_WITH_METHOD.has(name) ? 2 : 1;
   if (Object.keys(props).length !== expectedKeys) return false;
-  if (!isShortString(props.analysis, ANALYSIS_KEYS)) return false;
+  if (!isShortString(props.analysis, TRACKED_ANALYSIS_KEYS)) return false;
+  if (name === "integrated_report_view" && props.analysis !== "integrated-report") return false;
+  if (name !== "integrated_report_view" && props.analysis === "integrated-report") return false;
   if (EVENTS_WITH_METHOD.has(name) && !isShortString(props.method, SHARE_METHODS)) return false;
   return true;
+}
+
+type VercelTrack = typeof import("@vercel/analytics")["track"];
+let vercelTrackPromise: Promise<VercelTrack> | null = null;
+
+function loadVercelTrack(): Promise<VercelTrack> {
+  if (vercelTrackPromise === null) {
+    vercelTrackPromise = import("@vercel/analytics")
+      .then((module) => module.track)
+      .catch((error: unknown) => {
+        vercelTrackPromise = null;
+        throw error;
+      });
+  }
+  return vercelTrackPromise;
 }
 
 /**
@@ -85,5 +111,10 @@ function isValidProps(name: AnalyticsEventName, props: Record<string, unknown>):
 export function track<E extends AnalyticsEventName>(event: E, props: AnalyticsEventPropsMap[E]): void {
   if (loadConsent() === null) return;
   if (!isValidProps(event, props)) return;
-  sendVercelEvent(event, props);
+  void loadVercelTrack()
+    .then((sendVercelEvent) => {
+      if (loadConsent() === null) return;
+      sendVercelEvent(event, props);
+    })
+    .catch(() => undefined);
 }

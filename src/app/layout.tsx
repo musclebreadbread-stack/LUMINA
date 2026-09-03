@@ -3,8 +3,10 @@ import { IBM_Plex_Mono, IBM_Plex_Sans_KR, Noto_Serif_KR } from "next/font/google
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import Script from "next/script";
+import { Suspense } from "react";
 import { AnalyticsGate } from "@/components/analytics/AnalyticsGate";
 import { ConsentBanner } from "@/components/ads/ConsentBanner";
+import { BgmControl } from "@/components/audio/BgmControl";
 import { PlatformAtmosphere } from "@/components/scene3d/PlatformAtmosphere";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildAlternates } from "@/lib/seoAlternates";
@@ -122,6 +124,9 @@ export default async function RootLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <PlatformAtmosphere />
           <div className="lumina-app-shell relative z-10">{children}</div>
+          <Suspense fallback={null}>
+            <BgmControl />
+          </Suspense>
           <ConsentBanner />
           <AnalyticsGate />
         </NextIntlClientProvider>

@@ -29,6 +29,7 @@ const SPREAD_PLACEHOLDER = "[spread]";
 const SEED_PLACEHOLDER = "[seed]";
 const LEFT_PLACEHOLDER = "[left]";
 const RIGHT_PLACEHOLDER = "[right]";
+const COGNITIVE_RUN_PLACEHOLDER = "[runId]";
 
 type SegmentScrubber = (segments: readonly string[]) => readonly string[] | null;
 
@@ -69,11 +70,22 @@ function scrubCompatibilityRoute(segments: readonly string[]): readonly string[]
   return ["compatibility", LEFT_PLACEHOLDER, RIGHT_PLACEHOLDER];
 }
 
+/** `/cognitive/run/<runId>`와 `/cognitive/result/<runId>`의 서버 실행 ID를 제거한다. */
+function scrubCognitiveRunRoute(segments: readonly string[]): readonly string[] | null {
+  if (segments[0] !== "cognitive") return null;
+  const branch = segments[1];
+  if (branch !== "run" && branch !== "result") return null;
+  return segments.length >= 3
+    ? ["cognitive", branch, COGNITIVE_RUN_PLACEHOLDER]
+    : ["cognitive", branch];
+}
+
 const ROUTE_SCRUBBERS: readonly SegmentScrubber[] = [
   scrubProfileRoute,
   scrubShareRoute,
   scrubTarotRoute,
   scrubCompatibilityRoute,
+  scrubCognitiveRunRoute,
 ];
 
 /**

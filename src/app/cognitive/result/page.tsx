@@ -7,6 +7,7 @@ import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { Disclaimer } from "@/components/ui/Chrome";
 import { SceneShell } from "@/components/ui/SceneShell";
+import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
 import { analysisDefinition } from "@/lib/analysisCatalog";
 import { COGNITIVE_OVERVIEW_IMAGE } from "@/lib/psychometricsAssets";
 
@@ -38,6 +39,7 @@ export default async function CognitiveLegacyResultPage({
   return (
     <SceneShell tone="cognitive">
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
+        <AnalysisResultTracker analysis="cognitive" />
         <header className="flex items-center justify-between border-b border-ink-700 py-5">
           <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">LUMINA</Link>
           <LocaleSwitcher />

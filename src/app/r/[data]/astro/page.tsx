@@ -19,6 +19,7 @@ import { formatBirthLabel } from "@/lib/reportModel";
 import { placeDisplayLabel } from "@/lib/profile";
 import { decodeProfile } from "@/lib/share";
 import type { Locale } from "@/i18n/locale";
+import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
 import type { HouseSystem, Modality, ZodiacElement } from "@engine/astro";
 import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
 import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
@@ -175,6 +176,7 @@ export default async function AstroPage({
     <SceneShell>
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
         <ExplorationRecorder analysisKey="astro" />
+        <AnalysisResultTracker analysis="astro" />
         <IntegratedResultRecorder snapshot={integratedSnapshot} />
         <ReportHeader data={data} />
 

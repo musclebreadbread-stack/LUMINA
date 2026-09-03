@@ -22,21 +22,53 @@ describe("track", () => {
     expect(sendVercelEvent).not.toHaveBeenCalled();
   });
 
-  it("sends a well-formed event once consent is accepted", () => {
+  it("sends a well-formed event once consent is accepted", async () => {
     saveConsent("accepted");
     track("test_start", { analysis: "psychometrics" });
-    expect(sendVercelEvent).toHaveBeenCalledWith("test_start", { analysis: "psychometrics" });
+    await vi.waitFor(() => {
+      expect(sendVercelEvent).toHaveBeenCalledWith("test_start", { analysis: "psychometrics" });
+    });
   });
 
-  it("sends a well-formed event once consent is rejected", () => {
+  it("supports privacy-safe entry, result, compatibility, and integrated report events", async () => {
+    saveConsent("accepted");
+    track("solution_entry", { analysis: "darktriad" });
+    track("result_view", { analysis: "darktriad" });
+    track("compatibility_compare", { analysis: "compatibility" });
+    track("integrated_report_view", { analysis: "integrated-report" });
+
+    await vi.waitFor(() => {
+      expect(sendVercelEvent).toHaveBeenCalledTimes(4);
+    });
+    expect(sendVercelEvent).toHaveBeenNthCalledWith(1, "solution_entry", { analysis: "darktriad" });
+    expect(sendVercelEvent).toHaveBeenNthCalledWith(2, "result_view", { analysis: "darktriad" });
+    expect(sendVercelEvent).toHaveBeenNthCalledWith(3, "compatibility_compare", { analysis: "compatibility" });
+    expect(sendVercelEvent).toHaveBeenNthCalledWith(4, "integrated_report_view", { analysis: "integrated-report" });
+  });
+
+  it("sends a well-formed event once consent is rejected", async () => {
     saveConsent("rejected");
     track("share_open", { analysis: "jungian", method: "web-share" });
-    expect(sendVercelEvent).toHaveBeenCalledWith("share_open", { analysis: "jungian", method: "web-share" });
+    await vi.waitFor(() => {
+      expect(sendVercelEvent).toHaveBeenCalledWith("share_open", { analysis: "jungian", method: "web-share" });
+    });
   });
 
   it("drops a call whose analysis value bypasses the type system at runtime", () => {
     saveConsent("accepted");
     track("test_start", { analysis: "not-a-real-key" as never });
+    expect(sendVercelEvent).not.toHaveBeenCalled();
+  });
+
+  it("rejects the integrated report key for ordinary solution events", () => {
+    saveConsent("accepted");
+    track("solution_entry", { analysis: "integrated-report" as never });
+    expect(sendVercelEvent).not.toHaveBeenCalled();
+  });
+
+  it("rejects ordinary solution keys for the integrated report event", () => {
+    saveConsent("accepted");
+    track("integrated_report_view", { analysis: "saju" as never });
     expect(sendVercelEvent).not.toHaveBeenCalled();
   });
 

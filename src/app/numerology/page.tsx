@@ -6,6 +6,7 @@ import { NumerologyForm } from "@/components/numerology/NumerologyForm";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { Disclaimer, TierBadge } from "@/components/ui/Chrome";
 import { SceneShell } from "@/components/ui/SceneShell";
+import { AnalysisEntryTracker } from "@/components/analytics/AnalysisTracker";
 import { assetPath } from "@/lib/assets";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,6 +22,7 @@ export default async function NumerologyPage() {
 
   return (
     <SceneShell tone="numerology">
+      <AnalysisEntryTracker analysis="numerology" />
       <main className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
 
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">

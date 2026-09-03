@@ -4,6 +4,7 @@ import { TierBadge } from "@/components/ui/Chrome";
 import { ELEMENT_STYLE } from "@/lib/elements";
 import type { MandalaModel } from "@/lib/mandalaModel";
 import { MandalaEnhanced } from "./MandalaEnhanced";
+import { MandalaLiveClock } from "./MandalaLiveClock";
 import { MandalaNode } from "./MandalaNode";
 
 export interface MomentGlyphView {
@@ -80,7 +81,7 @@ export async function Mandala({ model, moment }: Props) {
               </span>
             ))}
           </div>
-          <span className="mt-3 block font-mono text-[11px] text-hobun-dim">{moment.clock} KST</span>
+          <MandalaLiveClock initialClock={moment.clock} />
         </div>
       </div>
 

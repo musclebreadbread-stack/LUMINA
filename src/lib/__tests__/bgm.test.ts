@@ -60,4 +60,10 @@ describe("BGM route catalogue", () => {
   ] as const)("maps %s to %s", (pathname, expected) => {
     expect(bgmAreaForPath(pathname)).toBe(expected);
   });
+
+  it("maps the query-based Jungian landing page to the Jungian track", () => {
+    expect(bgmAreaForPath("/psychometrics", "to=types")).toBe("jungian");
+    expect(bgmAreaForPath("/en/psychometrics", "to=types")).toBe("jungian");
+    expect(bgmAreaForPath("/psychometrics", "to=bigfive")).toBe("psychometrics");
+  });
 });

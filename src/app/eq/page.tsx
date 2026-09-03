@@ -9,6 +9,7 @@ import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { analysisDefinition } from "@/lib/analysisCatalog";
+import { AnalysisEntryTracker } from "@/components/analytics/AnalysisTracker";
 import { EQ_OVERVIEW_IMAGE, eqImagePath } from "@/lib/psychometricsAssets";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -25,6 +26,7 @@ export default async function EqPage() {
 
   return (
     <SceneShell tone="eq">
+      <AnalysisEntryTracker analysis="eq" />
       <main className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
         <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
           <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">

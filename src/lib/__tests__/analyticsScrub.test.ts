@@ -39,6 +39,9 @@ const CASES: readonly { readonly name: string; readonly input: string; readonly 
   { name: "attachment result strips run query", input: "/attachment/result?run=550e8400-e29b-41d4-a716", expected: "/attachment/result" },
   { name: "numerology result strips r query", input: "/numerology/result?r=112233", expected: "/numerology/result" },
   { name: "en-prefixed result page strips query", input: "/en/psychometrics/result?r=xyz", expected: "/en/psychometrics/result" },
+  { name: "cognitive run path scrubs run ID", input: "/cognitive/run/550e8400-e29b-41d4-a716-446655440000", expected: "/cognitive/run/[runId]" },
+  { name: "cognitive result path scrubs run ID", input: "/cognitive/result/550e8400-e29b-41d4-a716-446655440000", expected: "/cognitive/result/[runId]" },
+  { name: "en-prefixed cognitive result path scrubs run ID", input: "/en/cognitive/result/opaque-run-id", expected: "/en/cognitive/result/[runId]" },
 
   // 정적/무해 경로 — 쿼리만 있었다면 버려지고 경로는 그대로
   { name: "root path", input: "/", expected: "/" },
@@ -75,6 +78,8 @@ describe("scrubAnalyticsUrl", () => {
       "8271",
       "xyz789",
       "M5JgBgpgRg",
+      "550e8400-e29b-41d4-a716-446655440000",
+      "opaque-run-id",
     ];
     for (const { input } of CASES) {
       const result = scrubAnalyticsUrl(input);

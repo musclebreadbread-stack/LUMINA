@@ -25,6 +25,7 @@ import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry
 import { toDarkTriadSnapshot } from "@/lib/integratedPortrait/adapters";
 import { ScientificScorePlot, type ScientificScorePoint } from "@/components/analysis/ScientificScorePlot";
 import { StatisticalReadingGuide } from "@/components/analysis/StatisticalReadingGuide";
+import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
 
 interface Query {
   readonly r?: string;
@@ -141,6 +142,7 @@ export default async function DarkTriadResultPage({
     <SceneShell tone="darktriad">
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
         <ExplorationRecorder analysisKey="darktriad" />
+        <AnalysisResultTracker analysis="darktriad" />
         <IntegratedResultRecorder snapshot={integratedSnapshot} />
         <ReportHeader />
 

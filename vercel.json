@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/internal/analytics-rollup",
+      "schedule": "0 17 * * *"
+    }
+  ]
+}

@@ -7,6 +7,9 @@ import { resolveInternalPreviewPreset } from "@/lib/cognitiveInternalPreviewPres
 import { hasValidInternalPreviewToken, isInternalPreviewEnabled } from "@/server/cognitive/internalPreview";
 import type { Locale } from "@/i18n/locale";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface InternalPreviewPageProps {
   readonly searchParams: Promise<{ token?: string; preset?: string }>;
 }

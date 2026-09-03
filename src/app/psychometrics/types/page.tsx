@@ -8,6 +8,7 @@ import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { MethodNote } from "@/components/ui/MethodNote";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { SceneShell } from "@/components/ui/SceneShell";
+import { AnalysisEntryTracker } from "@/components/analytics/AnalysisTracker";
 import { JungianLandingActions } from "@/components/psychometrics/JungianLandingActions";
 import { assetPath } from "@/lib/assets";
 import type { Locale } from "@/i18n/locale";
@@ -40,6 +41,7 @@ export default async function JungianTypesPage() {
 
   return (
     <SceneShell tone="psychometrics">
+      <AnalysisEntryTracker analysis="jungian" />
       <main className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
         <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
           <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">LUMINA</Link>

@@ -18,6 +18,7 @@ import { attachmentImagePath } from "@/lib/psychometricsAssets";
 import { toAttachmentSnapshot } from "@/lib/integratedPortrait/adapters";
 import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
 import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
+import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -122,6 +123,7 @@ export function AttachmentResultClient({
 
   return (
     <div className="py-8 sm:py-12 space-y-12">
+      <AnalysisResultTracker analysis="attachment" />
       <ExplorationRecorder analysisKey="attachment" />
       <IntegratedResultRecorder snapshot={integratedSnapshot} />
       <div className="result-cover reading-panel relative overflow-hidden rounded-[1.75rem] border border-ink-700 p-5 shadow-[0_26px_80px_-42px_rgba(0,0,0,0.95)] sm:p-8">

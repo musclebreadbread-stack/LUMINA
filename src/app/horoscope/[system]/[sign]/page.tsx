@@ -19,6 +19,7 @@ import { buildAlternates } from "@/lib/seoAlternates";
 import type { Locale } from "@/i18n/locale";
 import type { HoroscopeSystem } from "@engine/horoscope";
 import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
+import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
 
 /** 요청마다 새로 계산한다 — 방문자의 로컬 날짜가 매번 다를 수 있기 때문이다. */
 export const dynamic = "force-dynamic";
@@ -102,6 +103,7 @@ export default async function HoroscopeResultPage({
     <SceneShell tone="horoscope">
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
         <ExplorationRecorder analysisKey="horoscope" />
+        <AnalysisResultTracker analysis="horoscope" />
       <TodaySync serverDate={serverDate} />
       <Breadcrumbs
         label={tNav("breadcrumb")}

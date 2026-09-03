@@ -16,6 +16,7 @@ import { decodeProfile } from "@/lib/share";
 import { placeDisplayLabel, type StoredProfile } from "@/lib/profile";
 import { DAILY_READING_TIER } from "@engine/horoscope";
 import type { Locale } from "@/i18n/locale";
+import { IntegratedReportTracker } from "@/components/analytics/AnalysisTracker";
 
 export const dynamic = "force-dynamic";
 
@@ -104,6 +105,7 @@ export default async function AllReportPage({
 
   return (
     <SceneShell tone="saju">
+      <IntegratedReportTracker />
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
         <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">

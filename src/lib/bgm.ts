@@ -52,7 +52,7 @@ function matchesPath(pathname: string, root: string): boolean {
  * Resolve both landing and result URLs to the same lens. The order matters for
  * nested routes such as /psychometrics/types and /r/<data>/astro.
  */
-export function bgmAreaForPath(pathname: string | null | undefined): BgmArea {
+export function bgmAreaForPath(pathname: string | null | undefined, search = ""): BgmArea {
   const path = stripLocalePrefix(pathname ?? "/");
   if (path === "/") return "home";
 
@@ -68,7 +68,9 @@ export function bgmAreaForPath(pathname: string | null | undefined): BgmArea {
   }
 
   if (matchesPath(path, "/psychometrics/types")) return "jungian";
-  if (matchesPath(path, "/psychometrics")) return "psychometrics";
+  if (matchesPath(path, "/psychometrics")) {
+    return new URLSearchParams(search).get("to") === "types" ? "jungian" : "psychometrics";
+  }
   if (matchesPath(path, "/saju") || matchesPath(path, "/characters")) return "saju";
   if (matchesPath(path, "/astro")) return "astro";
   if (matchesPath(path, "/tarot")) return "tarot";
@@ -82,4 +84,3 @@ export function bgmAreaForPath(pathname: string | null | undefined): BgmArea {
 
   return "home";
 }
-

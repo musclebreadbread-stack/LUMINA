@@ -7,6 +7,7 @@ import { Disclaimer, TierBadge } from "@/components/ui/Chrome";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { COMPATIBILITY_OVERVIEW_IMAGE, compatibilityToneImagePath } from "@/lib/compatibilityAssets";
+import { AnalysisEntryTracker } from "@/components/analytics/AnalysisTracker";
 import { ResultSceneLayer } from "@/components/scene3d/ResultSceneLayer";
 
 const COMPATIBILITY_TONES = ["supportive", "challenging", "mixed", "quiet"] as const;
@@ -20,6 +21,7 @@ export default async function CompatibilityPage() {
   const t = await getTranslations("compatibility");
   return (
     <SceneShell tone="saju">
+      <AnalysisEntryTracker analysis="compatibility" />
       <main className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
         <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
           <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">LUMINA</Link>

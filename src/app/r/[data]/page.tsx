@@ -39,6 +39,7 @@ import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
 import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
 import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
 import { toSajuSnapshot } from "@/lib/integratedPortrait/adapters";
+import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
 
 export async function generateMetadata({
   params,
@@ -237,6 +238,7 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
         <SpiritCard character={view.character} />
         <CollectionTracker characterId={view.character.def.id} />
         <ExplorationRecorder analysisKey="saju" />
+        <AnalysisResultTracker analysis="saju" />
         <IntegratedResultRecorder snapshot={integratedSnapshot} />
       </div>
 

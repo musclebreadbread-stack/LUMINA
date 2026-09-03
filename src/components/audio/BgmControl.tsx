@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { BGM_TRACKS, bgmAreaForPath } from "@/lib/bgm";
@@ -24,7 +24,8 @@ function releaseAudio(audio: HTMLAudioElement): void {
 export function BgmControl() {
   const t = useTranslations("bgm");
   const pathname = usePathname();
-  const area = bgmAreaForPath(pathname);
+  const searchParams = useSearchParams();
+  const area = bgmAreaForPath(pathname, searchParams.toString());
   const track = BGM_TRACKS[area];
   const enabled = useSyncExternalStore(
     subscribeBgmPreference,

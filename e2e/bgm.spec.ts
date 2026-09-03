@@ -22,6 +22,11 @@ test.describe('global BGM control', () => {
     await expect(page.getByTestId('bgm-toggle')).toHaveAttribute('aria-pressed', 'true');
     await expect.poll(async () => page.locator('audio').getAttribute('src')).toContain('/audio/bgm/tarot.mp3');
 
+    await page.goto('/psychometrics?to=types');
+    await dismissConsentBanner(page);
+    await expect(page.locator('[data-bgm-area="jungian"]')).toBeVisible();
+    await expect.poll(async () => page.locator('audio').getAttribute('src')).toContain('/audio/bgm/jungian.mp3');
+
     await page.getByTestId('bgm-toggle').click();
     await expect(page.getByTestId('bgm-toggle')).toHaveAttribute('aria-pressed', 'false');
     await expect(page.locator('audio')).not.toHaveAttribute('src');

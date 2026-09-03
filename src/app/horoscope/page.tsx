@@ -7,6 +7,7 @@ import { PersonalizeCta } from "@/components/horoscope/PersonalizeCta";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { Disclaimer, TierBadge } from "@/components/ui/Chrome";
 import { SceneShell } from "@/components/ui/SceneShell";
+import { AnalysisEntryTracker } from "@/components/analytics/AnalysisTracker";
 import { HOROSCOPE_OVERVIEW_IMAGE } from "@/lib/horoscopeAssets";
 import { DAILY_READING_TIER } from "@engine/horoscope";
 
@@ -23,6 +24,7 @@ export default async function HoroscopePage() {
 
   return (
     <SceneShell tone="horoscope">
+      <AnalysisEntryTracker analysis="horoscope" />
       <main className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
 
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">

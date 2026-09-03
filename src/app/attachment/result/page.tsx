@@ -19,6 +19,7 @@ import { decodeAttachmentResponses } from "@/lib/attachmentCode";
 import { analysisDefinition } from "@/lib/analysisCatalog";
 import { attachmentImagePath } from "@/lib/psychometricsAssets";
 import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
+import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
 
 interface ResultPageProps {
   searchParams: Promise<{ r?: string; run?: string }>;
@@ -112,6 +113,7 @@ export default async function AttachmentResultPage({ searchParams }: ResultPageP
     <SceneShell tone="attachment">
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
         <ExplorationRecorder analysisKey="attachment" />
+        <AnalysisResultTracker analysis="attachment" />
         <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
           <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">
             LUMINA

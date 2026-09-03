@@ -25,6 +25,7 @@ import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
 import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
 import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
 import { toEqSnapshot } from "@/lib/integratedPortrait/adapters";
+import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
 import { ScientificScorePlot, type ScientificScorePoint } from "@/components/analysis/ScientificScorePlot";
 import { StatisticalReadingGuide } from "@/components/analysis/StatisticalReadingGuide";
 
@@ -160,6 +161,7 @@ export default async function EqResultPage({
     <SceneShell tone="eq">
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
         <ExplorationRecorder analysisKey="eq" />
+        <AnalysisResultTracker analysis="eq" />
         <IntegratedResultRecorder snapshot={integratedSnapshot} />
         <ReportHeader />
 

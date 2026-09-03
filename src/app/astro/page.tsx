@@ -7,6 +7,7 @@ import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { TierBadge } from "@/components/ui/Chrome";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { SceneShell } from "@/components/ui/SceneShell";
+import { AnalysisEntryTracker } from "@/components/analytics/AnalysisTracker";
 import { ASTRO_OVERVIEW_IMAGE } from "@/lib/astroAssets";
 
 /**
@@ -24,6 +25,7 @@ export default async function AstroEntryPage() {
   const t = await getTranslations("astro");
   return (
     <SceneShell>
+      <AnalysisEntryTracker analysis="astro" />
       <main className="mx-auto w-full max-w-3xl px-5 sm:px-8">
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
         <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">

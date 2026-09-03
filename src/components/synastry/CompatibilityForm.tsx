@@ -170,8 +170,8 @@ function ProfileFields({ profile, title, t, tBirthForm, onDateChange, onTimeChan
           {t("timeUnknown")}
         </label>
 
-        <label className="block">
-          <span className={labelClass}>{t("place")}</span>
+        <div className="block">
+          <label className={labelClass} htmlFor={`${uid}-place`}>{t("place")}</label>
           <LocationCombobox
             id={`${uid}-place`}
             value={profile.placeLabel}
@@ -188,7 +188,7 @@ function ProfileFields({ profile, title, t, tBirthForm, onDateChange, onTimeChan
               })
             }
           />
-        </label>
+        </div>
 
         <label className="block">
           <span className={labelClass}>{t("gender")}</span>

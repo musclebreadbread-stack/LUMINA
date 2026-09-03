@@ -25,9 +25,9 @@ const fieldClass =
 
 function useSyncedQuery(initial: string) {
   const [value, setValue] = useState(initial);
-  const lastInitial = useRef(initial);
-  if (lastInitial.current !== initial) {
-    lastInitial.current = initial;
+  const [lastInitial, setLastInitial] = useState(initial);
+  if (lastInitial !== initial) {
+    setLastInitial(initial);
     if (value !== initial) setValue(initial);
   }
   return { value, set: setValue };
@@ -42,15 +42,27 @@ export function LocationCombobox({ id, value, placeholder, emptyLabel, loadingLa
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // worldReady isn't a searchLocations() parameter — it reads a module-scope cache instead of a
+  // prop — but it must stay a dependency so this memo re-runs (and picks up world cities) once
+  // the async dataset finishes loading after the initial render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const results = useMemo(() => searchLocations(query.value, 8), [query.value, worldReady]);
 
   useEffect(() => {
     function handleOutsideClick(event: MouseEvent) {
-      if (!containerRef.current?.contains(event.target as Node)) setIsOpen(false);
+      if (containerRef.current?.contains(event.target as Node)) return;
+      setIsOpen(false);
+      setActiveIndex(-1);
+      if (query.value !== value) query.set(value);
     }
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, []);
+  }, [query, value]);
+
+  // Keep aria-activedescendant from pointing at a stale/unmounted option: if results reshuffle
+  // (e.g. the world dataset finishes loading mid-session) and activeIndex no longer indexes into
+  // the current results, treat it as unset for this render rather than setState-in-effect.
+  const safeActiveIndex = activeIndex < results.length ? activeIndex : -1;
 
   function handleFocus() {
     setIsOpen(true);
@@ -63,6 +75,15 @@ export function LocationCombobox({ id, value, placeholder, emptyLabel, loadingLa
         })
         .finally(() => setWorldLoading(false));
     }
+  }
+
+  function handleBlur() {
+    // Selecting an option via mouse calls preventDefault() on its mousedown, so the input never
+    // blurs during a real selection — this only fires for tab-away / focus-elsewhere without a
+    // selection, where we must revert the displayed text to the last committed value.
+    setIsOpen(false);
+    setActiveIndex(-1);
+    if (query.value !== value) query.set(value);
   }
 
   function selectResult(result: LocationSearchResult) {
@@ -87,9 +108,9 @@ export function LocationCombobox({ id, value, placeholder, emptyLabel, loadingLa
       event.preventDefault();
       setActiveIndex((i) => Math.max(i - 1, 0));
     } else if (event.key === "Enter") {
-      if (isOpen && activeIndex >= 0 && results[activeIndex]) {
+      if (isOpen && safeActiveIndex >= 0 && results[safeActiveIndex]) {
         event.preventDefault();
-        selectResult(results[activeIndex]);
+        selectResult(results[safeActiveIndex]);
       }
     } else if (event.key === "Escape") {
       setIsOpen(false);
@@ -108,11 +129,12 @@ export function LocationCombobox({ id, value, placeholder, emptyLabel, loadingLa
         aria-expanded={isListboxOpen}
         aria-controls={listboxId}
         aria-autocomplete="list"
-        aria-activedescendant={activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined}
+        aria-activedescendant={safeActiveIndex >= 0 ? `${listboxId}-option-${safeActiveIndex}` : undefined}
         autoComplete="off"
         value={query.value}
         placeholder={placeholder}
         onFocus={handleFocus}
+        onBlur={handleBlur}
         onChange={(e) => {
           query.set(e.target.value);
           setIsOpen(true);
@@ -128,13 +150,13 @@ export function LocationCombobox({ id, value, placeholder, emptyLabel, loadingLa
               key={`${result.lat},${result.lng}`}
               id={`${listboxId}-option-${index}`}
               role="option"
-              aria-selected={index === activeIndex}
+              aria-selected={index === safeActiveIndex}
               onMouseDown={(e) => {
                 e.preventDefault(); // keep focus on the input through the click
                 selectResult(result);
               }}
               className={`cursor-pointer px-3 py-2 font-mono text-sm ${
-                index === activeIndex ? "bg-hobun/15 text-hobun" : "text-hobun-dim hover:bg-ink-800"
+                index === safeActiveIndex ? "bg-hobun/15 text-hobun" : "text-hobun-dim hover:bg-ink-800"
               }`}
             >
               {result.ko}

@@ -346,7 +346,7 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
           </dl>
 
           <p className="mt-3 text-xs leading-relaxed text-hobun-faint">
-            {t(view.precision.totalCorrectionMinutes < 0 ? "placeCorrectionEarlier" : "placeCorrectionLater", {
+            {t(view.precision.totalCorrectionMinutes <= 0 ? "placeCorrectionEarlier" : "placeCorrectionLater", {
               place: placeDisplayLabel(view.placeLabel, view.placeLabelEn, locale),
               minutes: Math.round(Math.abs(view.precision.totalCorrectionMinutes)),
             })}

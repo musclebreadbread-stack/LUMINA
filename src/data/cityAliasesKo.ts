@@ -1,0 +1,80 @@
+/**
+ * 해외 도시 중 한국에서 관용적으로 쓰는 한글 표기(예: 뉴욕, 런던) 검색용 별칭.
+ * matchName/matchCountryCode는 public/data/world-cities.json의 실제 행과
+ * 정확히 일치해야 한다 — scripts/validate-city-aliases.mjs로 검증한다.
+ * 전량 번역이 아니라 검색 편의를 위한 상위 도시 한정 목록이다.
+ */
+
+export interface CityAlias {
+  readonly ko: string;
+  readonly matchName: string;
+  readonly matchCountryCode: string;
+}
+
+export const CITY_ALIASES_KO: readonly CityAlias[] = [
+  { ko: "뉴욕", matchName: "New York City", matchCountryCode: "US" },
+  { ko: "로스앤젤레스", matchName: "Los Angeles", matchCountryCode: "US" },
+  { ko: "엘에이", matchName: "Los Angeles", matchCountryCode: "US" },
+  { ko: "샌프란시스코", matchName: "San Francisco", matchCountryCode: "US" },
+  { ko: "시카고", matchName: "Chicago", matchCountryCode: "US" },
+  { ko: "라스베이거스", matchName: "Las Vegas", matchCountryCode: "US" },
+  { ko: "시애틀", matchName: "Seattle", matchCountryCode: "US" },
+  { ko: "보스턴", matchName: "Boston", matchCountryCode: "US" },
+  { ko: "워싱턴", matchName: "Washington", matchCountryCode: "US" },
+  { ko: "하와이", matchName: "Honolulu", matchCountryCode: "US" },
+  { ko: "호놀룰루", matchName: "Honolulu", matchCountryCode: "US" },
+  { ko: "런던", matchName: "London", matchCountryCode: "GB" },
+  { ko: "파리", matchName: "Paris", matchCountryCode: "FR" },
+  { ko: "베를린", matchName: "Berlin", matchCountryCode: "DE" },
+  { ko: "뮌헨", matchName: "Munich", matchCountryCode: "DE" },
+  { ko: "프랑크푸르트", matchName: "Frankfurt am Main", matchCountryCode: "DE" },
+  { ko: "로마", matchName: "Rome", matchCountryCode: "IT" },
+  { ko: "밀라노", matchName: "Milan", matchCountryCode: "IT" },
+  { ko: "마드리드", matchName: "Madrid", matchCountryCode: "ES" },
+  { ko: "바르셀로나", matchName: "Barcelona", matchCountryCode: "ES" },
+  { ko: "암스테르담", matchName: "Amsterdam", matchCountryCode: "NL" },
+  { ko: "비엔나", matchName: "Vienna", matchCountryCode: "AT" },
+  { ko: "빈", matchName: "Vienna", matchCountryCode: "AT" },
+  { ko: "취리히", matchName: "Zuerich", matchCountryCode: "CH" },
+  { ko: "모스크바", matchName: "Moscow", matchCountryCode: "RU" },
+  { ko: "이스탄불", matchName: "Istanbul", matchCountryCode: "TR" },
+  { ko: "두바이", matchName: "Dubai", matchCountryCode: "AE" },
+  { ko: "도쿄", matchName: "Tokyo", matchCountryCode: "JP" },
+  { ko: "오사카", matchName: "Osaka", matchCountryCode: "JP" },
+  { ko: "교토", matchName: "Kyoto", matchCountryCode: "JP" },
+  { ko: "후쿠오카", matchName: "Fukuoka", matchCountryCode: "JP" },
+  { ko: "삿포로", matchName: "Sapporo", matchCountryCode: "JP" },
+  { ko: "나고야", matchName: "Nagoya", matchCountryCode: "JP" },
+  { ko: "요코하마", matchName: "Yokohama", matchCountryCode: "JP" },
+  { ko: "베이징", matchName: "Beijing", matchCountryCode: "CN" },
+  { ko: "상하이", matchName: "Shanghai", matchCountryCode: "CN" },
+  { ko: "선전", matchName: "Shenzhen", matchCountryCode: "CN" },
+  { ko: "광저우", matchName: "Guangzhou", matchCountryCode: "CN" },
+  { ko: "청두", matchName: "Chengdu", matchCountryCode: "CN" },
+  { ko: "홍콩", matchName: "Hong Kong", matchCountryCode: "HK" },
+  { ko: "마카오", matchName: "Macau", matchCountryCode: "MO" },
+  { ko: "타이베이", matchName: "Taipei", matchCountryCode: "TW" },
+  { ko: "가오슝", matchName: "Kaohsiung", matchCountryCode: "TW" },
+  { ko: "방콕", matchName: "Bangkok", matchCountryCode: "TH" },
+  { ko: "싱가포르", matchName: "Singapore", matchCountryCode: "SG" },
+  { ko: "쿠알라룸푸르", matchName: "Kuala Lumpur", matchCountryCode: "MY" },
+  { ko: "자카르타", matchName: "Jakarta", matchCountryCode: "ID" },
+  { ko: "마닐라", matchName: "Manila", matchCountryCode: "PH" },
+  { ko: "하노이", matchName: "Hanoi", matchCountryCode: "VN" },
+  { ko: "호치민", matchName: "Ho Chi Minh City", matchCountryCode: "VN" },
+  { ko: "뭄바이", matchName: "Mumbai", matchCountryCode: "IN" },
+  { ko: "델리", matchName: "Delhi", matchCountryCode: "IN" },
+  { ko: "뉴델리", matchName: "New Delhi", matchCountryCode: "IN" },
+  { ko: "시드니", matchName: "Sydney", matchCountryCode: "AU" },
+  { ko: "멜버른", matchName: "Melbourne", matchCountryCode: "AU" },
+  { ko: "오클랜드", matchName: "Auckland", matchCountryCode: "NZ" },
+  { ko: "토론토", matchName: "Toronto", matchCountryCode: "CA" },
+  { ko: "밴쿠버", matchName: "Vancouver", matchCountryCode: "CA" },
+  { ko: "몬트리올", matchName: "Montreal", matchCountryCode: "CA" },
+  { ko: "멕시코시티", matchName: "Mexico City", matchCountryCode: "MX" },
+  { ko: "상파울루", matchName: "Sao Paulo", matchCountryCode: "BR" },
+  { ko: "리우데자네이루", matchName: "Rio de Janeiro", matchCountryCode: "BR" },
+  { ko: "부에노스아이레스", matchName: "Buenos Aires", matchCountryCode: "AR" },
+  { ko: "카이로", matchName: "Cairo", matchCountryCode: "EG" },
+  { ko: "요하네스버그", matchName: "Johannesburg", matchCountryCode: "ZA" },
+];

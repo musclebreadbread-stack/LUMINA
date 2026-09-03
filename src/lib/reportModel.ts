@@ -122,6 +122,7 @@ export interface ReportView {
   readonly birthLocalISO: string;
   readonly lunar: { readonly year: number; readonly month: number; readonly day: number; readonly isLeapMonth: boolean } | null;
   readonly placeLabel: string;
+  readonly placeLabelEn: string;
   readonly gender: Gender;
   readonly dayBoundaryRule: "zi23" | "midnight";
 
@@ -131,6 +132,8 @@ export interface ReportView {
     readonly isDST: boolean;
     readonly clockLabel: string;
     readonly trueSolarLabel: string;
+    /** null이면 출생지가 이미 한국 표준시(Asia/Seoul)를 쓴다는 뜻. */
+    readonly kstLabel: string | null;
     /** 분 단위. 단위 표기("분"/"min")는 화면에서 로케일에 맞게 붙인다. */
     readonly longitudeCorrectionMinutes: number;
     readonly equationOfTimeMinutes: number;
@@ -425,6 +428,11 @@ export function buildReportView(profile: StoredProfile, referenceDate: Date): Re
     ? computeYearlyLuckRange(result.pillars, result.current.yearlyLuck.year - 1, 5)
     : [];
 
+  const kstLabel =
+    zone === "Asia/Seoul"
+      ? null
+      : DateTime.fromISO(result.time.instantISO, { zone: "Asia/Seoul" }).toFormat("yyyy-MM-dd HH:mm");
+
   return {
     birthLocalISO: local.toISO() ?? "",
     lunar: result.birth.lunar
@@ -436,6 +444,7 @@ export function buildReportView(profile: StoredProfile, referenceDate: Date): Re
         }
       : null,
     placeLabel: profile.placeLabel,
+    placeLabelEn: profile.placeLabelEn,
     gender: profile.gender,
     dayBoundaryRule: result.options.dayBoundaryRule,
 
@@ -445,6 +454,7 @@ export function buildReportView(profile: StoredProfile, referenceDate: Date): Re
       isDST: result.time.isDST,
       clockLabel: local.toFormat("HH:mm"),
       trueSolarLabel: trueSolar.toFormat("HH:mm:ss"),
+      kstLabel,
       longitudeCorrectionMinutes: result.time.longitudeCorrectionMinutes,
       equationOfTimeMinutes: result.time.equationOfTimeMinutes,
       totalCorrectionMinutes: result.time.totalCorrectionMinutes,

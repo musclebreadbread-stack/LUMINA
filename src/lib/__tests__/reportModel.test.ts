@@ -29,4 +29,21 @@ describe("saju report view model", () => {
     expect(stageLabel("장생", "ko")).toBe("장생");
     expect(stageLabel("장생", "en")).not.toBe("장생");
   });
+
+  it("adds a Korea-Standard-Time equivalent only for non-Seoul timezones", () => {
+    const seoulView = buildReportView(DEFAULT_PROFILE, new Date("2026-08-20T00:00:00Z"));
+    expect(seoulView.precision.kstLabel).toBeNull();
+
+    const sydneyProfile = {
+      ...DEFAULT_PROFILE,
+      lat: -33.8688,
+      lng: 151.2093,
+      timeZone: "Australia/Sydney",
+      placeLabel: "시드니",
+      placeLabelEn: "Sydney",
+    };
+    const sydneyView = buildReportView(sydneyProfile, new Date("2026-08-20T00:00:00Z"));
+    expect(sydneyView.precision.kstLabel).not.toBeNull();
+    expect(sydneyView.precision.kstLabel).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
+  });
 });

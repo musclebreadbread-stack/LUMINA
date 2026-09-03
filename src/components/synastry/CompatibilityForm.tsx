@@ -1,13 +1,13 @@
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { Gender } from "@engine/shared/birth";
-import { DEFAULT_PROFILE, PLACES, type StoredProfile } from "@/lib/profile";
+import { DEFAULT_PROFILE, type StoredProfile } from "@/lib/profile";
 import { encodeProfile } from "@/lib/share";
+import { LocationCombobox } from "@/components/LocationCombobox";
 import { track } from "@/lib/analytics";
-import type { Locale } from "@/i18n/locale";
 
 type PersonKey = "a" | "b";
 
@@ -48,8 +48,8 @@ function isValidTime(profile: StoredProfile): boolean {
 
 export function CompatibilityForm() {
   const router = useRouter();
-  const locale = useLocale() as Locale;
   const t = useTranslations("compatibility");
+  const tBirthForm = useTranslations("birthForm");
   const [first, setFirst] = useState<StoredProfile>(DEFAULT_PROFILE);
   const [second, setSecond] = useState<StoredProfile>({ ...DEFAULT_PROFILE, day: 16 });
   const [error, setError] = useState<string | null>(null);
@@ -96,8 +96,8 @@ export function CompatibilityForm() {
         <ProfileFields
           profile={first}
           title={t("personA")}
-          locale={locale}
           t={t}
+          tBirthForm={tBirthForm}
           onDateChange={(value) => updateDate("a", value)}
           onTimeChange={(value) => updateTime("a", value)}
           onPatch={(patch) => update("a", patch)}
@@ -105,8 +105,8 @@ export function CompatibilityForm() {
         <ProfileFields
           profile={second}
           title={t("personB")}
-          locale={locale}
           t={t}
+          tBirthForm={tBirthForm}
           onDateChange={(value) => updateDate("b", value)}
           onTimeChange={(value) => updateTime("b", value)}
           onPatch={(patch) => update("b", patch)}
@@ -127,14 +127,15 @@ export function CompatibilityForm() {
 interface ProfileFieldsProps {
   readonly profile: StoredProfile;
   readonly title: string;
-  readonly locale: Locale;
   readonly t: ReturnType<typeof useTranslations<"compatibility">>;
+  readonly tBirthForm: ReturnType<typeof useTranslations<"birthForm">>;
   readonly onDateChange: (value: string) => void;
   readonly onTimeChange: (value: string) => void;
   readonly onPatch: (patch: Partial<StoredProfile>) => void;
 }
 
-function ProfileFields({ profile, title, locale, t, onDateChange, onTimeChange, onPatch }: ProfileFieldsProps) {
+function ProfileFields({ profile, title, t, tBirthForm, onDateChange, onTimeChange, onPatch }: ProfileFieldsProps) {
+  const uid = useId();
   return (
     <fieldset className="border border-ink-700 bg-ink-900/55 p-5 sm:p-6">
       <legend className="px-2 text-lg font-medium text-hobun">{title}</legend>
@@ -171,21 +172,25 @@ function ProfileFields({ profile, title, locale, t, onDateChange, onTimeChange, 
           {t("timeUnknown")}
         </label>
 
-        <label className="block">
-          <span className={labelClass}>{t("place")}</span>
-          <select
+        <div className="block">
+          <label className={labelClass} htmlFor={`${uid}-place`}>{t("place")}</label>
+          <LocationCombobox
+            id={`${uid}-place`}
             value={profile.placeLabel}
-            onChange={(event) => {
-              const place = PLACES.find((candidate) => candidate.label === event.target.value);
-              if (place) onPatch({ placeLabel: place.label, lat: place.lat, lng: place.lng, timeZone: place.timeZone });
-            }}
-            className={fieldClass}
-          >
-            {PLACES.map((place) => (
-              <option key={place.label} value={place.label}>{locale === "en" ? place.labelEn : place.label}</option>
-            ))}
-          </select>
-        </label>
+            placeholder={tBirthForm("placeSearchPlaceholder")}
+            emptyLabel={tBirthForm("placeSearchEmpty")}
+            loadingLabel={tBirthForm("placeSearchLoadingWorld")}
+            onSelect={(entry) =>
+              onPatch({
+                placeLabel: entry.ko,
+                placeLabelEn: entry.en,
+                lat: entry.lat,
+                lng: entry.lng,
+                timeZone: entry.timeZone,
+              })
+            }
+          />
+        </div>
 
         <label className="block">
           <span className={labelClass}>{t("gender")}</span>

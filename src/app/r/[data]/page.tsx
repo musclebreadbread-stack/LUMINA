@@ -227,7 +227,7 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
         />
         <p className="mt-3 font-mono text-[13px] leading-relaxed text-hobun-faint">
           {lunarLabel ? `${lunarLabel} · ` : ""}
-          {placeDisplayLabel(view.placeLabel, locale)} · {tBirthForm(genderKey)}
+          {placeDisplayLabel(view.placeLabel, view.placeLabelEn, locale)} · {tBirthForm(genderKey)}
         </p>
       </div>
 
@@ -337,6 +337,9 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
               value={view.precision.trueSolarLabel}
               note={formatSignedMinutes(view.precision.totalCorrectionMinutes, minuteUnit)}
             />
+            {view.precision.kstLabel && (
+              <DataRow label={t("labelKst")} value={view.precision.kstLabel} />
+            )}
             <DataRow label={t("labelTermEntry")} value={`${termName} ${view.termEntry.instantLabel}`} />
             <DataRow
               label={t("labelDayBoundary")}
@@ -344,6 +347,12 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
             />
           </dl>
 
+          <p className="mt-3 text-xs leading-relaxed text-hobun-faint">
+            {t(view.precision.totalCorrectionMinutes <= 0 ? "placeCorrectionEarlier" : "placeCorrectionLater", {
+              place: placeDisplayLabel(view.placeLabel, view.placeLabelEn, locale),
+              minutes: Math.round(Math.abs(view.precision.totalCorrectionMinutes)),
+            })}
+          </p>
           <p className="mt-5 text-xs leading-relaxed text-hobun-faint">{t("calcNote")}</p>
           </div>
         </div>

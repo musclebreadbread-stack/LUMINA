@@ -57,6 +57,7 @@ export interface AstroView {
   readonly birthLocalISO: string;
   readonly timeUnknown: boolean;
   readonly placeLabel: string;
+  readonly placeLabelEn: string;
 
   readonly bigThree: {
     readonly sun: { readonly ko: string; readonly en: string; readonly symbol: string; readonly signIndex: number };
@@ -207,6 +208,7 @@ export function buildAstroView(
     birthLocalISO: local.toISO() ?? "",
     timeUnknown: chart.time.timeUnknown,
     placeLabel: profile.placeLabel,
+    placeLabelEn: profile.placeLabelEn,
 
     bigThree: {
       sun: { ko: chart.bigThree.sun.ko, en: chart.bigThree.sun.en, symbol: chart.bigThree.sun.symbol, signIndex: chart.bigThree.sun.index },

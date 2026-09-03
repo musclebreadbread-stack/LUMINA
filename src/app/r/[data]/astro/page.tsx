@@ -191,7 +191,7 @@ export default async function AstroPage({
           tier="cultural"
         />
         <p className="mt-3 font-mono text-[13px] text-hobun-faint">
-          {placeDisplayLabel(view.placeLabel, locale)} · {t("navLabel")}
+          {placeDisplayLabel(view.placeLabel, view.placeLabelEn, locale)} · {t("navLabel")}
         </p>
       </div>
 

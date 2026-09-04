@@ -43,11 +43,26 @@ describe("integrated portrait character recipe", () => {
     expect(createCharacterRecipe([low])).toEqual(createCharacterRecipe([high]));
   });
 
+  it("includes one artwork for every current lens and promotes the latest lens", () => {
+    const bigFive = snapshot("big-five", "psychometrics", "low");
+    const darkTriad = {
+      ...snapshot("dark-triad", "darktriad", "high"),
+      completedAt: "2026-08-30T00:00:00.000Z",
+    };
+
+    expect(createCharacterRecipe([bigFive, darkTriad])).toMatchObject({
+      artworkKeys: ["darktriad", "psychometrics"],
+      primaryArtworkKey: "darktriad",
+    });
+  });
+
   it("returns a local fallback recipe for an empty set", () => {
     expect(createCharacterRecipe([])).toMatchObject({
       schemaVersion: 1,
       fallback: true,
       backgroundLayer: "ink-mist",
+      artworkKeys: [],
+      primaryArtworkKey: null,
     });
   });
 });

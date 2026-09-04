@@ -1695,7 +1695,31 @@
       "eyebrow": "CURRENT SELF PORTRAIT / EXPLORATORY",
       "title": "One scene made from several lenses",
       "line": "This current portrait draws from {analyses} analyses and {perspectives} scientific provenance groups.",
-      "limit": "The character is a memory aid, not a visual translation of high or low scores or a measure of human worth. It is not for diagnosis, prediction, or placement."
+      "limit": "The images are memory aids for completed analysis lenses, not visual translations of high or low scores or measures of human worth. They are not for diagnosis, prediction, or placement."
+    },
+    "artwork": {
+      "stageLabel": "Analysis lens artwork included in the current result",
+      "stripLabel": "Completed analysis lens artwork",
+      "label": {
+        "saju": "Saju symbolic artwork",
+        "astro": "Astrology symbolic artwork",
+        "numerology": "Numerology symbolic artwork",
+        "psychometrics": "Big Five observation artwork",
+        "jungian": "Jungian-style observation artwork",
+        "darktriad": "Dark Triad observation artwork",
+        "attachment": "Attachment observation artwork",
+        "eq": "Emotional-intelligence observation artwork"
+      },
+      "alt": {
+        "saju": "A mountain and seed symbol holding five natural elements",
+        "astro": "A celestial symbol made of three orbits around a glowing seed",
+        "numerology": "A spiral symbol of unmarked stones around a seed of light",
+        "psychometrics": "A symbol of five currents circling a stone seed",
+        "jungian": "A threshold symbol showing an open doorway between two stone pillars",
+        "darktriad": "An obsidian seed symbol reflecting light across three facets",
+        "attachment": "A harbor symbol where reed and clay forms shelter a small ember",
+        "eq": "A resonant bowl symbol holding calm ripples and moonlight"
+      }
     },
     "composition": {
       "title": "What makes up this portrait",

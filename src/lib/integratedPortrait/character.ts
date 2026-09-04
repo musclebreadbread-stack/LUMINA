@@ -1,4 +1,9 @@
-import type { CharacterRecipeV1, ResultSnapshotV1 } from "./contracts";
+import type {
+  CharacterRecipeV1,
+  PortraitArtworkKey,
+  ResultSnapshotV1,
+} from "./contracts";
+import { PORTRAIT_ARTWORK_KEYS } from "./artwork";
 import { isSnapshotEligibleForPortrait } from "./registry";
 import { selectCurrentSnapshots } from "./snapshot";
 
@@ -8,6 +13,7 @@ const BACKGROUND_LAYERS = ["ink-mist", "paper-dusk", "smoke-veil", "moon-field"]
 const FRAME_LAYERS = ["ring", "arch", "window", "halo"] as const;
 const ACCENT_LAYERS = ["ember", "reed", "stone", "mist"] as const;
 const MOTION_VARIANTS = ["slow-drift", "quiet-pulse", "still"] as const;
+const PORTRAIT_ARTWORK_KEY_SET: ReadonlySet<PortraitArtworkKey> = new Set(PORTRAIT_ARTWORK_KEYS);
 
 function hashString(value: string): number {
   let hash = 2166136261;
@@ -32,8 +38,21 @@ function fallbackRecipe(): CharacterRecipeV1 {
     frameLayer: "ring",
     accentLayer: "mist",
     motionVariant: "still",
+    artworkKeys: Object.freeze([]),
+    primaryArtworkKey: null,
     fallback: true,
   });
+}
+
+function isPortraitArtworkKey(value: string): value is PortraitArtworkKey {
+  return PORTRAIT_ARTWORK_KEY_SET.has(value as PortraitArtworkKey);
+}
+
+function isMoreRecent(candidate: ResultSnapshotV1, current: ResultSnapshotV1): boolean {
+  const completedAtOrder = candidate.completedAt.localeCompare(current.completedAt);
+  if (completedAtOrder !== 0) return completedAtOrder > 0;
+
+  return candidate.id.localeCompare(current.id) > 0;
 }
 
 /**
@@ -44,15 +63,22 @@ function fallbackRecipe(): CharacterRecipeV1 {
 export function createCharacterRecipe(
   snapshots: readonly ResultSnapshotV1[],
 ): CharacterRecipeV1 {
-  const analysisKeys = [...new Set(
-    selectCurrentSnapshots(snapshots)
-      .filter(isSnapshotEligibleForPortrait)
-      .map((snapshot) => snapshot.analysisKey),
-  )].sort((left, right) => left.localeCompare(right));
+  const currentSnapshots = selectCurrentSnapshots(snapshots).filter(isSnapshotEligibleForPortrait);
+  const analysisKeys = [...new Set(currentSnapshots.map((snapshot) => snapshot.analysisKey))]
+    .sort((left, right) => left.localeCompare(right));
+  const artworkKeys = analysisKeys.filter(isPortraitArtworkKey);
 
   if (analysisKeys.length === 0) {
     return fallbackRecipe();
   }
+
+  const latestSnapshot = currentSnapshots.reduce<ResultSnapshotV1 | null>(
+    (latest, snapshot) => (latest === null || isMoreRecent(snapshot, latest) ? snapshot : latest),
+    null,
+  );
+  const primaryArtworkKey = latestSnapshot && isPortraitArtworkKey(latestSnapshot.analysisKey)
+    ? latestSnapshot.analysisKey
+    : artworkKeys[0] ?? null;
 
   const seed = `${CHARACTER_SEED}:${analysisKeys.join("|")}`;
   const hash = hashString(seed);
@@ -64,6 +90,8 @@ export function createCharacterRecipe(
     frameLayer: pick(FRAME_LAYERS, hash, 1),
     accentLayer: pick(ACCENT_LAYERS, hash, 2),
     motionVariant: pick(MOTION_VARIANTS, hash, 3),
+    artworkKeys: Object.freeze(artworkKeys),
+    primaryArtworkKey,
     fallback: false,
   });
 }

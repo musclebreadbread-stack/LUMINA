@@ -236,6 +236,22 @@ test.describe("integrated self portrait capture boundary", () => {
     await expect(page.getByTestId("integrated-evidence-composition")).toBeVisible();
   });
 
+  test("renders the artwork set for every current analysis lens", async ({ page }) => {
+    await seedPortraitSnapshots(page, [
+      fixture("00000000-0000-4000-8000-000000000324", "psychometrics", "bigfive.extraversion"),
+      fixture("00000000-0000-4000-8000-000000000325", "darktriad", "darktriad.narcissism"),
+      fixture("00000000-0000-4000-8000-000000000326", "saju", "saju.dominant-element"),
+    ]);
+
+    const character = page.getByTestId("integrated-character");
+    await expect(character).toHaveAttribute("data-artwork-count", "3");
+    await expect(character).toHaveAttribute("data-primary-artwork", /^(psychometrics|darktriad|saju)$/);
+    await expect(page.locator('[data-testid="integrated-character-artwork"]')).toBeVisible();
+    await expect(page.locator('[data-artwork-key="psychometrics"]')).toBeVisible();
+    await expect(page.locator('[data-artwork-key="darktriad"]')).toBeVisible();
+    await expect(page.locator('[data-artwork-key="saju"]')).toBeVisible();
+  });
+
   test("uses a static character fallback when reduced motion is requested", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await seedPortraitSnapshots(page, [

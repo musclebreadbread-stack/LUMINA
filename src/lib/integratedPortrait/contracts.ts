@@ -6,6 +6,21 @@ export type ResultLane = "scientific" | "cultural" | "situational" | "relational
 
 export type SnapshotBand = "low" | "mid" | "high";
 
+/**
+ * The analyses that have an approved visual companion in the integrated
+ * portrait. Pilot-withheld and contextual analyses intentionally stay out of
+ * this union so a missing artwork cannot silently become a portrait signal.
+ */
+export type PortraitArtworkKey =
+  | "saju"
+  | "astro"
+  | "numerology"
+  | "psychometrics"
+  | "jungian"
+  | "darktriad"
+  | "attachment"
+  | "eq";
+
 export type SignalValue =
   | Readonly<{ kind: "band"; band: SnapshotBand }>
   | Readonly<{ kind: "category"; code: string }>
@@ -91,5 +106,9 @@ export interface CharacterRecipeV1 {
   readonly frameLayer: string;
   readonly accentLayer: string;
   readonly motionVariant: string;
+  /** Current latest analysis lenses represented in the artwork rail. */
+  readonly artworkKeys: readonly PortraitArtworkKey[];
+  /** The most recently completed lens used for the large hero artwork. */
+  readonly primaryArtworkKey: PortraitArtworkKey | null;
   readonly fallback: boolean;
 }

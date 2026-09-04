@@ -116,20 +116,21 @@ export function BgmControl() {
 
   return (
     <div className="bgm-control no-print fixed right-4 top-4 z-[80] sm:right-6 sm:top-5">
+      {/* Icon-only: a full text pill would sit under the header's right-aligned
+          locale/tier controls at common desktop widths, since both are anchored
+          to the right edge of two different boxes (viewport vs. content column). */}
       <button
         type="button"
-        className="theme-control inline-flex min-h-11 items-center gap-2 border border-ink-700 bg-ink-950/85 px-3 py-2 font-mono text-[11px] tracking-[0.12em] text-hobun-dim shadow-lg shadow-black/20 backdrop-blur-md transition-colors hover:text-hobun"
+        className="theme-control inline-flex h-11 w-11 items-center justify-center border border-ink-700 bg-ink-950/85 text-base text-signal shadow-lg shadow-black/20 backdrop-blur-md transition-colors hover:text-hobun"
         aria-label={buttonLabel}
         aria-pressed={enabled}
         data-testid="bgm-toggle"
         title={buttonLabel}
         onClick={handleToggle}
       >
-        <span aria-hidden="true" className="text-sm leading-none text-signal">
+        <span aria-hidden="true" className="leading-none">
           {enabled ? "♫" : "♩"}
         </span>
-        <span>{t("label")}</span>
-        <span className="text-[10px] text-hobun-faint">{enabled ? t("on") : t("off")}</span>
       </button>
       <audio ref={audioRef} aria-hidden="true" className="sr-only" preload="none" />
     </div>

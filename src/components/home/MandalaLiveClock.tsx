@@ -9,15 +9,16 @@ const KST_FORMATTER = new Intl.DateTimeFormat("en-CA", {
   day: "2-digit",
   hour: "2-digit",
   minute: "2-digit",
+  second: "2-digit",
   hour12: false,
 });
 
-/** 서버가 만든 "yyyy-MM-dd HH:mm"과 같은 형식으로 맞춘다 — 로케일/브라우저에 따라
+/** 서버가 만든 "yyyy-MM-dd HH:mm:ss"와 같은 형식으로 맞춘다 — 로케일/브라우저에 따라
  *  구분자가 달라지는 toLocaleString 대신 formatToParts로 직접 조립한다. */
 function formatNowKst(): string {
   const parts = KST_FORMATTER.formatToParts(new Date());
   const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
-  return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}`;
+  return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}:${get("second")}`;
 }
 
 /**

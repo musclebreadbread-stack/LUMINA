@@ -64,14 +64,18 @@ export default async function AllReportPage({
 }) {
   const { data } = await params;
   const profile = decodeProfile(data);
-  const locale = (await getLocale()) as Locale;
-  const tNav = await getTranslations("nav");
-  const tSaju = await getTranslations("saju");
-  const tAstro = await getTranslations("astro");
-  const tNumerology = await getTranslations("numerology");
-  const tPsychometrics = await getTranslations("psychometrics");
-  const tHoroscope = await getTranslations("horoscope");
-  const tCommon = await getTranslations("common");
+  const [localeValue, tNav, tSaju, tAstro, tNumerology, tPsychometrics, tHoroscope, tCommon] =
+    await Promise.all([
+      getLocale(),
+      getTranslations("nav"),
+      getTranslations("saju"),
+      getTranslations("astro"),
+      getTranslations("numerology"),
+      getTranslations("psychometrics"),
+      getTranslations("horoscope"),
+      getTranslations("common"),
+    ]);
+  const locale = localeValue as Locale;
 
   if (!profile) {
     return (

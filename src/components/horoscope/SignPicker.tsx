@@ -157,6 +157,7 @@ export function SignPicker() {
           <Link
             key={sign.key}
             href={`/horoscope/${sign.system}/${sign.key}`}
+            prefetch={false}
             aria-current={
               currentDerivedSigns?.[sign.system === "zodiac" ? "zodiac" : "chinese"] === sign.key
                 ? "true"

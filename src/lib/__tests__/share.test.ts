@@ -27,6 +27,15 @@ describe("profile share payload", () => {
     });
   });
 
+  it("writes the explicit current payload version", () => {
+    const encoded = encodeProfile(DEFAULT_PROFILE);
+    const raw = LZString.decompressFromEncodedURIComponent(encoded);
+
+    expect(raw).not.toBeNull();
+    expect(JSON.parse(raw ?? "null")).toHaveLength(15);
+    expect(JSON.parse(raw ?? "null")[0]).toBe("profile-v2");
+  });
+
   it("keeps the selected day-boundary convention in new links", () => {
     const profile: StoredProfile = { ...DEFAULT_PROFILE, dayBoundaryRule: "midnight" };
     expect(decodeProfile(encodeProfile(profile))?.dayBoundaryRule).toBe("midnight");
@@ -92,6 +101,31 @@ describe("profile share payload", () => {
       DEFAULT_PROFILE.placeLabel,
     ];
     expect(decodeProfile(encodePacked(legacy))?.dayBoundaryRule).toBe("zi23");
+  });
+
+  it("keeps lunar payloads out of Gregorian month-length validation", () => {
+    const lunar = [
+      1990,
+      2,
+      30,
+      1,
+      0,
+      12,
+      0,
+      0,
+      37.5,
+      127,
+      "Asia/Seoul",
+      "서울",
+      0,
+      "Seoul",
+    ];
+
+    expect(decodeProfile(encodePacked(lunar))).toMatchObject({
+      calendar: "lunar",
+      month: 2,
+      day: 30,
+    });
   });
 
   it.each([

@@ -82,7 +82,12 @@ interface Params {
 
 async function resolveShareSummary({ kind, code }: Params): Promise<ShareSummaryV1 | null> {
   if (!isShareKind(kind)) return null;
-  return decodeShareCode(code, kind);
+  const summary = decodeShareCode(code, kind);
+  // cognitive v2 predates the release gate and contains theoretical IQ/CI
+  // fields. It remains decodable for migration tooling, but is never a
+  // public result until a Korean adult norm is approved.
+  if (summary?.kind === "cognitive" && summary.version === 2) return null;
+  return summary;
 }
 
 async function buildPageMeta(summary: ShareSummaryV1): Promise<ShareMetaText> {
@@ -571,11 +576,7 @@ async function CognitiveShareBody({ summary }: { readonly summary: CognitiveSumm
   );
 }
 
-/**
- * 표준화 인지평가(cognitive-standardized)의 θ~N(0,1) 이론 분포 기반 IQ 추정치 공유 요약.
- * `estimateTag`("이론 분포 기반 추정치")를 IQ 숫자와 항상 같은 카드 안에 두어, 승인된
- * 규준 점수와 혼동할 수 없게 한다. 백분위·밴드는 iq에서 그 자리에서 재계산한다.
- */
+/** 이전 cognitive v2 링크도 IQ·신뢰구간을 복원하지 않고 공개 경계를 유지한다. */
 async function CognitiveEstimateShareBody({ summary }: { readonly summary: CognitiveSummaryV2 }) {
   const [tShare, tHome, tCognitive] = await Promise.all([
     getTranslations({ locale: summary.locale, namespace: "share" }),
@@ -584,7 +585,6 @@ async function CognitiveEstimateShareBody({ summary }: { readonly summary: Cogni
   ]);
   const evidence = analysisDefinition(SHARE_KIND_ANALYSIS_KEY.cognitive);
   const kindTitle = tHome(SHARE_KIND_HUB_TITLE_KEY.cognitive);
-  const [lower, upper] = summary.confidenceInterval95;
 
   return (
     <>
@@ -598,26 +598,12 @@ async function CognitiveEstimateShareBody({ summary }: { readonly summary: Cogni
       />
 
       <section className="border-t border-ink-700 pt-8">
-        <h2 className="text-lg font-medium text-hobun">{tCognitive("sectionDomains")}</h2>
+        <h2 className="text-lg font-medium text-hobun">{tCognitive("notAnIqTitle")}</h2>
 
         <div className="mt-5 rounded-[1.25rem] border border-ink-700 bg-ink-950/70 p-5">
-          <p className="tabular font-mono text-4xl text-hobun">{summary.iq}</p>
-          <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em] text-hobun-faint">{tCognitive("estimateTag")}</p>
-          <p className="mt-3 text-sm text-hobun-dim">{tCognitive("estimateCiLabel", { low: lower, high: upper })}</p>
-          <p className="mt-3 text-xs leading-relaxed text-hobun-faint">{tCognitive("estimateNotice")}</p>
+          <p className="text-sm leading-relaxed text-hobun-dim">{tCognitive("noScoreNotice")}</p>
+          <p className="mt-3 text-xs leading-relaxed text-hobun-faint">{tCognitive("pilotNotice")}</p>
         </div>
-
-        <div className="mt-5 flex flex-col gap-4">
-          {summary.domains.map((entry) => (
-            <CognitiveDomainRow
-              key={entry.domain}
-              label={tCognitive(`stdDomains.${entry.domain}.label`)}
-              accuracy0to100={entry.accuracy0to100}
-              countLabel={`${Math.round((entry.accuracy0to100 / 100) * 4)} / 4`}
-            />
-          ))}
-        </div>
-        <p className="mt-5 text-xs leading-relaxed text-hobun-faint">{tCognitive("coarseResolutionNote")}</p>
       </section>
 
       <SummaryOnlyNotice text={tShare("summaryOnlyNotice")} limitation={evidence.evidence.limitations[0] ?? ""} limitationLabel={tShare("limitationLabel")} />

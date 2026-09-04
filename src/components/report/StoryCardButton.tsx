@@ -14,7 +14,6 @@ import {
 } from "@engine/cognitive/items";
 import { classifyQuadrant } from "@engine/attachment/quadrants";
 import type { AnalysisKey } from "@engine/shared/evidence";
-import type { StandardizedDomain } from "@engine/cognitive-standardized/types";
 import { AXIS_LABELS } from "@/lib/attachmentModel";
 import { assetPath } from "@/lib/assets";
 import { COGNITIVE_OVERVIEW_IMAGE, eqImagePath } from "@/lib/psychometricsAssets";
@@ -196,24 +195,11 @@ function cognitiveCardData(
   };
 }
 
-/**
- * 표준화 인지평가의 θ 이론 분포 기반 IQ 추정치 카드. 헤드라인이 IQ 숫자 하나뿐이라
- * 카드에도 "추정치" 표시가 항상 함께 있어야 하지만, CardData에는 별도 태그 슬롯이 없다 —
- * 그래서 헤드라인 자체에 라벨을 붙여 숫자만 단독으로 떠도는 상황을 피한다.
- */
-function cognitiveEstimateCardData(
-  summary: Extract<ShareSummaryV1, { kind: "cognitive"; version: 2 }>,
-  labelFor: (domain: StandardizedDomain) => string,
-  estimateTag: string,
-): CardData {
-  const bars: readonly CardBar[] = summary.domains.map((entry) => ({
-    label: labelFor(entry.domain),
-    fraction: clamp01(entry.accuracy0to100 / 100),
-    signed: false,
-  }));
+/** 승인 전 legacy cognitive v2 카드도 IQ·영역 점수를 이미지에 복원하지 않는다. */
+function cognitiveWithheldCardData(): CardData {
   return {
-    headline: `IQ ${summary.iq} · ${estimateTag}`,
-    bars,
+    headline: "WITHHELD",
+    bars: [],
     illustrationSrc: COGNITIVE_OVERVIEW_IMAGE,
   };
 }
@@ -222,8 +208,6 @@ interface CardLabelResolvers {
   readonly darkTriad: (subscale: DarkTriadFactor) => string;
   readonly eq: (factor: EqFactor) => string;
   readonly cognitive: (domain: CognitiveDomain) => string;
-  readonly stdCognitive: (domain: StandardizedDomain) => string;
-  readonly estimateTag: string;
 }
 
 function buildCardData(summary: ShareSummaryV1, labels: CardLabelResolvers): CardData {
@@ -240,7 +224,7 @@ function buildCardData(summary: ShareSummaryV1, labels: CardLabelResolvers): Car
       return eqCardData(summary, labels.eq);
     case "cognitive":
       return summary.version === 2
-        ? cognitiveEstimateCardData(summary, labels.stdCognitive, labels.estimateTag)
+        ? cognitiveWithheldCardData()
         : cognitiveCardData(summary, labels.cognitive);
   }
 }
@@ -390,8 +374,6 @@ export function StoryCardButton({ kind, code, className, analysisKey, onTrigger 
         darkTriad: (subscale) => tDarkTriad(`factors.${subscale}.label`),
         eq: (factor) => tEq(`factors.${factor}.label`),
         cognitive: (domain) => tCognitive(`domains.${domain}.label`),
-        stdCognitive: (domain) => tCognitive(`stdDomains.${domain}.label`),
-        estimateTag: tCognitive("estimateTag"),
       });
       const illustration = data.illustrationSrc ? await loadImage(data.illustrationSrc).catch(() => null) : null;
 

@@ -31,7 +31,7 @@ function stateFor(
   readError: boolean,
 ): IntegratedReportState {
   if (readError) return "error";
-  if (snapshots.length === 0 && status.persistence === "memory" && status.lastError !== null) {
+  if (snapshots.length === 0 && status.persistence !== "indexeddb" && status.lastError !== null) {
     return "memory-only";
   }
   if (snapshots.length === 0) return "empty";
@@ -93,7 +93,7 @@ export function IntegratedReportClient() {
         {t("countLabel")} <span data-testid="integrated-report-count">{currentSnapshots.length}</span>
       </p>
 
-      {vaultStatus.lastError !== null || vaultStatus.persistence === "memory" ? (
+      {vaultStatus.lastError !== null || vaultStatus.persistence !== "indexeddb" ? (
         <p data-testid="integrated-persistence-warning" className="mt-4 border-l border-amber-200/50 pl-4 text-xs leading-relaxed text-hobun-faint">
           {t("persistenceWarning")}
         </p>

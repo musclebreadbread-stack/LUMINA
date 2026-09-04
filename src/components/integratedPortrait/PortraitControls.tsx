@@ -7,6 +7,7 @@ import {
   deleteAllPortraitSnapshots,
   excludePortraitSnapshot,
   exportPortraitSnapshots,
+  type PortraitVaultOperationResult,
   type PortraitVaultStatus,
 } from "@/lib/integratedPortrait/vault.client";
 
@@ -33,10 +34,14 @@ export function PortraitControls({ snapshots, status, onRefresh, onError }: Port
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const run = async (operation: () => Promise<unknown>): Promise<void> => {
+  const run = async (operation: () => Promise<PortraitVaultOperationResult>): Promise<void> => {
     setBusy(true);
     try {
-      await operation();
+      const result = await operation();
+      if (!result.ok) {
+        onError();
+        return;
+      }
       await onRefresh();
     } catch {
       onError();
@@ -63,7 +68,12 @@ export function PortraitControls({ snapshots, status, onRefresh, onError }: Port
     }
   };
 
-  const persistenceLabel = status.persistence === "indexeddb" ? t("controls.indexeddb") : t("controls.memory");
+  const persistenceLabel =
+    status.persistence === "indexeddb"
+      ? t("controls.indexeddb")
+      : status.persistence === "session-storage"
+        ? t("controls.sessionStorage")
+        : t("controls.memory");
 
   return (
     <section className="integrated-portrait-controls" aria-labelledby="integrated-controls-heading">

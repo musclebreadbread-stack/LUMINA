@@ -14,6 +14,8 @@ export interface LikertItemView {
  */
 interface LikertItemListProps {
   readonly items: readonly LikertItemView[];
+  /** 페이지가 바뀌어도 원래 설문 문항 번호가 유지되도록 하는 0-based offset. */
+  readonly itemNumberOffset?: number;
   readonly responses: LikertResponses;
   readonly scaleLabels: LikertScaleLabels;
   /** 제출을 시도한 뒤에만 미응답 문항에 표시를 남긴다. */
@@ -23,6 +25,7 @@ interface LikertItemListProps {
 
 export function LikertItemList({
   items,
+  itemNumberOffset = 0,
   responses,
   scaleLabels,
   flagUnanswered,
@@ -40,7 +43,7 @@ export function LikertItemList({
           >
             <p className="text-sm text-hobun">
               <span className="tabular mr-2 font-mono text-[13px] text-hobun-faint">
-                {String(index + 1).padStart(2, "0")}
+                {String(itemNumberOffset + index + 1).padStart(2, "0")}
               </span>
               {item.text}
             </p>

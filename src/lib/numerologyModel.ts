@@ -1,6 +1,7 @@
 import { DateTime } from "luxon";
 import {
   computeNumerology,
+  meaningOf,
   numerologyMethodExplanation,
   numberExplanation,
   type NumberMeaning,
@@ -51,12 +52,14 @@ export type NumberCardView =
       readonly value: number;
       readonly isMaster: boolean;
       readonly meaning: NumberMeaning;
+      /** The public URL carries only this derived value, never the entered name. */
+      readonly calculation: "private" | "public";
       /** 계산에 쓰인 로마자 개수 */
-      readonly lettersUsed: number;
+      readonly lettersUsed?: number;
       /** 문자값의 합(줄이기 전) */
-      readonly rawSum: number;
-      readonly letterValues: readonly { readonly letter: string; readonly value: number }[];
-      readonly trace: readonly ReductionStep[];
+      readonly rawSum?: number;
+      readonly letterValues?: readonly { readonly letter: string; readonly value: number }[];
+      readonly trace?: readonly ReductionStep[];
       readonly explanation: ExplanationBlock;
       /** public/numerology/numbers/{value 2자리}.webp */
       readonly imageSrc: string;
@@ -76,8 +79,34 @@ export interface NumerologyView {
   readonly ignoredCharacters: number;
 }
 
-export function buildNumerologyView(date: NumerologyDate, name: string | null): NumerologyView {
+const PUBLIC_DESTINY_VALUES = Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 22, 33]);
+
+export function isPublicDestinyValue(value: number): boolean {
+  return PUBLIC_DESTINY_VALUES.includes(value);
+}
+
+export function buildNumerologyView(
+  date: NumerologyDate,
+  name: string | null,
+  publicDestinyValue?: number,
+): NumerologyView {
+  if (publicDestinyValue !== undefined && !isPublicDestinyValue(publicDestinyValue)) {
+    throw new RangeError(`unsupported destiny value: ${publicDestinyValue}`);
+  }
+
   const result = computeNumerology({ date, name: name ?? undefined });
+  const publicDestiny =
+    publicDestinyValue === undefined
+      ? null
+      : {
+          kind: "destiny" as const,
+          value: publicDestinyValue,
+          isMaster: [11, 22, 33].includes(publicDestinyValue),
+          meaning: meaningOf(publicDestinyValue),
+          calculation: "public" as const,
+          explanation: numberExplanation(publicDestinyValue, "destiny"),
+          imageSrc: numberImageSrc(publicDestinyValue),
+        };
 
   return {
     date,
@@ -98,6 +127,7 @@ export function buildNumerologyView(date: NumerologyDate, name: string | null): 
           value: result.destiny.value,
           isMaster: result.destiny.isMaster,
           meaning: result.destiny.meaning,
+          calculation: "private",
           lettersUsed: result.destiny.lettersUsed,
           rawSum: result.destiny.rawSum,
           letterValues: result.destiny.letterValues,
@@ -105,7 +135,7 @@ export function buildNumerologyView(date: NumerologyDate, name: string | null): 
           explanation: numberExplanation(result.destiny.value, "destiny"),
           imageSrc: numberImageSrc(result.destiny.value),
         }
-      : null,
+      : publicDestiny,
     ignoredCharacters: result.destiny?.ignoredCharacters ?? 0,
     method: numerologyMethodExplanation(),
   };

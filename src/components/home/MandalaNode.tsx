@@ -46,6 +46,7 @@ export function MandalaNode({ node, title, desc, tierBadge, cta }: Props) {
       <div className="mandala-orbit-node">
         <Link
           href={node.href}
+          prefetch={false}
           onClick={handleClick}
           className="mandala-node-link group"
           aria-describedby={descriptionId}

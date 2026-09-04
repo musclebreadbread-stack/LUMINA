@@ -4,10 +4,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ResultSnapshotDraftV1 } from "@/lib/integratedPortrait/contracts";
 
 const consumeCompletionArrival = vi.hoisted(() => vi.fn<() => boolean>(() => false));
-const upsertPortraitSnapshot = vi.hoisted(() => vi.fn(async (_snapshot: unknown) => ({
-  ok: true as const,
-  status: { persistence: "memory" as const, lastError: null, revision: 1 },
-})));
+const upsertPortraitSnapshot = vi.hoisted(() => vi.fn(async (snapshot: unknown) => {
+  void snapshot;
+  return {
+    ok: true as const,
+    status: { persistence: "memory" as const, lastError: null, revision: 1 },
+  };
+}));
 
 vi.mock("@/lib/completionCinematic", () => ({ consumeCompletionArrival }));
 vi.mock("@/lib/integratedPortrait/vault.client", () => ({ upsertPortraitSnapshot }));

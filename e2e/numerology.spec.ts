@@ -41,6 +41,24 @@ function cardTitle(page: import('@playwright/test').Page, exactText: string) {
 }
 
 test.describe('Numerology flow', () => {
+  test('canonicalizes a legacy name query to a URL with only the derived destiny value', async ({ page, context }) => {
+    await setLocaleCookie(context, 'en');
+    await page.goto('/numerology/result?year=1990&month=5&day=20&name=HONG%20GILDONG');
+
+    await expect(page).toHaveURL(/\/numerology\/result\?year=1990&month=5&day=20&destiny=4$/);
+    const url = new URL(page.url());
+    expect(url.searchParams.has('name')).toBe(false);
+    await expect(cardTitle(page, 'Destiny Number')).toBeVisible();
+  });
+
+  test('rejects duplicate legacy query values without a server error', async ({ page, context }) => {
+    await setLocaleCookie(context, 'en');
+    const response = await page.goto('/numerology/result?year=1990&month=5&day=20&name=A&name=B');
+
+    expect(response?.status()).toBe(200);
+    await expect(page.locator('body')).not.toContainText('Internal Server Error');
+  });
+
   test('reuses the saved Saju birth date in the numerology form', async ({ page, context }) => {
     await setLocaleCookie(context, 'ko');
     await page.goto('/');
@@ -76,7 +94,8 @@ test.describe('Numerology flow', () => {
     expect(url.searchParams.get('year')).toBe('1990');
     expect(url.searchParams.get('month')).toBe('5');
     expect(url.searchParams.get('day')).toBe('20');
-    expect(url.searchParams.get('name')).toBe('HONG GILDONG');
+    expect(url.searchParams.has('name')).toBe(false);
+    expect(url.searchParams.get('destiny')).toBe('4');
 
     await expect(cardTitle(page, '생애수')).toBeVisible();
     await expect(cardTitle(page, '운명수')).toBeVisible();
@@ -109,6 +128,7 @@ test.describe('Numerology flow', () => {
     expect(url.searchParams.get('month')).toBe('11');
     expect(url.searchParams.get('day')).toBe('3');
     expect(url.searchParams.has('name')).toBe(false);
+    expect(url.searchParams.has('destiny')).toBe(false);
 
     await expect(cardTitle(page, '생애수')).toBeVisible();
     await expect(cardTitle(page, '운명수')).toHaveCount(0);
@@ -139,7 +159,8 @@ test.describe('Numerology flow', () => {
     await dismissConsentBanner(page);
 
     const url = new URL(page.url());
-    expect(url.searchParams.get('name')).toBe('HONG GILDONG');
+    expect(url.searchParams.has('name')).toBe(false);
+    expect(url.searchParams.get('destiny')).toBe('4');
 
     await expect(cardTitle(page, 'Life Path Number')).toBeVisible();
     await expect(cardTitle(page, 'Destiny Number')).toBeVisible();

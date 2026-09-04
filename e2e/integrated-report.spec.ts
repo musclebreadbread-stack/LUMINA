@@ -138,6 +138,9 @@ async function completeBigFive(page: Page): Promise<void> {
   await dismissConsentBanner(page);
   for (let id = 1; id <= 50; id += 1) {
     await answerBigFiveItem(page, id);
+    if (id < 50 && id % 10 === 0) {
+      await page.locator("form nav button").last().click();
+    }
   }
   await page.getByRole("button", { name: "결과 보기", exact: true }).click();
   await expect(page).toHaveURL(/\/psychometrics\/result\?r=[1-5]{50}$/);

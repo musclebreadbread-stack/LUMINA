@@ -8,12 +8,13 @@ const eslintConfig = defineConfig([
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
+    "**/.next/**",
+    "**/out/**",
+    "**/build/**",
+    "**/next-env.d.ts",
+    "**/.claude/**",
     // 생성물 — vitest 커버리지 리포트
-    "coverage/**",
+    "**/coverage/**",
   ]),
 ]);
 

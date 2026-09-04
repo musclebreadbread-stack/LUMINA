@@ -13,9 +13,12 @@ import { dismissConsentBanner, setLocaleCookie } from './helpers';
 const TOTAL_ITEMS = ITEMS.length;
 
 async function answerAll(page: Page): Promise<void> {
-  for (const item of ITEMS) {
+  for (const [index, item] of ITEMS.entries()) {
     const value = ((item.id - 1) % 5) + 1;
     await page.locator(`#item-${item.id}`).locator('label').nth(value - 1).click();
+    if (index < ITEMS.length - 1 && (index + 1) % 9 === 0) {
+      await page.locator('form nav button').last().click();
+    }
   }
 }
 

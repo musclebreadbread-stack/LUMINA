@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useSyncExternalStore, type ReactNode } from "react";
 import type { Locale } from "@/i18n/locale";
 import type { AttachmentView } from "@/lib/attachmentModel";
+import type { ResponseQuality } from "@/lib/responseQuality";
 import { readAssessmentRun } from "@/lib/assessmentRun";
 import { AxisBar } from "@/components/attachment/AxisBar";
 import { QuadrantCard } from "@/components/attachment/QuadrantCard";
@@ -19,6 +20,7 @@ import { toAttachmentSnapshot } from "@/lib/integratedPortrait/adapters";
 import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
 import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
 import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
+import { ResponseQualityNotice } from "@/components/analysis/ResponseQualityNotice";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -36,6 +38,21 @@ function isAxisView(value: unknown): value is AttachmentView["anxiety"] {
   );
 }
 
+function isResponseQuality(value: unknown): value is ResponseQuality {
+  if (!isRecord(value)) return false;
+  const flag = value.flag;
+  return (
+    (flag === null || flag === "uniform" || flag === "narrow-range") &&
+    typeof value.answeredCount === "number" &&
+    Number.isInteger(value.answeredCount) &&
+    value.answeredCount >= 0 &&
+    typeof value.distinctValueCount === "number" &&
+    Number.isInteger(value.distinctValueCount) &&
+    value.distinctValueCount >= 0 &&
+    value.distinctValueCount <= 5
+  );
+}
+
 function isAttachmentView(value: unknown): value is AttachmentView {
   if (!isRecord(value) || !isAxisView(value.anxiety) || !isAxisView(value.avoidance)) {
     return false;
@@ -43,6 +60,8 @@ function isAttachmentView(value: unknown): value is AttachmentView {
 
   const classification = value.classification;
   if (!isRecord(classification)) return false;
+
+  if (value.responseQuality !== undefined && !isResponseQuality(value.responseQuality)) return false;
 
   return (
     classification.quadrant === "secure" ||
@@ -148,6 +167,15 @@ export function AttachmentResultClient({
           </div>
         </div>
       </div>
+
+      {view.responseQuality && (
+        <ResponseQualityNotice
+          quality={view.responseQuality}
+          title={tCommon("responseQuality.title")}
+          uniformBody={tCommon("responseQuality.uniform")}
+          narrowRangeBody={tCommon("responseQuality.narrowRange")}
+        />
+      )}
 
       <ChapterNav chapters={chapters} label={chapterNavLabel} />
 

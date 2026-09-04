@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { ECR_ITEMS, getAxisItems, scoreItem, type AttachmentAxis, type LikertScale } from "@engine/attachment/items";
 import type { AttachmentResponse } from "@engine/attachment/scoring";
 import { LikertItemList } from "@/components/assessment/LikertItemList";
@@ -10,6 +10,7 @@ import type { LikertScaleLabels } from "@/components/assessment/likert";
 import { buildSegments } from "@/components/assessment/segments";
 import { SurveyNotice } from "@/components/assessment/SurveyNotice";
 import { SurveyProgressHeader } from "@/components/assessment/SurveyProgressHeader";
+import { SurveyPagination } from "@/components/assessment/SurveyPagination";
 import { SurveySegmentTrack } from "@/components/assessment/SurveySegmentTrack";
 import { useUnansweredGuard } from "@/components/assessment/useUnansweredGuard";
 import type { Locale } from "@/i18n/locale";
@@ -25,6 +26,7 @@ import {
   subscribeAttachmentDraft,
 } from "@/lib/attachmentDraft";
 import { buildAttachmentView } from "@/lib/attachmentModel";
+import { assessLikertResponseQuality } from "@/lib/responseQuality";
 
 /**
  * 애착 설문지 (ECR-R 개념을 참고한 탐색용 36문항).
@@ -37,11 +39,13 @@ import { buildAttachmentView } from "@/lib/attachmentModel";
  */
 
 const AXES: readonly AttachmentAxis[] = ["anxiety", "avoidance"];
+const PAGE_SIZE = 9;
 
 export function SurveyForm() {
   const router = useRouter();
   const locale = useLocale() as Locale;
   const t = useTranslations("attachment");
+  const tCommon = useTranslations("common");
 
   const draft = useSyncExternalStore(
     subscribeAttachmentDraft,
@@ -51,6 +55,7 @@ export function SurveyForm() {
   const [editedResponses, setEditedResponses] = useState<AttachmentResponse | null>(null);
   const [storageFailed, setStorageFailed] = useState(false);
   const responses = editedResponses ?? draft;
+  const [currentPage, setCurrentPage] = useState(0);
   const testStarted = useRef(false);
 
   function selectResponse(itemId: number, value: LikertScale): void {
@@ -72,10 +77,20 @@ export function SurveyForm() {
     [responses],
   );
   const { attempted, reportUnanswered } = useUnansweredGuard(firstUnanswered);
+  const pageCount = Math.ceil(ECR_ITEMS.length / PAGE_SIZE);
+
+  useEffect(() => {
+    if (!attempted || firstUnanswered === null) return;
+    document.getElementById(`item-${firstUnanswered}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [attempted, currentPage, firstUnanswered]);
 
   const itemViews = useMemo(
     () => ECR_ITEMS.map((item) => ({ id: item.id, text: locale === "en" ? item.textEn : item.textKo })),
     [locale],
+  );
+  const pageItems = useMemo(
+    () => itemViews.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE),
+    [currentPage, itemViews],
   );
   const segments = useMemo(
     () =>
@@ -101,6 +116,8 @@ export function SurveyForm() {
   function handleSubmit(event: React.FormEvent): void {
     event.preventDefault();
     if (answeredCount < ECR_ITEMS.length) {
+      const index = ECR_ITEMS.findIndex((item) => responses[item.id] === undefined);
+      if (index >= 0) setCurrentPage(Math.floor(index / PAGE_SIZE));
       reportUnanswered();
       return;
     }
@@ -109,7 +126,10 @@ export function SurveyForm() {
       methodKey: "attachment",
       instrumentVersion: analysisDefinition("attachment").evidence.instrumentVersion,
       locale,
-      scoreSummary: buildAttachmentView(responses),
+      scoreSummary: {
+        ...buildAttachmentView(responses),
+        responseQuality: assessLikertResponseQuality(Object.values(responses)),
+      },
     });
     if (!run) {
       setStorageFailed(true);
@@ -138,11 +158,22 @@ export function SurveyForm() {
       </SurveyProgressHeader>
 
       <LikertItemList
-        items={itemViews}
+        items={pageItems}
+        itemNumberOffset={currentPage * PAGE_SIZE}
         responses={responses}
         scaleLabels={scaleLabels}
         flagUnanswered={attempted}
         onSelect={selectResponse}
+      />
+
+      <SurveyPagination
+        currentPage={currentPage}
+        pageCount={pageCount}
+        label={tCommon("surveyPage", { current: currentPage + 1, total: pageCount })}
+        previousLabel={tCommon("surveyPrevious")}
+        nextLabel={tCommon("surveyNext")}
+        onPrevious={() => setCurrentPage((page) => Math.max(0, page - 1))}
+        onNext={() => setCurrentPage((page) => Math.min(pageCount - 1, page + 1))}
       />
 
       {attempted && answeredCount < ECR_ITEMS.length && (
@@ -150,12 +181,14 @@ export function SurveyForm() {
       )}
       {storageFailed && <SurveyNotice message={t("storageError")} />}
 
-      <button
-        type="submit"
-        className="mt-8 bg-hobun px-6 py-3 text-sm font-medium text-ink-900 transition-opacity hover:opacity-85"
-      >
-        {t("submit")}
-      </button>
+      {currentPage === pageCount - 1 ? (
+        <button
+          type="submit"
+          className="mt-8 bg-hobun px-6 py-3 text-sm font-medium text-ink-900 transition-opacity hover:opacity-85"
+        >
+          {t("submit")}
+        </button>
+      ) : null}
     </form>
   );
 }

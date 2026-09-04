@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   } catch {
     status = "pilot_withheld";
   }
-  const titleKey = status === "estimated_scored" ? "estimatedResultTitle" : status === "standardized_scored" ? "standardizedResultTitle" : "pilotResultTitle";
+  const titleKey = status === "standardized_scored" ? "standardizedResultTitle" : "pilotResultTitle";
   return { title: t(titleKey), robots: { index: false, follow: false } };
 }
 

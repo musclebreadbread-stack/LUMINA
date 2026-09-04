@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type RefObject } from "react";
+import { scheduleScene3dIdle } from "@/lib/scene3dIdle";
 
 interface NavigatorWithConnection extends Navigator {
   readonly connection?: { readonly saveData?: boolean };
@@ -38,9 +39,14 @@ export function useScene3dCapability(
     if (!webglAvailable || !("IntersectionObserver" in window)) return;
 
     let isIntersecting = false;
+    let idleReady = false;
     const updateCapability = (): void => {
-      setCapability({ enabled: !media.matches && isIntersecting, frameStep });
+      setCapability({ enabled: !media.matches && idleReady && isIntersecting, frameStep });
     };
+    const cancelIdle = scheduleScene3dIdle(() => {
+      idleReady = true;
+      updateCapability();
+    });
     const observer = new IntersectionObserver(
       ([entry]) => {
         isIntersecting = entry?.isIntersecting === true;
@@ -57,6 +63,7 @@ export function useScene3dCapability(
 
     media.addEventListener("change", updateMotionPreference);
     return () => {
+      cancelIdle();
       observer.disconnect();
       media.removeEventListener("change", updateMotionPreference);
     };

@@ -12,6 +12,7 @@ import type { StoredProfile } from "./profile";
 
 const GENDERS: readonly Gender[] = ["unspecified", "male", "female"];
 const CALENDARS: readonly CalendarType[] = ["solar", "lunar"];
+const PROFILE_PAYLOAD_VERSION = "profile-v2";
 
 /** 필드 순서를 고정한 배열로 줄여 URL 길이를 아낀다. */
 type Packed = [
@@ -48,7 +49,7 @@ export function encodeProfile(profile: StoredProfile): string {
     profile.dayBoundaryRule === "midnight" ? 1 : 0,
     profile.placeLabelEn,
   ];
-  return LZString.compressToEncodedURIComponent(JSON.stringify(packed));
+  return LZString.compressToEncodedURIComponent(JSON.stringify([PROFILE_PAYLOAD_VERSION, ...packed]));
 }
 
 export function decodeProfile(encoded: string): StoredProfile | null {
@@ -56,8 +57,14 @@ export function decodeProfile(encoded: string): StoredProfile | null {
     const json = LZString.decompressFromEncodedURIComponent(encoded);
     if (!json) return null;
 
-    const p: unknown = JSON.parse(json);
-    if (!Array.isArray(p) || (p.length !== 12 && p.length !== 13 && p.length !== 14)) return null;
+    const parsed: unknown = JSON.parse(json);
+    if (!Array.isArray(parsed)) return null;
+
+    const isVersionedPayload = parsed[0] === PROFILE_PAYLOAD_VERSION;
+    if (isVersionedPayload && parsed.length !== 15) return null;
+
+    const p = isVersionedPayload ? parsed.slice(1) : parsed;
+    if (p.length !== 12 && p.length !== 13 && p.length !== 14) return null;
 
     const [year, month, day, calendar, leap, hour, minute, gender, lat, lng, timeZone, placeLabel, dayBoundary, placeLabelEn] =
       p;
@@ -71,10 +78,11 @@ export function decodeProfile(encoded: string): StoredProfile | null {
       month > 12 ||
       !Number.isInteger(day) ||
       day < 1 ||
-      day > daysInGregorianMonth(year, month) ||
+      day > 31 ||
       !Number.isInteger(calendar) ||
       calendar < 0 ||
       calendar >= CALENDARS.length ||
+      (calendar === 0 && day > daysInGregorianMonth(year, month)) ||
       (leap !== 0 && leap !== 1) ||
       !Number.isInteger(hour) ||
       hour < -1 ||

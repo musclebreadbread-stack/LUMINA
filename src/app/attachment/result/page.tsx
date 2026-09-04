@@ -20,6 +20,8 @@ import { analysisDefinition } from "@/lib/analysisCatalog";
 import { attachmentImagePath } from "@/lib/psychometricsAssets";
 import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
 import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
+import { ResponseQualityNotice } from "@/components/analysis/ResponseQualityNotice";
+import { assessLikertResponseQuality } from "@/lib/responseQuality";
 
 interface ResultPageProps {
   searchParams: Promise<{ r?: string; run?: string }>;
@@ -107,6 +109,7 @@ export default async function AttachmentResultPage({ searchParams }: ResultPageP
 
   // 결과 계산
   const view = buildAttachmentView(responses);
+  const responseQuality = assessLikertResponseQuality(Object.values(responses));
   const resolvedLocale = locale as "ko" | "en";
 
   return (
@@ -137,6 +140,13 @@ export default async function AttachmentResultPage({ searchParams }: ResultPageP
             tier={evidence.tier}
             evidenceStatus={evidence.evidence.validationStatus}
             completionAnalysisKey={evidence.key}
+          />
+
+          <ResponseQualityNotice
+            quality={responseQuality}
+            title={tCommon("responseQuality.title")}
+            uniformBody={tCommon("responseQuality.uniform")}
+            narrowRangeBody={tCommon("responseQuality.narrowRange")}
           />
 
           <ChapterNav chapters={chapters} label={tCommon("chapterNavLabel")} />

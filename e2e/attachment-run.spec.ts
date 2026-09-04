@@ -15,8 +15,11 @@ import { dismissConsentBanner, setLocaleCookie } from "./helpers";
 
 /** Answers every item with the neutral midpoint (Likert value 3). */
 async function answerAllNeutral(page: Page): Promise<void> {
-  for (const item of ECR_ITEMS) {
+  for (const [index, item] of ECR_ITEMS.entries()) {
     await page.locator(`#item-${item.id}`).locator("label").nth(2).click();
+    if (index < ECR_ITEMS.length - 1 && (index + 1) % 9 === 0) {
+      await page.locator("form nav button").last().click();
+    }
   }
 }
 
@@ -33,6 +36,7 @@ test("attachment results use an opaque browser session run", async ({ page, cont
   await expect(page).not.toHaveURL(/\?r=/);
   await expect(page.locator('[data-evidence-status="experimental"]')).toBeVisible();
   await expect(page.getByRole("heading", { name: "당신의 애착 유형", exact: true })).toBeVisible();
+  await expect(page.getByTestId("response-quality-notice")).toBeVisible();
   await expect(page.getByTestId("attachment-quadrant-plot")).toBeVisible();
 });
 
@@ -54,9 +58,12 @@ test("blocks submission inline — no native alert — until every item is answe
   await dismissConsentBanner(page);
 
   const lastItem = ECR_ITEMS[ECR_ITEMS.length - 1]!;
-  for (const item of ECR_ITEMS) {
+  for (const [index, item] of ECR_ITEMS.entries()) {
     if (item.id === lastItem.id) continue;
     await page.locator(`#item-${item.id}`).locator("label").nth(2).click();
+    if (index < ECR_ITEMS.length - 2 && (index + 1) % 9 === 0) {
+      await page.locator("form nav button").last().click();
+    }
   }
 
   await page.getByRole("button", { name: "결과 보기", exact: true }).click();

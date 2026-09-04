@@ -55,7 +55,7 @@ export default async function AstroEntryPage() {
           </div>
         </div>
         <div className="mt-8">
-          <BirthForm resultSuffix="/astro" />
+          <BirthForm resultSuffix="/astro" submitLabel={t("submit")} />
         </div>
       </section>
       </main>

@@ -4,7 +4,6 @@ import type { Locale } from "@/i18n/locale";
 import type { ScoredRun } from "@engine/cognitive-standardized/types";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { COGNITIVE_OVERVIEW_IMAGE } from "@/lib/psychometricsAssets";
-import { EstimatedResult } from "./EstimatedResult";
 import { StandardizedResult } from "./StandardizedResult";
 import { ResultSceneLayer } from "@/components/scene3d/ResultSceneLayer";
 
@@ -14,19 +13,12 @@ interface PilotResultProps {
   readonly imageAlt: string;
 }
 
-/**
- * 승인된 규준이 있으면 표준화 점수, 없으면 이론 분포 기반 추정치, 둘 다 없으면
- * 참여 기록만 표시한다(IQ·백분위·정답 비노출).
- */
+/** 승인된 규준이 있을 때만 표준화 점수를 표시하고, 그 전에는 참여 기록만 표시한다. */
 export function PilotResult({ result, locale, imageAlt }: PilotResultProps) {
   const korean = locale === "ko";
   if (result.status === "standardized_scored") {
     return <StandardizedResult score={result.score} locale={locale} imageAlt={imageAlt} />;
   }
-  if (result.status === "estimated_scored") {
-    return <EstimatedResult score={result.score} locale={locale} imageAlt={imageAlt} />;
-  }
-
   return (
     <section className="space-y-5 border border-ink-700 p-6" aria-labelledby="pilot-result-title">
       <p className="font-mono text-xs tracking-[0.18em] text-hobun-faint">LUMINA / PILOT</p>

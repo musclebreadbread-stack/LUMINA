@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type RefObject } from "react";
+import { scheduleScene3dIdle } from "@/lib/scene3dIdle";
 
 interface NavigatorWithConnection extends Navigator {
   readonly connection?: { readonly saveData?: boolean };
@@ -43,20 +44,31 @@ export function useMandalaCapability(
 
     if (!("IntersectionObserver" in window)) return;
 
+    let isIntersecting = false;
+    let idleReady = false;
+    const updateCapability = (): void => {
+      setCapability({ enabled: !media.matches && idleReady && isIntersecting, frameStep });
+    };
+    const cancelIdle = scheduleScene3dIdle(() => {
+      idleReady = true;
+      updateCapability();
+    });
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setCapability({ enabled: entry?.isIntersecting === true, frameStep });
+        isIntersecting = entry?.isIntersecting === true;
+        updateCapability();
       },
       { threshold: 0.08 },
     );
     observer.observe(stage);
 
-    function updateMotionPreference(event: MediaQueryListEvent): void {
-      setCapability({ enabled: !event.matches, frameStep });
+    function updateMotionPreference(): void {
+      updateCapability();
     }
 
     media.addEventListener("change", updateMotionPreference);
     return () => {
+      cancelIdle();
       observer.disconnect();
       media.removeEventListener("change", updateMotionPreference);
     };

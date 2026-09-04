@@ -69,7 +69,7 @@ export function ConsentBanner() {
       <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs leading-relaxed text-hobun-dim">
           {t("message")}{" "}
-          <Link href="/privacy" className="underline underline-offset-4">
+          <Link href="/privacy" prefetch={false} className="underline underline-offset-4">
             {t("learnMore")}
           </Link>
         </p>

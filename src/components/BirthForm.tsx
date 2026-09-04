@@ -68,7 +68,13 @@ const fieldClass =
 const labelClass = "mb-2 block text-[13px] tracking-wide text-hobun-faint";
 
 /** resultSuffix: saju 는 "/r/<encoded>", astro 는 "/r/<encoded>/astro" 로 갈라진다. */
-export function BirthForm({ resultSuffix = "" }: { readonly resultSuffix?: string } = {}) {
+export function BirthForm({
+  resultSuffix = "",
+  submitLabel,
+}: {
+  readonly resultSuffix?: string;
+  readonly submitLabel?: string;
+} = {}) {
   const router = useRouter();
   const uid = useId();
   const t = useTranslations("birthForm");
@@ -342,7 +348,7 @@ export function BirthForm({ resultSuffix = "" }: { readonly resultSuffix?: strin
           type="submit"
           className="bg-hobun px-6 py-3 text-sm font-medium text-ink-900 transition-opacity hover:opacity-85"
         >
-          {t("submit")}
+          {submitLabel ?? t("submit")}
         </button>
         {restored && (
           <button

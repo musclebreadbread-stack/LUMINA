@@ -7,11 +7,14 @@ import {
   classifyQuadrant,
   type QuadrantClassification,
 } from "@engine/attachment/quadrants";
+import type { ResponseQuality } from "@/lib/responseQuality";
 
 export interface AttachmentView {
   readonly anxiety: AxisView;
   readonly avoidance: AxisView;
   readonly classification: QuadrantClassification;
+  /** 응답 원자료 없이 결과 세션에 보존하는 안전한 패턴 요약. */
+  readonly responseQuality?: ResponseQuality;
 }
 
 export interface AxisView extends AxisScore {

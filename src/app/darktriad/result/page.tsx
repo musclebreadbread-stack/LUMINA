@@ -26,6 +26,8 @@ import { toDarkTriadSnapshot } from "@/lib/integratedPortrait/adapters";
 import { ScientificScorePlot, type ScientificScorePoint } from "@/components/analysis/ScientificScorePlot";
 import { StatisticalReadingGuide } from "@/components/analysis/StatisticalReadingGuide";
 import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
+import { ResponseQualityNotice } from "@/components/analysis/ResponseQualityNotice";
+import { assessLikertResponseQuality } from "@/lib/responseQuality";
 
 interface Query {
   readonly r?: string;
@@ -92,6 +94,7 @@ export default async function DarkTriadResultPage({
   }
 
   const view = buildDarkTriadView(responses);
+  const responseQuality = assessLikertResponseQuality(Object.values(responses));
   const resolvedLocale = locale as Locale;
   // 표지는 항상 같은 "overview" 그림이 아니라 실제로 가장 두드러진 요인의 삽화를 보여준다.
   const coverImage = view.dominantFactor ? darkTriadImagePath(view.dominantFactor) : DARK_TRIAD_OVERVIEW_IMAGE;
@@ -167,6 +170,12 @@ export default async function DarkTriadResultPage({
         <ChapterNav chapters={chapters} label={tCommon("chapterNavLabel")} />
 
         <Section id="section-factors" index="01" title={t("sectionFactors")} aside={<>{t("factorsAside")}</>}>
+          <ResponseQualityNotice
+            quality={responseQuality}
+            title={tCommon("responseQuality.title")}
+            uniformBody={tCommon("responseQuality.uniform")}
+            narrowRangeBody={tCommon("responseQuality.narrowRange")}
+          />
           <ScientificScorePlot
             title={t("sectionFactors")}
             description={t("scaleNote")}

@@ -10,6 +10,7 @@ import {
   subscribeProfile,
 } from "@/lib/profile";
 import { markCompletionArrival } from "@/lib/completionCinematic";
+import { computeDestinyNumber } from "@engine/numerology";
 
 /**
  * 생년월일(필수) + 로마자 이름(선택)을 받아 결과 주소로 보낸다.
@@ -73,7 +74,18 @@ export function NumerologyForm() {
       month: String(month),
       day: String(Math.min(day, maxDay)),
     });
-    if (name.trim()) params.set("name", name.trim());
+    if (name.trim()) {
+      try {
+        params.set("destiny", String(computeDestinyNumber(name).value));
+      } catch (reason) {
+        setError(
+          reason instanceof Error && reason.name === "NumerologyInputError"
+            ? t("invalidName")
+            : t("cannotCompute"),
+        );
+        return;
+      }
+    }
     markCompletionArrival("numerology");
     router.push(`/numerology/result?${params.toString()}`);
   }

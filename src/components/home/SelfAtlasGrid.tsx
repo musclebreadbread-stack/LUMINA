@@ -84,6 +84,7 @@ export function SelfAtlasGrid({ slots }: { readonly slots: readonly AtlasSlot[] 
               {t("atlasNextLabel")}{" "}
               <Link
                 href={next.href}
+                prefetch={false}
                 className="font-medium text-hobun underline underline-offset-4 hover:text-hobun-dim"
               >
                 {t("atlasNextCta", { title: next.title })}
@@ -102,6 +103,7 @@ export function SelfAtlasGrid({ slots }: { readonly slots: readonly AtlasSlot[] 
             <li key={slot.key}>
               <Link
                 href={slot.href}
+                prefetch={false}
                 data-atlas-slot={slot.key}
                 data-explored={isExplored ? "true" : "false"}
                 className={`flex h-full flex-col justify-between gap-2 rounded-xl border px-3 py-3 transition-[border-color,background-color] duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hobun ${

@@ -28,6 +28,8 @@ import { toEqSnapshot } from "@/lib/integratedPortrait/adapters";
 import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
 import { ScientificScorePlot, type ScientificScorePoint } from "@/components/analysis/ScientificScorePlot";
 import { StatisticalReadingGuide } from "@/components/analysis/StatisticalReadingGuide";
+import { ResponseQualityNotice } from "@/components/analysis/ResponseQualityNotice";
+import { assessLikertResponseQuality } from "@/lib/responseQuality";
 
 interface Query {
   readonly r?: string;
@@ -91,6 +93,7 @@ export default async function EqResultPage({
   }
 
   const view = buildEqView(responses);
+  const responseQuality = assessLikertResponseQuality(Object.values(responses));
   const resolvedLocale = locale as Locale;
   const summary = eqSummaryFromScores(computeFactorScores(responses), resolvedLocale);
   const shareCode = encodeShareCode(summary);
@@ -186,6 +189,12 @@ export default async function EqResultPage({
         <ChapterNav chapters={chapters} label={tCommon("chapterNavLabel")} />
 
         <Section id="section-factors" index="01" title={t("sectionFactors")} aside={<>{t("factorsAside")}</>}>
+          <ResponseQualityNotice
+            quality={responseQuality}
+            title={tCommon("responseQuality.title")}
+            uniformBody={tCommon("responseQuality.uniform")}
+            narrowRangeBody={tCommon("responseQuality.narrowRange")}
+          />
           <ScientificScorePlot
             title={t("sectionFactors")}
             description={t("scaleNote")}

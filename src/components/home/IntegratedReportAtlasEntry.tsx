@@ -28,6 +28,7 @@ export function IntegratedReportAtlasEntry() {
       </div>
       <Link
         href="/integrated-report"
+        prefetch={false}
         className="inline-flex min-h-11 shrink-0 items-center border border-hobun/60 px-4 text-sm text-hobun transition-colors hover:bg-hobun/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hobun"
       >
         {t("entry.cta")}

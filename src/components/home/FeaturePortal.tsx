@@ -39,6 +39,7 @@ export async function FeaturePortal({
     <PortalMotion className={featured ? "sm:col-span-2 lg:col-span-2" : ""}>
       <Link
         href={href}
+        prefetch={false}
         className="portal-card group block h-full overflow-hidden rounded-[1.5rem] border border-ink-700 bg-surface-light text-ink-900 shadow-[0_24px_70px_-38px_rgba(0,0,0,0.95)] transition-[border-color,box-shadow] duration-300 hover:border-hobun/80 hover:shadow-[0_30px_90px_-34px_rgba(0,0,0,0.9)] focus-visible:border-hobun focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-hobun"
       >
         <div className={`portal-image relative overflow-hidden ${featured ? "aspect-[16/8]" : "aspect-[4/3]"}`}>

@@ -35,7 +35,9 @@ export async function NumberPlate({
           month: card.breakdown.month,
           day: card.breakdown.day,
         })
-      : t("destinyFormat", { letters: card.lettersUsed, sum: card.rawSum });
+      : card.calculation === "public"
+        ? t("destinyPublicFormat")
+        : t("destinyFormat", { letters: card.lettersUsed ?? 0, sum: card.rawSum ?? 0 });
 
   return (
     <div
@@ -116,6 +118,8 @@ export async function NumberPlate({
               </div>
             ))}
           </div>
+        ) : card.calculation === "public" ? (
+          <p className="mt-3 text-xs leading-relaxed text-hobun-faint">{t("destinyPublicTraceNote")}</p>
         ) : (
           <div className="mt-3 space-y-3 font-mono text-[12px] leading-relaxed text-hobun-faint">
             <div>
@@ -129,8 +133,8 @@ export async function NumberPlate({
                 ))}
               </div>
             </div>
-            <p>{card.letterValues.map((item) => `${item.letter}=${item.value}`).join(" · ")}</p>
-            {card.trace.length === 0 ? (
+            <p>{card.letterValues?.map((item) => `${item.letter}=${item.value}`).join(" · ")}</p>
+            {card.trace === undefined || card.trace.length === 0 ? (
               <p>{card.rawSum}</p>
             ) : (
               card.trace.map((step) => (

@@ -26,6 +26,10 @@ async function answerItem(page: Page, id: number): Promise<void> {
 async function answerItemsInRange(page: Page, from: number, to: number): Promise<void> {
   for (let id = from; id <= to; id += 1) {
     await answerItem(page, id);
+    if (id < to && id % 10 === 0) {
+      await page.locator('form nav button').last().click();
+      await expect(page.locator(`#item-${id + 1} span`).first()).toHaveText(String(id + 1).padStart(2, '0'));
+    }
   }
 }
 

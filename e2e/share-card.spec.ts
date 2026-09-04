@@ -8,6 +8,7 @@ import {
   encodeShareCode,
   eqSummaryFromScores,
   jungianSummaryFromResult,
+  type CognitiveSummaryV2,
 } from '@/lib/shareCode';
 import {
   attachmentViewFixture,
@@ -217,5 +218,30 @@ test.describe('shared summary card (/s/[kind]/[code])', () => {
     const body = await imageResponse.body();
     // 삽화 없이 활자·막대만 그린 카드의 현실적인 바이트 하한.
     expect(body.byteLength).toBeGreaterThan(15_000);
+  });
+
+  test('does not publish a legacy cognitive estimate share code', async ({ page, context }) => {
+    const legacyEstimate: CognitiveSummaryV2 = {
+      kind: 'cognitive',
+      version: 2,
+      locale: 'en',
+      domains: [
+        { domain: 'gf', accuracy0to100: 75 },
+        { domain: 'gc', accuracy0to100: 50 },
+        { domain: 'gv', accuracy0to100: 25 },
+        { domain: 'gwm', accuracy0to100: 50 },
+        { domain: 'gs', accuracy0to100: 25 },
+      ],
+      iq: 123,
+      confidenceInterval95: [118, 128],
+    };
+    const code = encodeShareCode(legacyEstimate);
+
+    await page.goto(`/s/cognitive/${code}`);
+    await expect(page.getByRole('heading', { name: /페이지를 찾을 수 없습니다|Page not found/i })).toBeVisible();
+    expect((await page.locator('body').innerText())).not.toContain('123');
+    const ogResponse = await context.request.get(`/s/cognitive/${code}/opengraph-image`);
+    expect(ogResponse.status()).toBe(200);
+    expect(ogResponse.headers()['content-type']).toContain('image/png');
   });
 });

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
@@ -9,7 +10,12 @@ import { Disclaimer, Section, TierBadge } from "@/components/ui/Chrome";
 import { MethodNote } from "@/components/ui/MethodNote";
 import { ResultCover } from "@/components/ui/ResultCover";
 import { SceneShell } from "@/components/ui/SceneShell";
-import { buildNumerologyView, formatNumerologyDate } from "@/lib/numerologyModel";
+import {
+  buildNumerologyView,
+  formatNumerologyDate,
+  isPublicDestinyValue,
+} from "@/lib/numerologyModel";
+import { computeDestinyNumber } from "@engine/numerology";
 import type { Locale } from "@/i18n/locale";
 import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
 import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
@@ -17,19 +23,45 @@ import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRe
 import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
 import { toNumerologySnapshot } from "@/lib/integratedPortrait/adapters";
 
+type QueryValue = string | readonly string[];
+
 interface Query {
-  readonly year?: string;
-  readonly month?: string;
-  readonly day?: string;
-  readonly name?: string;
+  readonly year?: QueryValue;
+  readonly month?: QueryValue;
+  readonly day?: QueryValue;
+  readonly name?: QueryValue;
+  readonly destiny?: QueryValue;
+}
+
+function singleQueryValue(value: QueryValue | undefined): string | undefined {
+  return typeof value === "string" ? value : undefined;
 }
 
 function parseDate(query: Query): { year: number; month: number; day: number } | null {
-  const year = Number(query.year);
-  const month = Number(query.month);
-  const day = Number(query.day);
+  const year = Number(singleQueryValue(query.year));
+  const month = Number(singleQueryValue(query.month));
+  const day = Number(singleQueryValue(query.day));
   if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return null;
   return { year, month, day };
+}
+
+function parsePublicDestiny(value: QueryValue | undefined): number | null {
+  if (value === undefined) return null;
+  const parsed = Number(singleQueryValue(value));
+  return Number.isInteger(parsed) && isPublicDestinyValue(parsed) ? parsed : null;
+}
+
+function canonicalResultHref(
+  date: { readonly year: number; readonly month: number; readonly day: number },
+  destiny: number | null,
+): string {
+  const params = new URLSearchParams({
+    year: String(date.year),
+    month: String(date.month),
+    day: String(date.day),
+  });
+  if (destiny !== null) params.set("destiny", String(destiny));
+  return `/numerology/result?${params.toString()}`;
 }
 
 export async function generateMetadata({
@@ -45,7 +77,8 @@ export async function generateMetadata({
   if (!date) return { title: t("pageTitle"), robots: { index: false } };
 
   try {
-    const view = buildNumerologyView(date, query.name ?? null);
+    const destiny = parsePublicDestiny(query.destiny);
+    const view = buildNumerologyView(date, null, destiny ?? undefined);
     const dateLabel = formatNumerologyDate(view.date, locale);
     const lifePathGloss = locale === "en" ? view.lifePath.meaning.glossEn : view.lifePath.meaning.gloss;
     const title = view.destiny
@@ -78,9 +111,32 @@ export default async function NumerologyResultPage({
     return <ErrorShell message={t("brokenLink")} restartLabel={t("restartCta")} />;
   }
 
+  if (query.name !== undefined) {
+    const legacyName = singleQueryValue(query.name);
+    if (legacyName === undefined) {
+      return <ErrorShell message={t("brokenLink")} restartLabel={t("restartCta")} />;
+    }
+    const trimmedName = legacyName.trim();
+    if (!trimmedName) redirect(canonicalResultHref(date, null));
+
+    try {
+      redirect(canonicalResultHref(date, computeDestinyNumber(trimmedName).value));
+    } catch (error) {
+      if (error instanceof Error && error.name === "NumerologyInputError") {
+        return <ErrorShell message={t("invalidName")} restartLabel={t("restartCta")} />;
+      }
+      throw error;
+    }
+  }
+
+  const destiny = parsePublicDestiny(query.destiny);
+  if (query.destiny !== undefined && destiny === null) {
+    return <ErrorShell message={t("cannotCompute")} restartLabel={t("restartCta")} />;
+  }
+
   let view;
   try {
-    view = buildNumerologyView(date, query.name?.trim() || null);
+    view = buildNumerologyView(date, null, destiny ?? undefined);
   } catch (error) {
     return (
       <ErrorShell
@@ -120,7 +176,6 @@ export default async function NumerologyResultPage({
           imageLabel={`${view.lifePath.value}`}
           tier="cultural"
         />
-        {view.name && <p className="mt-3 font-mono text-[13px] text-hobun-faint">{view.name}</p>}
       </div>
 
       <Section
@@ -133,11 +188,6 @@ export default async function NumerologyResultPage({
           {view.destiny && <NumberPlate card={view.destiny} order={1} />}
         </div>
 
-        {view.ignoredCharacters > 0 && (
-          <p className="mt-6 text-xs leading-relaxed text-hobun-faint">
-            {t("ignoredNote", { n: view.ignoredCharacters })}
-          </p>
-        )}
         {!view.destiny && (
           <p className="mt-6 text-xs leading-relaxed text-hobun-faint">
             {t("noDestinyNote")}{" "}

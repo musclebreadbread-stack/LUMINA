@@ -28,6 +28,8 @@ import { toBigFiveSnapshot } from "@/lib/integratedPortrait/adapters";
 import { ScientificScorePlot, type ScientificScorePoint } from "@/components/analysis/ScientificScorePlot";
 import { StatisticalReadingGuide } from "@/components/analysis/StatisticalReadingGuide";
 import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
+import { ResponseQualityNotice } from "@/components/analysis/ResponseQualityNotice";
+import { assessLikertResponseQuality } from "@/lib/responseQuality";
 
 interface Query {
   readonly r?: string;
@@ -97,6 +99,7 @@ export default async function PsychometricsResultPage({
   }
 
   const view = buildBigFiveView(responses);
+  const responseQuality = assessLikertResponseQuality(Object.values(responses));
   const resolvedLocale = locale as Locale;
   // 표지는 항상 첫 요인(외향성)이 아니라 실제 프로필에서 가장 두드러진 요인을 보여준다.
   const coverFactor = view.factors.find((f) => f.key === view.dominantFactor) ?? view.factors[0];
@@ -178,6 +181,12 @@ export default async function PsychometricsResultPage({
       <ChapterNav chapters={chapters} label={tCommon("chapterNavLabel")} />
 
       <Section id="section-factors" index="01" title={t("sectionFactors")} aside={<>{t("factorsAside")}</>}>
+        <ResponseQualityNotice
+          quality={responseQuality}
+          title={tCommon("responseQuality.title")}
+          uniformBody={tCommon("responseQuality.uniform")}
+          narrowRangeBody={tCommon("responseQuality.narrowRange")}
+        />
         <ScientificScorePlot
           title={t("sectionFactors")}
           description={t("scaleNote")}

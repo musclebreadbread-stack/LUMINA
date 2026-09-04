@@ -1,9 +1,8 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { BGM_TRACKS, bgmAreaForPath } from "@/lib/bgm";
+import { BGM_PLAYLIST } from "@/lib/bgm";
 import {
   getBgmPreferenceServerSnapshot,
   getBgmPreferenceSnapshot,
@@ -23,33 +22,32 @@ function releaseAudio(audio: HTMLAudioElement): void {
 /** Small client island: browser audio and localStorage never enter the server bundle. */
 export function BgmControl() {
   const t = useTranslations("bgm");
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const area = bgmAreaForPath(pathname, searchParams.toString());
-  const track = BGM_TRACKS[area];
   const enabled = useSyncExternalStore(
     subscribeBgmPreference,
     getBgmPreferenceSnapshot,
     getBgmPreferenceServerSnapshot,
   );
   const audioRef = useRef<HTMLAudioElement>(null);
-  const currentSrcRef = useRef<string | null>(null);
+  const trackIndexRef = useRef(0);
+  const isActiveRef = useRef(false);
   const playRequestRef = useRef(0);
   const [playbackBlocked, setPlaybackBlocked] = useState(false);
 
-  const startTrack = useCallback((src: string) => {
+  const playTrackAt = useCallback((index: number) => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (currentSrcRef.current !== src) {
-      audio.pause();
-      audio.currentTime = 0;
-      audio.src = src;
-      audio.load();
-      currentSrcRef.current = src;
-    }
+    const trackIndex = index % BGM_PLAYLIST.length;
+    const track = BGM_PLAYLIST[trackIndex];
+    if (!track) return;
 
-    audio.loop = true;
+    trackIndexRef.current = trackIndex;
+    isActiveRef.current = true;
+    audio.pause();
+    audio.currentTime = 0;
+    audio.src = track.src;
+    audio.load();
+    audio.loop = false;
     audio.volume = BGM_VOLUME;
     const requestId = ++playRequestRef.current;
     void audio
@@ -67,34 +65,44 @@ export function BgmControl() {
     if (!audio) return;
     playRequestRef.current += 1;
     releaseAudio(audio);
-    currentSrcRef.current = null;
+    isActiveRef.current = false;
     setPlaybackBlocked(false);
   }, []);
 
+  // Chains the playlist: each track advances to the next on completion and wraps
+  // back to the first once the last one ends, so the two tracks loop indefinitely.
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const handleEnded = () => playTrackAt(trackIndexRef.current + 1);
+    audio.addEventListener("ended", handleEnded);
+    return () => audio.removeEventListener("ended", handleEnded);
+  }, [playTrackAt]);
+
   useEffect(() => {
     if (enabled) {
-      // The toggle handler starts the first track in the user-gesture call
-      // stack. This guard prevents the following state effect from issuing a
-      // duplicate play() while still handling route changes and persisted opt-in.
-      if (currentSrcRef.current !== track.src) startTrack(track.src);
-    } else if (currentSrcRef.current !== null) {
+      // The toggle handler starts playback in the user-gesture call stack. This
+      // guard prevents the following state effect from issuing a duplicate play()
+      // for the same enable action while still handling the persisted opt-in.
+      if (!isActiveRef.current) playTrackAt(trackIndexRef.current);
+    } else if (isActiveRef.current) {
       stopTrack();
     }
-  }, [enabled, startTrack, stopTrack, track.src]);
+  }, [enabled, playTrackAt, stopTrack]);
 
   useEffect(() => () => stopTrack(), [stopTrack]);
 
   function handleToggle(): void {
     if (enabled && playbackBlocked) {
       // A blocked play() can be retried directly from this user gesture.
-      startTrack(track.src);
+      playTrackAt(trackIndexRef.current);
       return;
     }
 
     const nextEnabled = !enabled;
     setBgmPreference(nextEnabled);
     if (nextEnabled) {
-      startTrack(track.src);
+      playTrackAt(trackIndexRef.current);
     } else {
       stopTrack();
     }
@@ -107,7 +115,7 @@ export function BgmControl() {
     : t("turnOn");
 
   return (
-    <div className="bgm-control no-print fixed right-4 top-4 z-[80] sm:right-6 sm:top-5" data-bgm-area={area}>
+    <div className="bgm-control no-print fixed right-4 top-4 z-[80] sm:right-6 sm:top-5">
       <button
         type="button"
         className="theme-control inline-flex min-h-11 items-center gap-2 border border-ink-700 bg-ink-950/85 px-3 py-2 font-mono text-[11px] tracking-[0.12em] text-hobun-dim shadow-lg shadow-black/20 backdrop-blur-md transition-colors hover:text-hobun"

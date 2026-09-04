@@ -103,7 +103,7 @@ export default async function PersonalTodayPage({
     <SceneShell tone="horoscope">
       <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
       <AnalysisResultTracker analysis="horoscope" />
-      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5 pr-16">
         <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">
           LUMINA
         </Link>
@@ -118,7 +118,7 @@ export default async function PersonalTodayPage({
             {t("resultTitleSuffix")}
           </span>
         </nav>
-        <div className="no-print flex items-center gap-3">
+        <div className="no-print flex flex-wrap items-center justify-end gap-3">
           <LocaleSwitcher />
           <TierBadge tier={reading.tier} />
         </div>

@@ -107,9 +107,9 @@ export default async function Home() {
   return (
     <SceneShell tone="home">
       <main className="mx-auto w-full max-w-5xl px-5 pb-24 sm:px-8">
-      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5 pr-16">
         <span className="font-mono text-xs tracking-[0.28em] text-hobun">LUMINA</span>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-3">
           <LocaleSwitcher />
           <TierBadge tier="cultural" />
         </div>

@@ -446,11 +446,11 @@ function BalanceRow({
 async function ReportHeader({ data }: { readonly data: string }) {
   const t = await getTranslations("nav");
   return (
-    <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
+    <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5 pr-16">
       <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">
         LUMINA
       </Link>
-      <nav className="no-print flex items-center gap-2">
+      <nav className="no-print flex flex-wrap items-center gap-2">
         <Link
           href={`/r/${data}`}
           className="inline-flex min-h-11 items-center border border-ink-700 px-3 text-[13px] text-hobun-dim transition-colors hover:border-ink-600 hover:text-hobun"
@@ -467,7 +467,7 @@ async function ReportHeader({ data }: { readonly data: string }) {
           {t("astro")}
         </span>
       </nav>
-      <div className="no-print flex items-center gap-3">
+      <div className="no-print flex flex-wrap items-center justify-end gap-3">
         <LocaleSwitcher />
         <TierBadge tier="cultural" />
       </div>

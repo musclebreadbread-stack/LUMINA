@@ -79,6 +79,8 @@ export default async function AdminAnalyticsPage({ searchParams }: PageProps) {
     premiumReportViews: t("premiumReportViews"),
     premiumFreeAnalysisClicks: t("premiumFreeAnalysisClicks"),
     premiumCheckoutStarts: t("premiumCheckoutStarts"),
+    premiumFunnelBaseline: t("premiumFunnelBaseline"),
+    premiumFunnelStepRate: t("premiumFunnelStepRate"),
     completionRate: t("completionRate"),
     resultRate: t("resultRate"),
     noData: t("noData"),

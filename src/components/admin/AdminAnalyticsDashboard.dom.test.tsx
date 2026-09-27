@@ -68,14 +68,17 @@ function unavailableSnapshot(sourceConfigured: boolean): AdminAnalyticsSnapshot 
   };
 }
 
-function premiumFunnelSnapshot(selectedSolution: AdminAnalyticsSnapshot["selectedSolution"]): AdminAnalyticsSnapshot {
+function premiumFunnelSnapshot(
+  selectedSolution: AdminAnalyticsSnapshot["selectedSolution"],
+  counts: readonly [number, number, number] = [120, 30, 8],
+): AdminAnalyticsSnapshot {
   return {
     ...unavailableSnapshot(true),
     selectedSolution,
     selectedSolutionSeries: [
-      { analysis: "saju", eventName: "premium_report_view", count: 120, visitors: 80 },
-      { analysis: "saju", eventName: "premium_report_free_analysis_click", count: 30, visitors: 26 },
-      { analysis: "saju", eventName: "premium_report_checkout_start", count: 8, visitors: 7 },
+      { analysis: "saju", eventName: "premium_report_view", count: counts[0], visitors: 80 },
+      { analysis: "saju", eventName: "premium_report_free_analysis_click", count: counts[1], visitors: 26 },
+      { analysis: "saju", eventName: "premium_report_checkout_start", count: counts[2], visitors: 7 },
     ],
   };
 }
@@ -121,9 +124,27 @@ describe("AdminAnalyticsDashboard premium report funnel", () => {
     expect(markup).toContain(labels.premiumReportViews);
     expect(markup).toContain(labels.premiumFreeAnalysisClicks);
     expect(markup).toContain(labels.premiumCheckoutStarts);
+    expect(markup).toContain(labels.premiumFunnelBaseline);
+    expect(markup).toContain(labels.premiumFunnelStepRate);
+    expect(markup).toContain("25%");
+    expect(markup).toContain("26.7%");
+    expect(markup).toContain("not unique-user conversion rates");
     expect(markup).toContain(">120<");
     expect(markup).toContain(">30<");
     expect(markup).toContain(">8<");
+  });
+
+  it("keeps a zero denominator unavailable and does not cap event ratios above 100 percent", () => {
+    const labels = labelsByLocale.en;
+    const zeroDenominatorMarkup = renderToStaticMarkup(
+      <AdminAnalyticsDashboard snapshot={premiumFunnelSnapshot("all", [2, 0, 3])} labels={labels} locale="en" />,
+    );
+    const largerNextStepMarkup = renderToStaticMarkup(
+      <AdminAnalyticsDashboard snapshot={premiumFunnelSnapshot("all", [2, 3, 0])} labels={labels} locale="en" />,
+    );
+
+    expect(zeroDenominatorMarkup).toContain('class="mt-1 font-mono text-lg tabular-nums text-hobun">—</p>');
+    expect(largerNextStepMarkup).toContain("150%");
   });
 
   it("hides the product funnel when another solution is selected", () => {

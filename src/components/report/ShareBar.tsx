@@ -35,6 +35,7 @@ export function ShareBar({
   shareUrl,
   shareText,
   imageCard,
+  allowLinkShare = true,
   analysisKey,
   onShare,
 }: {
@@ -47,6 +48,8 @@ export function ShareBar({
   readonly shareText?: string;
   /** 있을 때만 "이미지 저장" 버튼을 렌더한다 — 없는 호출부는 화면이 그대로다. */
   readonly imageCard?: ShareBarImageCard;
+  /** Sensitive birth-profile and compatibility routes stay read-only share surfaces. */
+  readonly allowLinkShare?: boolean;
   /** 나중에 분석 이벤트를 붙일 때 쓸 키 — onShare 콜백에 그대로 실어 넘긴다. */
   readonly analysisKey?: AnalysisKey;
   /** 공유류 버튼을 누른 시점에 동기 호출 — 실제 트래킹 호출은 이후 과제가 붙인다. */
@@ -85,12 +88,16 @@ export function ShareBar({
   return (
     <div className="no-print space-y-2">
       <div className="flex flex-wrap items-center gap-2">
-        <button type="button" onClick={share} className={buttonClass}>
-          {t("share")}
-        </button>
-        <button type="button" onClick={copyLink} className={buttonClass}>
-          {copied ? t("copyLinkDone") : t("copyLink")}
-        </button>
+        {allowLinkShare ? (
+          <>
+            <button type="button" onClick={share} className={buttonClass}>
+              {t("share")}
+            </button>
+            <button type="button" onClick={copyLink} className={buttonClass}>
+              {copied ? t("copyLinkDone") : t("copyLink")}
+            </button>
+          </>
+        ) : null}
         <button type="button" onClick={() => window.print()} className={buttonClass}>
           {t("savePdf")}
         </button>
@@ -107,7 +114,7 @@ export function ShareBar({
           {restartLabel ?? t("restartDefault")}
         </Link>
       </div>
-      <ShareTargets url={shareUrl} text={shareText ?? title} analysisKey={analysisKey} />
+      {allowLinkShare ? <ShareTargets url={shareUrl} text={shareText ?? title} analysisKey={analysisKey} /> : null}
     </div>
   );
 }

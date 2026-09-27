@@ -46,9 +46,9 @@ export async function buildAttachmentOgCard(summary: AttachmentSummaryV1): Promi
     { rawSum: 0, mean: summary.anxiety },
     { rawSum: 0, mean: summary.avoidance },
   );
-  const quadrantLabel = summary.locale === "en" ? classification.labelEn : classification.labelKo;
-  const anxietyLabel = summary.locale === "en" ? AXIS_LABELS.anxiety.en : AXIS_LABELS.anxiety.ko;
-  const avoidanceLabel = summary.locale === "en" ? AXIS_LABELS.avoidance.en : AXIS_LABELS.avoidance.ko;
+  const quadrantLabel = summary.locale !== "ko" ? classification.labelEn : classification.labelKo;
+  const anxietyLabel = summary.locale !== "ko" ? AXIS_LABELS.anxiety.en : AXIS_LABELS.anxiety.ko;
+  const avoidanceLabel = summary.locale !== "ko" ? AXIS_LABELS.avoidance.en : AXIS_LABELS.avoidance.ko;
   const markerColor = ELEMENT_HEX[QUADRANT_ELEMENT[classification.quadrant]];
   const kicker = tAttachment("kicker");
 

@@ -20,9 +20,9 @@ export async function ElementSpectrum({ elements }: Props) {
   const t = await getTranslations("saju");
   const locale = (await getLocale()) as Locale;
   const label = (el: (typeof elements.rows)[number]["element"]) =>
-    locale === "en" ? ELEMENT_STYLE[el].en : ELEMENT_STYLE[el].ko;
+    locale !== "ko" ? ELEMENT_STYLE[el].en : ELEMENT_STYLE[el].ko;
   const gloss = (el: (typeof elements.rows)[number]["element"]) =>
-    locale === "en" ? ELEMENT_STYLE[el].glossEn : ELEMENT_STYLE[el].gloss;
+    locale !== "ko" ? ELEMENT_STYLE[el].glossEn : ELEMENT_STYLE[el].gloss;
 
   const max = Math.max(...elements.rows.map((r) => r.weighted), 0.001);
 

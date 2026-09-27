@@ -40,8 +40,8 @@ export async function PlacementGuide({ planets, explanations }: Props) {
         {planets.map((planet, index) => {
           const block = explanations.placements[index];
           if (!block) return null;
-          const planetName = locale === "en" ? planet.en : planet.ko;
-          const signName = locale === "en" ? planet.signEn : planet.signKo;
+          const planetName = locale !== "ko" ? planet.en : planet.ko;
+          const signName = locale !== "ko" ? planet.signEn : planet.signKo;
           return (
             <section key={planet.key}>
               <h4 className="pt-4 text-sm text-hobun-dim">

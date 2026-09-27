@@ -7,6 +7,7 @@ import {
   type Item,
 } from "@engine/cognitive/items";
 import type { CognitiveResult, ItemResult } from "@engine/cognitive/scoring";
+import type { Locale } from "@/i18n/locale";
 
 /**
  * 인지능력 탐색 결과 뷰모델.
@@ -120,18 +121,18 @@ export function domainMeta(domain: CognitiveDomain): DomainMeta {
   return DOMAIN_META[domain];
 }
 
-export function localizeDomain(domain: CognitiveDomain, locale: "ko" | "en"): string {
+export function localizeDomain(domain: CognitiveDomain, locale: Locale): string {
   const meta = DOMAIN_META[domain];
-  return locale === "en" ? meta.en : meta.ko;
+  return locale !== "ko" ? meta.en : meta.ko;
 }
 
-export function localizeDomainDescription(domain: CognitiveDomain, locale: "ko" | "en"): string {
+export function localizeDomainDescription(domain: CognitiveDomain, locale: Locale): string {
   const meta = DOMAIN_META[domain];
-  return locale === "en" ? meta.descriptionEn : meta.descriptionKo;
+  return locale !== "ko" ? meta.descriptionEn : meta.descriptionKo;
 }
 
-export function localizeExplanation(review: ItemReview, locale: "ko" | "en"): string {
-  return locale === "en" ? review.explanationEn : review.explanationKo;
+export function localizeExplanation(review: ItemReview, locale: Locale): string {
+  return locale !== "ko" ? review.explanationEn : review.explanationKo;
 }
 
 /** 밀리초를 분·초로 자른다. 없으면 null 그대로 — 0분 0초는 "재지 않았다"와 다르다. */

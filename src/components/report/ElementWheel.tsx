@@ -62,7 +62,7 @@ export async function ElementWheel({ elements, dayElement }: Props) {
         className="h-auto w-full max-w-[300px]"
         role="img"
         aria-label={t("wheelAriaLabel", {
-          element: locale === "en" ? dominantStyle.en : dominantStyle.ko,
+          element: locale !== "ko" ? dominantStyle.en : dominantStyle.ko,
         })}
       >
         {/* 상극 — 안쪽 별. 상생보다 뒤로 물러나 있어야 읽힌다. */}

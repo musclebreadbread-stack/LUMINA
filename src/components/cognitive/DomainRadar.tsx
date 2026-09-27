@@ -108,7 +108,7 @@ export async function DomainRadar({ domains }: { readonly domains: readonly Doma
           <div key={domain.key} className="border-b border-ink-800 pb-3 last:border-b-0 last:pb-0">
             <dt className="flex items-baseline gap-2 text-sm font-medium text-hobun">
               <span className="tabular font-mono text-[12px] text-hobun-faint">{index + 1}</span>
-              {resolvedLocale === "en" ? domain.en : domain.ko}
+              {resolvedLocale !== "ko" ? domain.en : domain.ko}
             </dt>
             <dd className="tabular mt-1 font-mono text-[13px] text-hobun-dim">
               {t("domainAccuracy", {

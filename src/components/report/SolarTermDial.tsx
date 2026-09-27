@@ -39,7 +39,7 @@ interface Props {
 export async function SolarTermDial({ dial, termEntry, monthPillar }: Props) {
   const t = await getTranslations("saju");
   const locale = (await getLocale()) as Locale;
-  const termName = locale === "en" ? termEntry.en : termEntry.ko;
+  const termName = locale !== "ko" ? termEntry.en : termEntry.ko;
   const daysSince = termEntry.daysSince.toFixed(1);
 
   const [markerX, markerY] = polar(dial.birthAngle, R_MARKER);
@@ -137,7 +137,7 @@ export async function SolarTermDial({ dial, termEntry, monthPillar }: Props) {
                 fill={term.isCurrent ? accent : "var(--color-hobun-faint)"}
                 fontWeight={term.isCurrent ? 600 : 400}
               >
-                {locale === "en" ? term.en : term.ko}
+                {locale !== "ko" ? term.en : term.ko}
               </text>
             );
           })}

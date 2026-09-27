@@ -1,9 +1,10 @@
 import type { DeviceCapability } from "@engine/cognitive-standardized/types";
 import { evaluateEligibility } from "@/lib/cognitiveEligibility";
+import type { Locale } from "@/i18n/locale";
 
 interface DeviceCheckProps {
   readonly capability: DeviceCapability;
-  readonly locale?: "ko" | "en";
+  readonly locale?: Locale;
 }
 
 const reasonCopy = {
@@ -24,7 +25,7 @@ const reasonCopy = {
 /** 브라우저 전역을 읽지 않고 서버가 전달한 장치 능력만 보여 주는 안내 컴포넌트. */
 export function DeviceCheck({ capability, locale = "ko" }: DeviceCheckProps) {
   const result = evaluateEligibility(capability);
-  const copy = reasonCopy[locale];
+  const copy = reasonCopy[locale === "ko" ? "ko" : "en"];
   const message = result.reason === null ? copy.ready : copy[result.reason];
   return (
     <p role="status" className="border-l border-hobun pl-3 text-sm leading-relaxed text-hobun-dim">

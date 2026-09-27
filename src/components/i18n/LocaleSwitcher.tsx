@@ -1,14 +1,22 @@
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { LOCALES, LOCALE_COOKIE, type Locale } from "@/i18n/locale";
+import { localePath, LOCALES, LOCALE_COOKIE, type Locale } from "@/i18n/locale";
+
+const LOCALE_LABELS: Readonly<Record<Locale, string>> = Object.freeze({
+  ko: "한국어",
+  en: "English",
+  ja: "日本語",
+  "zh-Hant": "繁體中文",
+  es: "Español",
+});
 
 /**
  * 로케일 전환.
  *
- * 공개 URL 규약은 ko를 루트에, en을 /en/ 아래에 둔다. 쿠키도 함께 기록해 다음
+ * 공개 URL 규약은 ko를 루트에 두고 다른 언어는 언어 접두사를 쓴다. 쿠키도 함께 기록해 다음
  * 루트 이동에서 선택을 유지하고, 전체 경로 전환으로 Next 프록시가 새 로케일을
  * 서버 렌더링에 확실히 반영하게 한다.
  */
@@ -20,7 +28,6 @@ function setLocaleCookie(next: Locale): void {
 
 export function LocaleSwitcher() {
   const locale = useLocale();
-  const t = useTranslations("localeSwitch");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -28,12 +35,13 @@ export function LocaleSwitcher() {
     if (next === locale) return;
     setLocaleCookie(next);
     const currentPath = window.location.pathname;
-    const currentPathWithoutLocale = currentPath === "/en" || currentPath.startsWith("/en/")
-      ? currentPath.slice(3) || "/"
+    const currentLocale = LOCALES.find((candidate) =>
+      currentPath === `/${candidate}` || currentPath.startsWith(`/${candidate}/`),
+    );
+    const currentPathWithoutLocale = currentLocale
+      ? currentPath.slice(currentLocale.length + 1) || "/"
       : currentPath;
-    const nextPath = next === "en"
-      ? currentPathWithoutLocale === "/" ? "/en" : `/en${currentPathWithoutLocale}`
-      : currentPathWithoutLocale;
+    const nextPath = localePath(currentPathWithoutLocale, next);
     // 쿠키를 갱신한 뒤 새 URL을 라우팅하고 RSC 트리를 명시적으로 새로고침한다.
     // 프록시 rewrite가 기존 클라이언트 트리에 재사용되지 않도록 한다.
     startTransition(() => {
@@ -57,7 +65,7 @@ export function LocaleSwitcher() {
               : "border border-ink-700 text-hobun-faint hover:border-ink-600"
           }`}
         >
-          {t(l)}
+          {LOCALE_LABELS[l]}
         </button>
       ))}
     </div>

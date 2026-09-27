@@ -1,5 +1,6 @@
 import type { DeviceCapability, EducationBand, GenderBand, RegionClass, StartRunInput } from "@engine/cognitive-standardized/types";
 import type { SubmitOwnedResponseInput } from "@/server/cognitive/repository";
+import { isLocale } from "@/i18n/locale";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9:_-]{0,127}$/;
@@ -51,7 +52,7 @@ function capability(value: unknown): DeviceCapability {
   const input = recordOf(value);
   const locale = input.locale;
   const device = input.device;
-  if (locale !== "ko" && locale !== "en") throw new TypeError("invalid capability locale");
+  if (typeof locale !== "string" || !isLocale(locale)) throw new TypeError("invalid capability locale");
   if (device !== "desktop" && device !== "tablet" && device !== "mobile") throw new TypeError("invalid capability device");
 
   const booleans = ["keyboard", "pointer", "reducedMotion"] as const;

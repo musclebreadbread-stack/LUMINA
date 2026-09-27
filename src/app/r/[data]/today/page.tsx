@@ -13,6 +13,7 @@ import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { computeDailyReading, type HoroscopeSystem } from "@engine/horoscope";
 import { decodeProfile } from "@/lib/share";
+import { resolveBirthReportProfile } from "@/server/reportProfileSession";
 import { assetPath } from "@/lib/assets";
 import { toBirthInput } from "@/lib/profile";
 import type { Locale } from "@/i18n/locale";
@@ -60,7 +61,7 @@ export default async function PersonalTodayPage({
   params: Promise<Params>;
 }) {
   const { data } = await params;
-  const profile = decodeProfile(data);
+  const profile = await resolveBirthReportProfile(data);
   const locale = (await getLocale()) as Locale;
   const t = await getTranslations("horoscope");
   const tNav = await getTranslations("nav");
@@ -97,7 +98,7 @@ export default async function PersonalTodayPage({
     timeZone: profile.timeZone,
     natalPositions: chart.planets.map((planet) => ({ key: planet.key, longitude: planet.longitude })),
   });
-  const signName = locale === "en" ? reading.sign.en : reading.sign.ko;
+  const signName = locale !== "ko" ? reading.sign.en : reading.sign.ko;
 
   return (
     <SceneShell tone="horoscope">
@@ -150,23 +151,23 @@ export default async function PersonalTodayPage({
 
       <Section index="01" title={t("sectionToday")}>
         <div className="space-y-6">
-          <p className="text-base leading-relaxed text-hobun">{locale === "en" ? reading.lines.mood.en : reading.lines.mood.ko}</p>
+          <p className="text-base leading-relaxed text-hobun">{locale !== "ko" ? reading.lines.mood.en : reading.lines.mood.ko}</p>
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
               <p className="font-mono text-[13px] text-hobun-faint">{t("relationshipLabel")}</p>
               <p className="mt-2 text-sm leading-relaxed text-hobun-dim">
-                {locale === "en" ? reading.lines.relationship.en : reading.lines.relationship.ko}
+                {locale !== "ko" ? reading.lines.relationship.en : reading.lines.relationship.ko}
               </p>
             </div>
             <div>
               <p className="font-mono text-[13px] text-hobun-faint">{t("workLabel")}</p>
               <p className="mt-2 text-sm leading-relaxed text-hobun-dim">
-                {locale === "en" ? reading.lines.work.en : reading.lines.work.ko}
+                {locale !== "ko" ? reading.lines.work.en : reading.lines.work.ko}
               </p>
             </div>
           </div>
           <p className="border-l border-ink-600 pl-4 text-sm leading-relaxed text-hobun-dim">
-            {locale === "en" ? reading.lines.tip.en : reading.lines.tip.ko}
+            {locale !== "ko" ? reading.lines.tip.en : reading.lines.tip.ko}
           </p>
         </div>
       </Section>
@@ -176,7 +177,7 @@ export default async function PersonalTodayPage({
       </Section>
 
       <AdSlot slot="personal-today-mid" label={tCommon("adLabel")} />
-      <ShareBar title={`${signName} · ${tReading("personalizeTitle")}`} restartHref="/horoscope" />
+      <ShareBar title={`${signName} · ${tReading("personalizeTitle")}`} restartHref="/horoscope" allowLinkShare={false} />
 
       <footer className="border-t border-ink-700 pt-8">
         <Disclaimer tier={reading.tier} />

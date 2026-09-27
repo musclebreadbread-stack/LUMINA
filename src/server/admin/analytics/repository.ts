@@ -17,6 +17,7 @@ export interface RollupAnalyticsData {
   readonly lastSyncAt: string | null;
   readonly coverageStart: string | null;
   readonly coverageEnd: string | null;
+  readonly sourceChangeDate: string | null;
 }
 
 function countValue(value: unknown): number {
@@ -69,6 +70,13 @@ export async function readAnalyticsRollups(
        order by finished_at desc nulls last
        limit 1
     `,
+    sql`
+      select requested_since::text as source_change_date
+        from ops.analytics_sync_runs
+       where status = 'succeeded' and source = 'umami'
+       order by finished_at asc nulls last
+       limit 1
+    `,
   ]);
 
   const traffic: TrafficPoint[] = [];
@@ -100,12 +108,14 @@ export async function readAnalyticsRollups(
   }
 
   const syncRow = neonRows(results[3])[0];
+  const umamiSourceRow = neonRows(results[4])[0];
   return Object.freeze({
     traffic: Object.freeze(traffic),
     events: Object.freeze(events),
     lastSyncAt: timestampValue(syncRow?.finished_at),
     coverageStart: dateValue(syncRow?.requested_since),
     coverageEnd: dateValue(syncRow?.requested_until),
+    sourceChangeDate: dateValue(umamiSourceRow?.source_change_date),
   });
 }
 

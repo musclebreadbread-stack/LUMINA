@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import type { Gender } from "@engine/shared/birth";
 import { DEFAULT_PROFILE, type StoredProfile } from "@/lib/profile";
-import { encodeProfile } from "@/lib/share";
+import { establishReportSession } from "@/lib/reportSession.client";
 import { LocationCombobox } from "@/components/LocationCombobox";
 import { track } from "@/lib/analytics";
 
@@ -53,6 +53,7 @@ export function CompatibilityForm() {
   const [first, setFirst] = useState<StoredProfile>(DEFAULT_PROFILE);
   const [second, setSecond] = useState<StoredProfile>({ ...DEFAULT_PROFILE, day: 16 });
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   function update(which: PersonKey, patch: Partial<StoredProfile>): void {
     const setter = which === "a" ? setFirst : setSecond;
@@ -76,8 +77,9 @@ export function CompatibilityForm() {
     if (Number.isInteger(hour) && Number.isInteger(minute)) update(which, { hour, minute });
   }
 
-  function submit(event: React.FormEvent<HTMLFormElement>): void {
+  async function submit(event: React.FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
+    if (submitting) return;
     if (!isValidDate(first) || !isValidDate(second)) {
       setError(t("invalidDate"));
       return;
@@ -86,12 +88,18 @@ export function CompatibilityForm() {
       setError(t("invalidTime"));
       return;
     }
+    setSubmitting(true);
+    if (!await establishReportSession({ kind: "compatibility", first, second })) {
+      setSubmitting(false);
+      setError(t("profileSessionError"));
+      return;
+    }
     track("compatibility_compare", { analysis: "compatibility" });
-    router.push(`/compatibility/${encodeProfile(first)}/${encodeProfile(second)}`);
+    router.push("/compatibility/current/current");
   }
 
   return (
-    <form onSubmit={submit} className="space-y-8">
+    <form onSubmit={(event) => void submit(event)} className="space-y-8">
       <div className="grid gap-5 lg:grid-cols-2">
         <ProfileFields
           profile={first}
@@ -117,8 +125,8 @@ export function CompatibilityForm() {
         {t("inputNote")}
       </p>
       {error ? <p role="alert" className="border-l border-hwa pl-4 text-sm text-hobun">{error}</p> : null}
-      <button type="submit" className="bg-hobun px-6 py-3 text-sm font-medium text-ink-900 transition-opacity hover:opacity-85">
-        {t("submit")}
+      <button type="submit" disabled={submitting} className="bg-hobun px-6 py-3 text-sm font-medium text-ink-900 transition-opacity hover:opacity-85 disabled:opacity-50">
+        {submitting ? t("submitting") : t("submit")}
       </button>
     </form>
   );

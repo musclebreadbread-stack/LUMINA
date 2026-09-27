@@ -45,8 +45,8 @@ describe("admin analytics date contract", () => {
   });
 
   it("allows only the production rollup environment used by the reader", () => {
-    expect(resolveAnalyticsRollupEnvironment(undefined)).toBe("production");
-    expect(resolveAnalyticsRollupEnvironment("  ")).toBe("production");
+    expect(resolveAnalyticsRollupEnvironment(undefined)).toBeNull();
+    expect(resolveAnalyticsRollupEnvironment("  ")).toBeNull();
     expect(resolveAnalyticsRollupEnvironment("production")).toBe("production");
     expect(resolveAnalyticsRollupEnvironment("preview")).toBeNull();
     expect(resolveAnalyticsRollupEnvironment("staging")).toBeNull();

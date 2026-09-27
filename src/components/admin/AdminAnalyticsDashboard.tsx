@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { signOutAdmin } from "@/app/admin/actions";
+import { intlLocale, isLocale } from "@/i18n/locale";
 import type { AdminTrackedAnalysis } from "@/lib/adminAnalytics";
 import type {
   AdminAnalyticsSnapshot,
@@ -47,21 +48,21 @@ export interface AdminAnalyticsLabels {
   readonly resultRate: string;
   readonly noData: string;
   readonly source: string;
-  readonly sourceLive: string;
+  readonly sourceUmami: string;
   readonly sourceRollup: string;
   readonly sourceEmpty: string;
   readonly sourceUnavailable: string;
   readonly freshness: string;
-  readonly live: string;
   readonly fresh: string;
   readonly stale: string;
   readonly unavailable: string;
   readonly lastUpdated: string;
   readonly coverage: string;
+  readonly sourceChanged: string;
   readonly partialNote: string;
   readonly dataHealth: string;
   readonly configureSource: string;
-  readonly migrationRequired: string;
+  readonly rollupUnavailable: string;
   readonly approximateVisitors: string;
   readonly events: string;
   readonly count: string;
@@ -77,11 +78,11 @@ interface DashboardProps {
 }
 
 function numberFormat(locale: string, value: number): string {
-  return new Intl.NumberFormat(locale === "en" ? "en-US" : "ko-KR").format(value);
+  return new Intl.NumberFormat(intlLocale(isLocale(locale) ? locale : "ko")).format(value);
 }
 
 function dateFormat(locale: string, value: string): string {
-  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "ko-KR", {
+  return new Intl.DateTimeFormat(intlLocale(isLocale(locale) ? locale : "ko"), {
     month: "short",
     day: "numeric",
   }).format(new Date(`${value}T00:00:00.000Z`));
@@ -89,7 +90,7 @@ function dateFormat(locale: string, value: string): string {
 
 function dateTimeFormat(locale: string, value: string | null): string {
   if (value === null) return "—";
-  return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "ko-KR", {
+  return new Intl.DateTimeFormat(intlLocale(isLocale(locale) ? locale : "ko"), {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: "Asia/Seoul",
@@ -310,16 +311,14 @@ function Funnel({ snapshot, labels, locale }: DashboardProps) {
 }
 
 function HealthPanel({ snapshot, labels, locale }: DashboardProps) {
-  const sourceLabel = snapshot.source === "vercel-live"
-    ? labels.sourceLive
+  const sourceLabel = snapshot.source === "umami-rollup"
+    ? labels.sourceUmami
     : snapshot.source === "neon-rollup"
       ? labels.sourceRollup
       : snapshot.source === "empty" ? labels.sourceEmpty : labels.sourceUnavailable;
-  const freshnessLabel = snapshot.freshness === "live"
-    ? labels.live
-    : snapshot.freshness === "fresh"
-      ? labels.fresh
-      : snapshot.freshness === "stale" ? labels.stale : labels.unavailable;
+  const freshnessLabel = snapshot.freshness === "fresh"
+    ? labels.fresh
+    : snapshot.freshness === "stale" ? labels.stale : labels.unavailable;
   return (
     <section className="border border-ink-700 bg-ink-900/55 p-5 sm:p-7" aria-labelledby="admin-health-title">
       <h2 id="admin-health-title" className="text-xl font-semibold text-hobun">{labels.dataHealth}</h2>
@@ -329,11 +328,20 @@ function HealthPanel({ snapshot, labels, locale }: DashboardProps) {
         <HealthItem label={labels.lastUpdated} value={dateTimeFormat(locale, snapshot.health.lastSyncAt)} />
         <HealthItem label={labels.coverage} value={snapshot.health.coverageStart && snapshot.health.coverageEnd ? `${snapshot.health.coverageStart}–${snapshot.health.coverageEnd}` : "—"} />
       </div>
-      {snapshot.source === "neon-rollup" && <p className="mt-5 border-l border-amber-300/50 pl-3 text-xs leading-relaxed text-amber-100">{labels.approximateVisitors}</p>}
-      {snapshot.health.message !== null && <p className="mt-5 border-l border-ink-600 pl-3 text-xs leading-relaxed text-hobun-faint">{snapshot.health.message}</p>}
+      {(snapshot.source === "umami-rollup" || snapshot.source === "neon-rollup") && <p className="mt-5 border-l border-amber-300/50 pl-3 text-xs leading-relaxed text-amber-100">{labels.approximateVisitors}</p>}
+      {snapshot.health.sourceChangeDate !== null && (
+        <p className="mt-3 border-l border-ink-600 pl-3 text-xs leading-relaxed text-hobun-faint">
+          {labels.sourceChanged}: {snapshot.health.sourceChangeDate}
+        </p>
+      )}
+      {snapshot.source !== "unavailable" && snapshot.health.message !== null && <p className="mt-5 border-l border-ink-600 pl-3 text-xs leading-relaxed text-hobun-faint">{snapshot.health.message}</p>}
       {snapshot.freshness === "stale" && <p className="mt-3 text-xs leading-relaxed text-amber-100">{labels.partialNote}</p>}
       {!snapshot.health.sourceConfigured && <p className="mt-3 text-xs leading-relaxed text-hobun-faint">{labels.configureSource}</p>}
-      {snapshot.source === "unavailable" && <p className="mt-3 text-xs leading-relaxed text-hobun-faint">{labels.migrationRequired}</p>}
+      {snapshot.source === "unavailable" && (
+        <p className="mt-3 text-xs leading-relaxed text-hobun-faint">
+          {labels.rollupUnavailable}
+        </p>
+      )}
     </section>
   );
 }

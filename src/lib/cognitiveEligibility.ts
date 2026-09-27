@@ -1,4 +1,5 @@
 import type { DeviceCapability } from "@engine/cognitive-standardized/types";
+import { isLocale } from "@/i18n/locale";
 
 export type EligibilityReason = "unsupported_input_device" | "insufficient_viewport" | "unsupported_locale";
 
@@ -16,7 +17,7 @@ const MIN_VIEWPORT_HEIGHT = 600;
  * 장치 정보는 호출자가 명시적으로 전달하며 window/navigator를 읽지 않는다.
  */
 export function evaluateEligibility(capability: DeviceCapability): CognitiveEligibility {
-  if (capability.locale !== "ko" && capability.locale !== "en") {
+  if (!isLocale(capability.locale)) {
     return { eligibleForGs: false, eligibleForComposite: false, reason: "unsupported_locale" };
   }
   if (capability.device === "mobile" || !capability.keyboard || !capability.pointer) {

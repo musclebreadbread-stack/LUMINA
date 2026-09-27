@@ -1,5 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import type { Locale } from "@/i18n/locale";
+import { intlLocale, type Locale } from "@/i18n/locale";
 import type { ScoreView } from "@/lib/eqModel";
 
 /**
@@ -37,7 +37,7 @@ export async function TotalScoreCard({ total }: { readonly total: ScoreView }) {
             <span>{t("percentileLabel", { n: total.norm.percentile })}</span>
             <span>
               {t("normSample", {
-                n: total.norm.sampleSize.toLocaleString(locale === "en" ? "en-US" : "ko-KR"),
+                n: total.norm.sampleSize.toLocaleString(intlLocale(locale)),
               })}
             </span>
           </>

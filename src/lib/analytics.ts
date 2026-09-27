@@ -1,6 +1,8 @@
 import type { AnalysisKey } from "@engine/shared/evidence";
-import type { AdminTrackedAnalysis } from "./adminAnalytics";
+import { isAdminTrackedAnalysis, type AdminTrackedAnalysis } from "./adminAnalytics";
 import { loadConsent } from "./consent";
+import { scrubAnalyticsUrl } from "./analyticsScrub";
+import { buildUmamiEventName } from "./umamiEventName";
 
 /**
  * 공유류 버튼이 실제로 무엇을 트리거했는지 구분하는 값 — AdSlot의 data-npa처럼
@@ -89,19 +91,42 @@ function isValidProps(name: AnalyticsEventName, props: Record<string, unknown>):
   return true;
 }
 
-type VercelTrack = typeof import("@vercel/analytics")["track"];
-let vercelTrackPromise: Promise<VercelTrack> | null = null;
+interface PendingUmamiEvent {
+  readonly name: AnalyticsEventName;
+  readonly data: Readonly<Record<string, string>>;
+}
 
-function loadVercelTrack(): Promise<VercelTrack> {
-  if (vercelTrackPromise === null) {
-    vercelTrackPromise = import("@vercel/analytics")
-      .then((module) => module.track)
-      .catch((error: unknown) => {
-        vercelTrackPromise = null;
-        throw error;
-      });
+const pendingUmamiEvents: PendingUmamiEvent[] = [];
+const MAX_PENDING_EVENTS = 100;
+
+function eventData(props: AnalyticsEventPropsMap[AnalyticsEventName]): Readonly<Record<string, string>> {
+  const data: Record<string, string> = { analysis: props.analysis };
+  if ("method" in props) data.method = props.method;
+  return data;
+}
+
+function sendUmamiEvent(name: AnalyticsEventName, data: Readonly<Record<string, string>>): void {
+  if (loadConsent() === null) return;
+  if (typeof window === "undefined" || window.umami === undefined) return;
+  const url = scrubAnalyticsUrl(window.location.pathname);
+  const website = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
+  const analysis = data.analysis;
+  if (url === null || !website || !isAdminTrackedAnalysis(analysis)) return;
+  window.umami.track(() => ({
+    website,
+    url,
+    name: buildUmamiEventName(name, analysis),
+    data,
+  }));
+}
+
+/** Flushes only schema-validated, non-identifying events after the tracker is ready. */
+export function flushPendingAnalyticsEvents(): void {
+  if (loadConsent() === null || typeof window === "undefined" || window.umami === undefined) {
+    pendingUmamiEvents.length = 0;
+    return;
   }
-  return vercelTrackPromise;
+  for (const event of pendingUmamiEvents.splice(0)) sendUmamiEvent(event.name, event.data);
 }
 
 /**
@@ -111,10 +136,10 @@ function loadVercelTrack(): Promise<VercelTrack> {
 export function track<E extends AnalyticsEventName>(event: E, props: AnalyticsEventPropsMap[E]): void {
   if (loadConsent() === null) return;
   if (!isValidProps(event, props)) return;
-  void loadVercelTrack()
-    .then((sendVercelEvent) => {
-      if (loadConsent() === null) return;
-      sendVercelEvent(event, props);
-    })
-    .catch(() => undefined);
+  const data = eventData(props);
+  if (typeof window !== "undefined" && window.umami !== undefined) {
+    sendUmamiEvent(event, data);
+  } else if (pendingUmamiEvents.length < MAX_PENDING_EVENTS) {
+    pendingUmamiEvents.push({ name: event, data });
+  }
 }

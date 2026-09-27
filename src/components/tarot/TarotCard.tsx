@@ -29,12 +29,12 @@ export async function TarotCard({ card, order }: { readonly card: CardView; read
   const locale = (await getLocale()) as Locale;
   const reversed = card.orientation === "reversed";
 
-  const position = locale === "en" ? card.positionEn : card.positionKo;
-  const prompt = locale === "en" ? card.promptEn : card.promptKo;
-  const name = locale === "en" ? card.nameEn : card.name;
-  const suitLabel = (locale === "en" ? card.suitEn : card.suitKo) ?? "";
-  const keywords = locale === "en" ? card.keywordsEn : card.keywords;
-  const iconography = locale === "en" ? card.iconographyEn : card.iconographyKo;
+  const position = locale !== "ko" ? card.positionEn : card.positionKo;
+  const prompt = locale !== "ko" ? card.promptEn : card.promptKo;
+  const name = locale !== "ko" ? card.nameEn : card.name;
+  const suitLabel = (locale !== "ko" ? card.suitEn : card.suitKo) ?? "";
+  const keywords = locale !== "ko" ? card.keywordsEn : card.keywords;
+  const iconography = locale !== "ko" ? card.iconographyEn : card.iconographyKo;
   const orientationLabel = t(reversed ? "reversed" : "upright");
   const numberLabel = card.isMajor ? t("cardNumberMajor", { n: card.number }) : `${card.number}`;
 

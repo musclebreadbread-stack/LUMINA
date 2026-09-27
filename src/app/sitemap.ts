@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { CHINESE_SIGNS, ZODIAC_SIGNS } from "@engine/horoscope/constants";
 import { localizedPath } from "@/lib/seoAlternates";
+import { CONTENT_LOCALES } from "@/i18n/locale";
 import { getSiteUrl } from "@/lib/siteUrl";
 
 const PUBLIC_PATHS = [
@@ -15,6 +16,7 @@ const PUBLIC_PATHS = [
   "/cognitive",
   "/tarot",
   "/compatibility",
+  "/premium/saju-2027",
   "/characters",
   "/references",
   "/glossary",
@@ -44,8 +46,10 @@ function localizedEntry(pathname: string, siteUrl: URL): MetadataRoute.Sitemap[n
     url: koreanUrl,
     alternates: {
       languages: {
-        ko: koreanUrl,
-        en: absolute(localizedPath(pathname, "en")),
+        ...Object.fromEntries(CONTENT_LOCALES.map((locale) => [
+          locale,
+          absolute(localizedPath(pathname, locale)),
+        ])),
         "x-default": koreanUrl,
       },
     },

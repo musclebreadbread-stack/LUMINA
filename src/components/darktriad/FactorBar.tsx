@@ -1,5 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import type { Locale } from "@/i18n/locale";
+import { intlLocale, type Locale } from "@/i18n/locale";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import type { FactorView } from "@/lib/darktriadModel";
 import { darkTriadImagePath } from "@/lib/psychometricsAssets";
@@ -8,8 +8,8 @@ export async function FactorBar({ factor }: { readonly factor: FactorView }) {
   const t = await getTranslations("darktriad");
   const locale = (await getLocale()) as Locale;
 
-  const name = locale === "en" ? factor.en : factor.ko;
-  const description = locale === "en" ? factor.descriptionEn : factor.descriptionKo;
+  const name = locale !== "ko" ? factor.en : factor.ko;
+  const description = locale !== "ko" ? factor.descriptionEn : factor.descriptionKo;
 
   const intervalStart = Math.max(0, Math.min(100, ((factor.reliability.ci95[0] - 9) / 36) * 100));
   const intervalEnd = Math.max(0, Math.min(100, ((factor.reliability.ci95[1] - 9) / 36) * 100));
@@ -43,7 +43,7 @@ export async function FactorBar({ factor }: { readonly factor: FactorView }) {
             <span>{t("percentileLabel", { n: factor.norm.percentile })}</span>
             <span>
               {t("normSample", {
-                n: factor.norm.sampleSize.toLocaleString(locale === "en" ? "en-US" : "ko-KR"),
+                n: factor.norm.sampleSize.toLocaleString(intlLocale(locale)),
               })}
             </span>
           </>
@@ -128,7 +128,7 @@ function ResponseList({
         {items.map((item) => (
           <li key={item.itemId}>
             <span className="mr-2 font-mono text-hobun-faint">#{item.itemId}</span>
-            {locale === "en" ? item.textEn : item.textKo}
+            {locale !== "ko" ? item.textEn : item.textKo}
             <span className="ml-2 font-mono text-hobun-faint">
               {formatResponse(item.response, item.scoredResponse)}
             </span>

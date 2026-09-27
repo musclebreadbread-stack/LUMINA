@@ -6,8 +6,8 @@ import type {
 } from "@/lib/adminAnalytics";
 import type { AnalysisKey } from "@engine/shared/evidence";
 
-export type AnalyticsDataSource = "vercel-live" | "neon-rollup" | "empty" | "unavailable";
-export type AnalyticsFreshness = "live" | "fresh" | "stale" | "unavailable";
+export type AnalyticsDataSource = "umami-rollup" | "neon-rollup" | "empty" | "unavailable";
+export type AnalyticsFreshness = "fresh" | "stale" | "unavailable";
 
 export interface TrafficPoint {
   readonly date: string;
@@ -66,6 +66,7 @@ export interface AnalyticsDataHealth {
   readonly lastSyncAt: string | null;
   readonly coverageStart: string | null;
   readonly coverageEnd: string | null;
+  readonly sourceChangeDate: string | null;
   readonly message: string | null;
 }
 

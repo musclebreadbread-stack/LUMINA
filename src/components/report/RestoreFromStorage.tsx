@@ -3,14 +3,14 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import {
   getProfileServerSnapshot,
   getProfileSnapshot,
   hydrationStore,
   subscribeProfile,
 } from "@/lib/profile";
-import { encodeProfile } from "@/lib/share";
+import { establishReportSession } from "@/lib/reportSession.client";
 
 /**
  * 주소에 결과가 없을 때 이 브라우저에 저장된 값으로 되살린다.
@@ -22,6 +22,7 @@ export function RestoreFromStorage({
 }: { readonly redirectSuffix?: string } = {}) {
   const t = useTranslations("saju");
   const router = useRouter();
+  const [sessionError, setSessionError] = useState(false);
   const hydrated = useSyncExternalStore(
     hydrationStore.subscribe,
     hydrationStore.getSnapshot,
@@ -35,10 +36,19 @@ export function RestoreFromStorage({
 
   // 라우터는 외부 시스템이므로 효과에서 갱신하는 것이 맞다.
   useEffect(() => {
-    if (stored) router.replace(`/r/${encodeProfile(stored)}${redirectSuffix}`);
+    if (!stored) return;
+    let cancelled = false;
+    void establishReportSession({ kind: "birth", profile: stored }).then((ready) => {
+      if (cancelled) return;
+      if (ready) router.replace(`/r/current${redirectSuffix}`);
+      else setSessionError(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [stored, router, redirectSuffix]);
 
-  const checking = !hydrated || stored !== null;
+  const checking = !hydrated || (stored !== null && !sessionError);
 
   return (
     <div className="py-24 text-center">
@@ -46,7 +56,7 @@ export function RestoreFromStorage({
         <p className="font-mono text-xs text-hobun-faint">{t("loading")}</p>
       ) : (
         <>
-          <p className="text-sm text-hobun-dim">{t("emptyBody")}</p>
+          <p className="text-sm text-hobun-dim">{sessionError ? t("reportSessionError") : t("emptyBody")}</p>
           <Link
             href="/"
             className="mt-6 inline-block bg-hobun px-6 py-3 text-sm font-medium text-ink-900 transition-opacity hover:opacity-85"

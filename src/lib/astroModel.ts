@@ -166,7 +166,7 @@ export function formatPlanetPosition(
 ): string {
   const deg = Math.floor(planet.degreeInSign);
   const min = Math.floor((planet.degreeInSign - deg) * 60);
-  const signName = locale === "en" ? planet.signEn : planet.signKo;
+  const signName = locale !== "ko" ? planet.signEn : planet.signKo;
   return `${signName} ${deg}°${String(min).padStart(2, "0")}′${planet.retrograde ? " R" : ""}`;
 }
 

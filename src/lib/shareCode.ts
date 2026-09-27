@@ -59,7 +59,13 @@ const CHAR_TO_KIND: ReadonlyMap<string, ShareKind> = new Map(
   SHARE_KINDS.map((kind) => [KIND_CHARS[kind], kind] as const),
 );
 
-const LOCALE_CHARS: Readonly<Record<Locale, string>> = Object.freeze({ ko: "k", en: "e" });
+const LOCALE_CHARS: Readonly<Record<Locale, string>> = Object.freeze({
+  ko: "k",
+  en: "e",
+  ja: "j",
+  "zh-Hant": "t",
+  es: "s",
+});
 const CHAR_TO_LOCALE: ReadonlyMap<string, Locale> = new Map(
   (Object.keys(LOCALE_CHARS) as readonly Locale[]).map((locale) => [LOCALE_CHARS[locale], locale] as const),
 );

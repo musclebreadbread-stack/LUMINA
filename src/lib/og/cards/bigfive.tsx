@@ -40,7 +40,7 @@ export async function buildBigFiveOgCard(summary: BigFiveSummaryV1): Promise<OgC
   const bars: readonly FactorBarDatum[] = BIGFIVE_FACTORS.map((factor) => ({
     factor,
     tScore: byFactor.get(factor) ?? 50,
-    label: summary.locale === "en" ? FACTOR_META[factor].en : FACTOR_META[factor].ko,
+    label: summary.locale !== "ko" ? FACTOR_META[factor].en : FACTOR_META[factor].ko,
   }));
 
   const topFactor = bars.reduce((top, bar) => (bar.tScore > top.tScore ? bar : top));

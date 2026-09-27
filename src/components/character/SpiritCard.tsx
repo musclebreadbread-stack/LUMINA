@@ -17,10 +17,10 @@ export async function SpiritCard({ character }: { readonly character: ReportView
   const locale = (await getLocale()) as Locale;
   const { def, dominantShare } = character;
   const style = ELEMENT_STYLE[def.element];
-  const name = locale === "en" ? def.nameEn : def.name;
-  const tagline = locale === "en" ? def.taglineEn : def.tagline;
-  const because = locale === "en" ? def.becauseEn : def.because;
-  const elementLabel = locale === "en" ? style.en : style.ko;
+  const name = locale !== "ko" ? def.nameEn : def.name;
+  const tagline = locale !== "ko" ? def.taglineEn : def.tagline;
+  const because = locale !== "ko" ? def.becauseEn : def.because;
+  const elementLabel = locale !== "ko" ? style.en : style.ko;
 
   return (
     <section

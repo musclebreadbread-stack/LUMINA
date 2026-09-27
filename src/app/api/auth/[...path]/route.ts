@@ -11,6 +11,21 @@ async function handleAuthRequest(
   request: Request,
   context: AuthRouteContext,
 ): Promise<Response> {
+  const { path } = await context.params;
+  if (
+    method === "POST" &&
+    path[0] === "sign-up" &&
+    path.length > 0
+  ) {
+    return Response.json({ error: "Sign-up is disabled." }, { status: 403 });
+  }
+
+  // Staff accounts are created out of band. Social and anonymous sign-in can
+  // provision new identities, so the admin proxy accepts only email sign-in.
+  if (method === "POST" && path[0] === "sign-in" && path[1] !== "email") {
+    return Response.json({ error: "This sign-in method is disabled." }, { status: 403 });
+  }
+
   const handler = getNeonAuth().handler()[method];
   return handler(request, context);
 }

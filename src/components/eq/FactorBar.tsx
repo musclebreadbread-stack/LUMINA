@@ -8,8 +8,8 @@ export async function FactorBar({ factor }: { readonly factor: FactorView }) {
   const t = await getTranslations("eq");
   const locale = (await getLocale()) as Locale;
 
-  const name = locale === "en" ? factor.en : factor.ko;
-  const description = locale === "en" ? factor.descriptionEn : factor.descriptionKo;
+  const name = locale !== "ko" ? factor.en : factor.ko;
+  const description = locale !== "ko" ? factor.descriptionEn : factor.descriptionKo;
 
   return (
     <div className="border-b border-ink-800 py-5 last:border-b-0">
@@ -118,7 +118,7 @@ function ResponseList({
         {items.map((item) => (
           <li key={item.itemId}>
             <span className="mr-2 font-mono text-hobun-faint">#{item.itemId}</span>
-            {locale === "en" ? item.textEn : item.textKo}
+            {locale !== "ko" ? item.textEn : item.textKo}
             <span className="ml-2 font-mono text-hobun-faint">
               {formatResponse(item.response, item.scoredResponse)}
             </span>

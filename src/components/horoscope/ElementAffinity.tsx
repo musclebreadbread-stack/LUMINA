@@ -15,8 +15,8 @@ export async function ElementAffinity({ dayElement }: { readonly dayElement: Hor
   const t = await getTranslations("horoscope");
   const locale = (await getLocale()) as Locale;
   const style = ELEMENT_STYLE[dayElement.element];
-  const elementLabel = locale === "en" ? style.en : style.ko;
-  const branchLabel = locale === "en" ? dayElement.branchEn : dayElement.branchKo;
+  const elementLabel = locale !== "ko" ? style.en : style.ko;
+  const branchLabel = locale !== "ko" ? dayElement.branchEn : dayElement.branchKo;
 
   return (
     <div className="mt-6 flex items-center gap-4 border-t border-ink-800 pt-5">

@@ -9,6 +9,7 @@ import {
 import type { ExplanationBlock } from "@engine/shared/explanation";
 import type { ReductionStep } from "@engine/numerology/reduce";
 import type { Locale } from "@/i18n/locale";
+import { intlLocale } from "@/i18n/locale";
 import { assetPath } from "./assets";
 
 /**
@@ -147,5 +148,7 @@ export function buildNumerologyView(
  */
 export function formatNumerologyDate(date: NumerologyDate, locale: Locale): string {
   const dt = DateTime.fromObject({ year: date.year, month: date.month, day: date.day });
-  return locale === "en" ? dt.toFormat("MMMM d, yyyy") : dt.toFormat("yyyy년 M월 d일");
+  return locale === "ko"
+    ? dt.toFormat("yyyy년 M월 d일")
+    : dt.setLocale(intlLocale(locale)).toLocaleString(DateTime.DATE_MED);
 }

@@ -22,6 +22,7 @@ import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
 import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
 import { ResponseQualityNotice } from "@/components/analysis/ResponseQualityNotice";
 import { assessLikertResponseQuality } from "@/lib/responseQuality";
+import { isLocale } from "@/i18n/locale";
 
 interface ResultPageProps {
   searchParams: Promise<{ r?: string; run?: string }>;
@@ -110,7 +111,7 @@ export default async function AttachmentResultPage({ searchParams }: ResultPageP
   // 결과 계산
   const view = buildAttachmentView(responses);
   const responseQuality = assessLikertResponseQuality(Object.values(responses));
-  const resolvedLocale = locale as "ko" | "en";
+  const resolvedLocale = isLocale(locale) ? locale : "ko";
 
   return (
     <SceneShell tone="attachment">

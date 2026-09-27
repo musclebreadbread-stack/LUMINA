@@ -1,10 +1,11 @@
 import type { QuadrantClassification } from "@engine/attachment/quadrants";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { attachmentImagePath } from "@/lib/psychometricsAssets";
+import type { Locale } from "@/i18n/locale";
 
 interface QuadrantCardProps {
   readonly classification: QuadrantClassification;
-  readonly locale: "ko" | "en";
+  readonly locale: Locale;
 }
 
 export function QuadrantCard({ classification, locale }: QuadrantCardProps) {

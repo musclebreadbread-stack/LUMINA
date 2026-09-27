@@ -15,6 +15,16 @@ const CASES: readonly { readonly name: string; readonly input: string; readonly 
   { name: "r profile en-prefixed", input: "/en/r/N4IgzgpgTgxg9g/astro", expected: "/en/r/[data]/astro" },
   { name: "r alone (no data segment)", input: "/r", expected: "/r" },
 
+  // "/p/<id>" — 비공개 공유 결과에 접근하는 불투명 capability ID
+  { name: "private share token", input: "/p/6q2DwUjmM8y8SqdWVN7s5A", expected: "/p/[share]" },
+  { name: "private share token en-prefixed", input: "/en/p/6q2DwUjmM8y8SqdWVN7s5A", expected: "/en/p/[share]" },
+  { name: "private share token ko-prefixed", input: "/ko/p/6q2DwUjmM8y8SqdWVN7s5A", expected: "/p/[share]" },
+  { name: "private share token with encoded locale and route", input: "/%65n/%70/6q2DwUjmM8y8SqdWVN7s5A", expected: "/en/p/[share]" },
+  { name: "private share token with encoded slash separator", input: "/p%2F6q2DwUjmM8y8SqdWVN7s5A", expected: "/p/[share]" },
+  { name: "private share token with encoded backslash separator", input: "/p%5C6q2DwUjmM8y8SqdWVN7s5A", expected: "/p/[share]" },
+  { name: "private share unexpected tail is discarded", input: "/p/6q2DwUjmM8y8SqdWVN7s5A/extra", expected: "/p/[share]" },
+  { name: "private share root without token", input: "/p", expected: "/p" },
+
   // "/s/<kind>/<code>" — kind는 고정 열거값이라 남기고 code만 지운다
   { name: "share jungian code", input: "/s/jungian/1jkPPAwFe0004D", expected: "/s/jungian/[code]" },
   { name: "share bigfive code with query", input: "/s/bigfive/1beBJ729A4jAJM?utm_source=x", expected: "/s/bigfive/[code]" },
@@ -53,6 +63,9 @@ const CASES: readonly { readonly name: string; readonly input: string; readonly 
 
   // 잘못된/예상 밖 입력
   { name: "empty string", input: "", expected: null },
+  { name: "malformed encoded path", input: "/%E0%A4%A/p/6q2DwUjmM8y8SqdWVN7s5A", expected: null },
+  { name: "encoded question mark stays escaped inside pathname", input: "/method%3Fquery", expected: "/method%3Fquery" },
+  { name: "encoded hash stays escaped inside pathname", input: "/method%23fragment", expected: "/method%23fragment" },
   { name: "whitespace only", input: "   ", expected: "/" },
 ];
 
@@ -80,6 +93,7 @@ describe("scrubAnalyticsUrl", () => {
       "M5JgBgpgRg",
       "550e8400-e29b-41d4-a716-446655440000",
       "opaque-run-id",
+      "6q2DwUjmM8y8SqdWVN7s5A",
     ];
     for (const { input } of CASES) {
       const result = scrubAnalyticsUrl(input);

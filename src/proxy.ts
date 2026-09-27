@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { isLocale, LOCALE_COOKIE, type Locale } from "@/i18n/locale";
+import { DEFAULT_LOCALE, isLocale, localeFromAcceptLanguage, localePath, LOCALES, LOCALE_COOKIE, type Locale } from "@/i18n/locale";
 import { routing } from "@/i18n/routing";
 import { LOCALE_HEADER, LOCALE_PATH_HEADER } from "@/lib/seoAlternates";
 
@@ -8,7 +8,7 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 /**
  * 검색·SNS 크롤러. 이들에게는 Accept-Language 기반 자동 전환을 걸지 않는다 —
- * 구글은 "감지된 언어로 자동 리다이렉트"를 권장하지 않고, 무엇보다 en 헤더를 보내는
+ * 구글은 "감지된 언어로 자동 리다이렉트"를 권장하지 않고, 무엇보다 외국어 헤더를 보내는
  * 크롤러가 한국어 원본 URL에 영영 도달하지 못하면 그 URL이 색인되지 않는다.
  * 사람이 쓰는 브라우저의 자동 전환 동작은 그대로 둔다.
  */
@@ -35,12 +35,12 @@ function detectedLocale(request: NextRequest): Locale {
   if (isLocale(cookieLocale)) return cookieLocale;
 
   const acceptLanguage = request.headers.get("accept-language") ?? "";
-  return acceptLanguage.toLowerCase().startsWith("en") ? "en" : routing.defaultLocale;
+  return localeFromAcceptLanguage(acceptLanguage);
 }
 
 /**
  * 서버 컴포넌트가 읽을 요청 헤더. 로케일과 함께 "로케일을 뗀 논리 경로"를 넘긴다 —
- * `/en/*`는 rewrite로 들어오기 때문에 페이지는 원래 URL을 알 수 없고, canonical과
+ * 언어 접두사 경로는 rewrite로 들어오기 때문에 페이지는 원래 URL을 알 수 없고, canonical과
  * hreflang을 만들려면 이 두 값이 모두 필요하다(seoAlternates.ts).
  */
 function requestWithLocale(request: NextRequest, locale: Locale, logicalPath: string): Headers {
@@ -64,26 +64,27 @@ export function proxy(request: NextRequest): NextResponse {
   const pathname = request.nextUrl.pathname;
   const locale = detectedLocale(request);
 
-  if (isPathForLocale(pathname, "en")) {
-    const logicalPath = stripLocalePrefix(pathname, "en");
+  const explicitLocale = LOCALES.find((candidate) => isPathForLocale(pathname, candidate));
+  if (explicitLocale && explicitLocale !== DEFAULT_LOCALE) {
+    const logicalPath = stripLocalePrefix(pathname, explicitLocale);
     const url = request.nextUrl.clone();
     url.pathname = logicalPath;
     const response = NextResponse.rewrite(url, {
-      request: { headers: requestWithLocale(request, "en", logicalPath) },
+      request: { headers: requestWithLocale(request, explicitLocale, logicalPath) },
     });
-    setLocaleCookie(response, "en");
+    setLocaleCookie(response, explicitLocale);
     return response;
   }
 
-  if (isPathForLocale(pathname, "ko")) {
+  if (explicitLocale === DEFAULT_LOCALE) {
     const url = request.nextUrl.clone();
-    url.pathname = stripLocalePrefix(pathname, "ko");
+    url.pathname = stripLocalePrefix(pathname, DEFAULT_LOCALE);
     const response = NextResponse.redirect(url);
-    setLocaleCookie(response, "ko");
+    setLocaleCookie(response, DEFAULT_LOCALE);
     return response;
   }
 
-  // 크롤러(카카오톡·X 링크 미리보기 봇)가 Accept-Language: en 을 보내면 og 이미지가
+  // 크롤러(카카오톡·X 링크 미리보기 봇)가 Accept-Language 헤더를 보내면 og 이미지가
   // 307 리다이렉트로 응답해 미리보기 카드가 깨진다 — 확장자 없는 메타데이터 라우트라
   // matcher 에서 걸러지지 않으므로 여기서 직접 우회한다.
   if (pathname.endsWith("/opengraph-image") || pathname.endsWith("/twitter-image")) {
@@ -91,15 +92,15 @@ export function proxy(request: NextRequest): NextResponse {
   }
 
   // 크롤러는 요청한 URL을 그대로 받아야 한다 — 한국어 원본 경로도 색인될 수 있도록.
-  if (locale === "en" && !isCrawler(request)) {
+  if (locale !== DEFAULT_LOCALE && !isCrawler(request)) {
     const url = request.nextUrl.clone();
-    url.pathname = pathname === "/" ? "/en" : `/en${pathname}`;
+    url.pathname = localePath(pathname, locale);
     return NextResponse.redirect(url);
   }
 
-  // 접두사 없는 경로는 한국어 문서다. en으로 판정된 크롤러가 여기 도달했더라도
+  // 접두사 없는 경로는 한국어 문서다. 외국어로 판정된 크롤러가 여기 도달했더라도
   // 이 URL이 대표하는 언어(한국어)로 응답해야 canonical/hreflang과 어긋나지 않는다.
-  const servedLocale = locale === "en" ? routing.defaultLocale : locale;
+  const servedLocale = isCrawler(request) ? routing.defaultLocale : DEFAULT_LOCALE;
   return NextResponse.next({
     request: { headers: requestWithLocale(request, servedLocale, pathname) },
   });

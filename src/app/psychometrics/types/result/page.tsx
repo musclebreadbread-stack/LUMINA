@@ -351,8 +351,8 @@ function TypeProfileCard({
   readonly nicknameLabel: string;
   readonly keywordsLabel: string;
 }) {
-  const nickname = locale === "en" ? profile.nickname.en : profile.nickname.ko;
-  const keywords = profile.keywords.map((keyword) => (locale === "en" ? keyword.en : keyword.ko));
+  const nickname = locale !== "ko" ? profile.nickname.en : profile.nickname.ko;
+  const keywords = profile.keywords.map((keyword) => (locale !== "ko" ? keyword.en : keyword.ko));
 
   return (
     <div className="overflow-hidden border border-ink-700 bg-ink-950/70">
@@ -406,8 +406,8 @@ function AxisResultCard({
   const intervalStart = Math.max(0, Math.min(100, (axis.ci95[0] + 100) / 2));
   const intervalEnd = Math.max(0, Math.min(100, (axis.ci95[1] + 100) / 2));
   const intervalWidth = Math.max(1, intervalEnd - intervalStart);
-  const negativeLabel = locale === "en" ? axis.negativeLabel.en : axis.negativeLabel.ko;
-  const positiveLabel = locale === "en" ? axis.positiveLabel.en : axis.positiveLabel.ko;
+  const negativeLabel = locale !== "ko" ? axis.negativeLabel.en : axis.negativeLabel.ko;
+  const positiveLabel = locale !== "ko" ? axis.positiveLabel.en : axis.positiveLabel.ko;
 
   return (
     <article className={`jungian-axis-result ${axis.isBoundary ? "is-boundary" : ""}`} aria-labelledby={`axis-${axis.axis}-title`}>

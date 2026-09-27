@@ -3,6 +3,7 @@
 import { computeBigFive, type BigFiveFactor } from "@engine/psychometrics";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { intlLocale, isLocale } from "@/i18n/locale";
 import { decodeResponses } from "@/lib/psychometricsCode";
 import {
   previousDistinctResponses,
@@ -61,7 +62,7 @@ export function RetestComparison({ currentCode }: Props) {
   const completedAt = new Date(previous.entry.completedAt);
   const previousDate = Number.isNaN(completedAt.getTime())
     ? previous.entry.completedAt
-    : new Intl.DateTimeFormat(locale === "en" ? "en-US" : "ko-KR", {
+    : new Intl.DateTimeFormat(intlLocale(isLocale(locale) ? locale : "ko"), {
         year: "numeric",
         month: "short",
         day: "numeric",

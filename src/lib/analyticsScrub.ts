@@ -9,7 +9,7 @@
  * 남는다 — 그 경우 이 표를 갱신해야 한다).
  */
 
-const LOCALE_SEGMENT = "en";
+import { LOCALES } from "@/i18n/locale";
 
 const R_CHILDREN: ReadonlySet<string> = new Set(["astro", "today", "all"]);
 const SHARE_KINDS: ReadonlySet<string> = new Set([
@@ -23,6 +23,7 @@ const SHARE_KINDS: ReadonlySet<string> = new Set([
 const TAROT_SPREADS: ReadonlySet<string> = new Set(["single", "three", "celtic-cross"]);
 
 const DATA_PLACEHOLDER = "[data]";
+const SHARE_ID_PLACEHOLDER = "[share]";
 const CODE_PLACEHOLDER = "[code]";
 const KIND_PLACEHOLDER = "[kind]";
 const SPREAD_PLACEHOLDER = "[spread]";
@@ -40,6 +41,12 @@ function scrubProfileRoute(segments: readonly string[]): readonly string[] | nul
   const child = segments[2];
   const tail = child !== undefined && R_CHILDREN.has(child) ? [child] : [];
   return ["r", DATA_PLACEHOLDER, ...tail];
+}
+
+/** Private report-share IDs are capability tokens and must never reach analytics. */
+function scrubPrivateShareRoute(segments: readonly string[]): readonly string[] | null {
+  if (segments[0] !== "p") return null;
+  return segments.length > 1 ? ["p", SHARE_ID_PLACEHOLDER] : segments;
 }
 
 /** "/s/<kind>/<code>" — kind는 4종 고정 열거값이라 안전하게 남기고, code만 지운다. */
@@ -82,6 +89,7 @@ function scrubCognitiveRunRoute(segments: readonly string[]): readonly string[] 
 
 const ROUTE_SCRUBBERS: readonly SegmentScrubber[] = [
   scrubProfileRoute,
+  scrubPrivateShareRoute,
   scrubShareRoute,
   scrubTarotRoute,
   scrubCompatibilityRoute,
@@ -102,8 +110,9 @@ function scrubSegments(segments: readonly string[]): readonly string[] {
 }
 
 function splitLocale(segments: readonly string[]): { readonly locale: string | null; readonly rest: readonly string[] } {
-  if (segments[0] === LOCALE_SEGMENT) {
-    return { locale: LOCALE_SEGMENT, rest: segments.slice(1) };
+  const locale = segments[0];
+  if (locale !== undefined && (LOCALES as readonly string[]).includes(locale)) {
+    return { locale: locale === "ko" ? null : locale, rest: segments.slice(1) };
   }
   return { locale: null, rest: segments };
 }
@@ -111,6 +120,25 @@ function splitLocale(segments: readonly string[]): { readonly locale: string | n
 function buildPath(locale: string | null, segments: readonly string[]): string {
   const tail = segments.length > 0 ? `/${segments.join("/")}` : "";
   return locale !== null ? `/${locale}${tail}` : tail || "/";
+}
+
+function decodePathSegments(pathname: string): readonly string[] | null {
+  const decodedSegments: string[] = [];
+  for (const segment of pathname.split("/").filter((part) => part.length > 0)) {
+    let decoded: string;
+    try {
+      decoded = decodeURIComponent(segment);
+    } catch {
+      return null;
+    }
+
+    if (decoded.includes("?") || decoded.includes("#")) {
+      decodedSegments.push(segment);
+      continue;
+    }
+    decodedSegments.push(...decoded.split(/[\\/]/u).filter((part) => part.length > 0));
+  }
+  return decodedSegments;
 }
 
 /**
@@ -129,7 +157,8 @@ export function scrubAnalyticsUrl(raw: string): string | null {
     return null;
   }
 
-  const segments = pathname.split("/").filter((segment) => segment.length > 0);
+  const segments = decodePathSegments(pathname);
+  if (segments === null) return null;
   const { locale, rest } = splitLocale(segments);
   const scrubbed = scrubSegments(rest);
   return buildPath(locale, scrubbed);

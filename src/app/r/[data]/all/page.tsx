@@ -13,6 +13,7 @@ import { buildHoroscopeView } from "@/lib/horoscopeModel";
 import { buildNumerologyView } from "@/lib/numerologyModel";
 import { buildReportView, formatBirthLabel } from "@/lib/reportModel";
 import { decodeProfile } from "@/lib/share";
+import { resolveBirthReportProfile } from "@/server/reportProfileSession";
 import { placeDisplayLabel, type StoredProfile } from "@/lib/profile";
 import { DAILY_READING_TIER } from "@engine/horoscope";
 import type { Locale } from "@/i18n/locale";
@@ -63,7 +64,7 @@ export default async function AllReportPage({
   params: Promise<Params>;
 }) {
   const { data } = await params;
-  const profile = decodeProfile(data);
+  const profile = await resolveBirthReportProfile(data);
   const [localeValue, tNav, tSaju, tAstro, tNumerology, tPsychometrics, tHoroscope, tCommon] =
     await Promise.all([
       getLocale(),
@@ -99,13 +100,13 @@ export default async function AllReportPage({
 
   const { saju, astro, numerology, horoscope } = await buildViews(profile, new Date());
   const birthLabel = formatBirthLabel(saju.birthLocalISO, saju.precision.timeUnknown, locale);
-  const dayMaster = locale === "en" ? saju.dayMaster.en : saju.dayMaster.ko;
-  const sun = locale === "en" ? astro.bigThree.sun.en : astro.bigThree.sun.ko;
-  const moon = locale === "en" ? astro.bigThree.moon.en : astro.bigThree.moon.ko;
+  const dayMaster = locale !== "ko" ? saju.dayMaster.en : saju.dayMaster.ko;
+  const sun = locale !== "ko" ? astro.bigThree.sun.en : astro.bigThree.sun.ko;
+  const moon = locale !== "ko" ? astro.bigThree.moon.en : astro.bigThree.moon.ko;
   const lifePath = numerology?.lifePath ?? null;
   const yearPillar = saju.pillars.find((pillar) => pillar.key === "year");
-  const characterName = locale === "en" ? saju.character.def.nameEn : saju.character.def.name;
-  const characterTagline = locale === "en" ? saju.character.def.taglineEn : saju.character.def.tagline;
+  const characterName = locale !== "ko" ? saju.character.def.nameEn : saju.character.def.name;
+  const characterTagline = locale !== "ko" ? saju.character.def.taglineEn : saju.character.def.tagline;
 
   return (
     <SceneShell tone="saju">
@@ -168,7 +169,7 @@ export default async function AllReportPage({
             <p className="font-mono text-[13px] text-hobun-faint">{tAstro("rising")}</p>
             <p className="mt-2 text-lg text-hobun">
               {astro.bigThree.rising
-                ? locale === "en"
+                ? locale !== "ko"
                   ? astro.bigThree.rising.en
                   : astro.bigThree.rising.ko
                 : "—"}
@@ -186,7 +187,7 @@ export default async function AllReportPage({
             <p className="font-mono text-[13px] text-hobun-faint">{tNumerology("lifePath")}</p>
             <p className="mt-3 text-3xl font-medium text-hobun">{lifePath.value}</p>
             <p className="mt-3 text-sm leading-relaxed text-hobun-dim">
-              {locale === "en" ? lifePath.meaning.en : lifePath.meaning.ko}
+              {locale !== "ko" ? lifePath.meaning.en : lifePath.meaning.ko}
             </p>
           </div>
         ) : (
@@ -205,26 +206,26 @@ export default async function AllReportPage({
             <div>
               <p className="font-mono text-[13px] text-hobun-faint">{horoscope.reading.date}</p>
               <p className="mt-2 text-lg text-hobun">
-                {locale === "en" ? horoscope.sign.en : horoscope.sign.ko}
+                {locale !== "ko" ? horoscope.sign.en : horoscope.sign.ko}
               </p>
             </div>
-            <p className="text-base leading-relaxed text-hobun">{locale === "en" ? horoscope.mood.en : horoscope.mood.ko}</p>
+            <p className="text-base leading-relaxed text-hobun">{locale !== "ko" ? horoscope.mood.en : horoscope.mood.ko}</p>
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
                 <p className="font-mono text-[13px] text-hobun-faint">{tHoroscope("relationshipLabel")}</p>
                 <p className="mt-2 text-sm leading-relaxed text-hobun-dim">
-                  {locale === "en" ? horoscope.relationship.en : horoscope.relationship.ko}
+                  {locale !== "ko" ? horoscope.relationship.en : horoscope.relationship.ko}
                 </p>
               </div>
               <div>
                 <p className="font-mono text-[13px] text-hobun-faint">{tHoroscope("workLabel")}</p>
                 <p className="mt-2 text-sm leading-relaxed text-hobun-dim">
-                  {locale === "en" ? horoscope.work.en : horoscope.work.ko}
+                  {locale !== "ko" ? horoscope.work.en : horoscope.work.ko}
                 </p>
               </div>
             </div>
             <p className="border-l border-ink-600 pl-4 text-sm leading-relaxed text-hobun-dim">
-              {locale === "en" ? horoscope.tip.en : horoscope.tip.ko}
+              {locale !== "ko" ? horoscope.tip.en : horoscope.tip.ko}
             </p>
             <Link href="/horoscope" className="inline-block text-xs text-hobun underline underline-offset-4">
               {tHoroscope("otherSigns")}
@@ -237,7 +238,7 @@ export default async function AllReportPage({
 
       <footer className="space-y-6 border-t border-ink-700 pt-8">
         <AdSlot slot="all-bottom" label={tCommon("adLabel")} />
-        <ShareBar title={`${birthLabel} · LUMINA`} />
+        <ShareBar title={`${birthLabel} · LUMINA`} allowLinkShare={false} />
         <p className="text-xs leading-relaxed text-hobun-faint">{tSaju("calcNote")}</p>
         <Disclaimer tier="cultural" />
       </footer>

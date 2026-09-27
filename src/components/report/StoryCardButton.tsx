@@ -91,12 +91,12 @@ function bigFiveCardData(summary: Extract<ShareSummaryV1, { kind: "bigfive" }>):
     (byFactor.get(factor) ?? 50) > (byFactor.get(top) ?? 50) ? factor : top,
   );
   const bars: readonly CardBar[] = BIGFIVE_FACTORS.map((factor) => ({
-    label: summary.locale === "en" ? FACTOR_META[factor].en : FACTOR_META[factor].ko,
+    label: summary.locale !== "ko" ? FACTOR_META[factor].en : FACTOR_META[factor].ko,
     fraction: clamp01((byFactor.get(factor) ?? 50) / 100),
     signed: false,
   }));
   return {
-    headline: summary.locale === "en" ? FACTOR_META[topFactor].en : FACTOR_META[topFactor].ko,
+    headline: summary.locale !== "ko" ? FACTOR_META[topFactor].en : FACTOR_META[topFactor].ko,
     bars,
     illustrationSrc: assetPath("psychometrics/factors", topFactor),
   };
@@ -130,18 +130,18 @@ function attachmentCardData(summary: Extract<ShareSummaryV1, { kind: "attachment
   );
   const bars: readonly CardBar[] = [
     {
-      label: summary.locale === "en" ? AXIS_LABELS.anxiety.en : AXIS_LABELS.anxiety.ko,
+      label: summary.locale !== "ko" ? AXIS_LABELS.anxiety.en : AXIS_LABELS.anxiety.ko,
       fraction: clamp01((summary.anxiety - 1) / 4),
       signed: false,
     },
     {
-      label: summary.locale === "en" ? AXIS_LABELS.avoidance.en : AXIS_LABELS.avoidance.ko,
+      label: summary.locale !== "ko" ? AXIS_LABELS.avoidance.en : AXIS_LABELS.avoidance.ko,
       fraction: clamp01((summary.avoidance - 1) / 4),
       signed: false,
     },
   ];
   return {
-    headline: summary.locale === "en" ? classification.labelEn : classification.labelKo,
+    headline: summary.locale !== "ko" ? classification.labelEn : classification.labelKo,
     bars,
     illustrationSrc: assetPath("psychometrics/attachment", classification.quadrant),
   };

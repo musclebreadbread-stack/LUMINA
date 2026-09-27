@@ -1,4 +1,5 @@
 import type { AnalysisKey } from "@engine/shared/evidence";
+import type { Locale } from "@/i18n/locale";
 
 export const INTEGRATED_PORTRAIT_SCHEMA_VERSION = 1 as const;
 
@@ -43,7 +44,7 @@ export interface ResultSnapshotV1 {
   readonly instrumentVersion: string;
   readonly scoringModelVersion: string;
   readonly completedAt: string;
-  readonly locale: "ko" | "en";
+  readonly locale: Locale;
   readonly signals: readonly ConstructSignalV1[];
   readonly referenceIds: readonly string[];
 }
@@ -55,7 +56,7 @@ export interface ResultSnapshotDraftV1 {
   readonly lane: ResultLane;
   readonly instrumentVersion: string;
   readonly scoringModelVersion: string;
-  readonly locale: "ko" | "en";
+  readonly locale: Locale;
   readonly signals: readonly ConstructSignalV1[];
   readonly referenceIds: readonly string[];
 }

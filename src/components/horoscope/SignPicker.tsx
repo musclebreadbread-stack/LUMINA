@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { CHINESE_SIGNS, ZODIAC_SIGNS } from "@engine/horoscope/constants";
@@ -16,7 +17,7 @@ import {
   toBirthInput,
   type StoredProfile,
 } from "@/lib/profile";
-import { encodeProfile } from "@/lib/share";
+import { establishReportSession } from "@/lib/reportSession.client";
 
 interface DerivedSignState {
   readonly profile: StoredProfile;
@@ -30,6 +31,7 @@ const TABS = [
 ];
 
 export function SignPicker() {
+  const router = useRouter();
   const [tab, setTab] = useState<"zodiac" | "chinese">("zodiac");
   const [selectedKey, setSelectedKey] = useState(ZODIAC_SIGNS[0]?.key ?? "aries");
   const t = useTranslations("horoscope");
@@ -46,6 +48,21 @@ export function SignPicker() {
     getProfileServerSnapshot,
   );
   const [derivedSigns, setDerivedSigns] = useState<DerivedSignState | null>(null);
+  const [startingPersonalized, setStartingPersonalized] = useState(false);
+  const [personalizedError, setPersonalizedError] = useState(false);
+
+  async function openPersonalizedReport(): Promise<void> {
+    if (!profile || startingPersonalized) return;
+    setStartingPersonalized(true);
+    setPersonalizedError(false);
+    const ready = await establishReportSession({ kind: "birth", profile });
+    if (!ready) {
+      setStartingPersonalized(false);
+      setPersonalizedError(true);
+      return;
+    }
+    router.push("/r/current/today");
+  }
 
   useEffect(() => {
     if (!hydrated || !profile) return;
@@ -90,7 +107,7 @@ export function SignPicker() {
 
   const active = TABS.find((tb) => tb.key === tab)!;
   const selected = active.signs.find((sign) => sign.key === selectedKey) ?? active.signs[0]!;
-  const selectedName = locale === "en" ? selected.en : selected.ko;
+  const selectedName = locale !== "ko" ? selected.en : selected.ko;
   const selectedImage = assetPath(
     selected.system === "zodiac" ? "horoscope/zodiac" : "saju/zodiac",
     selected.key,
@@ -122,13 +139,16 @@ export function SignPicker() {
       </div>
 
       {hydrated && profile ? (
-        <Link
-          href={`/r/${encodeProfile(profile)}/today`}
-          className="mt-4 block border border-hobun/50 px-4 py-3 text-center text-xs text-hobun transition-colors hover:bg-hobun hover:text-ink-900"
+        <button
+          type="button"
+          disabled={startingPersonalized}
+          onClick={() => void openPersonalizedReport()}
+          className="mt-4 block min-h-11 w-full border border-hobun/50 px-4 py-3 text-center text-xs text-hobun transition-colors hover:bg-hobun hover:text-ink-900 disabled:opacity-50"
         >
-          {tReading("personalizeCta")}
-        </Link>
+          {startingPersonalized ? tReading("submitting") : tReading("personalizeCta")}
+        </button>
       ) : null}
+      {personalizedError ? <p role="alert" className="mt-3 text-xs text-hwa">{tReading("profileSessionError")}</p> : null}
 
       <div className="horoscope-preview mt-5 grid items-center gap-5 rounded-[1.25rem] border border-ink-700 bg-ink-950/75 p-4 sm:grid-cols-[110px_1fr] sm:p-5">
         <div className="relative mx-auto aspect-[2/3] w-24 overflow-hidden rounded-xl border border-ink-700 bg-ink-900 shadow-[0_18px_35px_-24px_rgba(0,0,0,0.95)]">
@@ -188,7 +208,7 @@ export function SignPicker() {
             ) : (
               <span className="text-xl text-hobun-dim">{sign.symbol}</span>
             )}
-            <span className="text-sm text-hobun">{locale === "en" ? sign.en : sign.ko}</span>
+            <span className="text-sm text-hobun">{locale !== "ko" ? sign.en : sign.ko}</span>
             {currentDerivedSigns?.[sign.system === "zodiac" ? "zodiac" : "chinese"] === sign.key ? (
               <span className="font-mono text-[10px] tracking-wide text-hobun-faint">
                 {t("recommendedSign")}

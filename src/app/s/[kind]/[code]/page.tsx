@@ -24,7 +24,7 @@ import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
 import { MethodNote } from "@/components/ui/MethodNote";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { SceneShell } from "@/components/ui/SceneShell";
-import { DEFAULT_LOCALE } from "@/i18n/locale";
+import { DEFAULT_LOCALE, intlLocale, localePath } from "@/i18n/locale";
 import { analysisDefinition } from "@/lib/analysisCatalog";
 import { AXIS_LABELS } from "@/lib/attachmentModel";
 import { assetPath } from "@/lib/assets";
@@ -125,7 +125,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
     openGraph: {
       title: meta.title,
       description: meta.description,
-      images: [{ url: `/s/${kind}/${code}/opengraph-image`, width: 1200, height: 630, alt: "LUMINA" }],
+      images: [{ url: localePath(`/s/${kind}/${code}/opengraph-image`, summary.locale), width: 1200, height: 630, alt: "LUMINA" }],
     },
   };
 }
@@ -275,7 +275,7 @@ async function BigFiveShareBody({ summary }: { readonly summary: BigFiveSummaryV
           {BIGFIVE_FACTORS.map((factor) => (
             <FactorScoreRow
               key={factor}
-              label={summary.locale === "en" ? FACTOR_META[factor].en : FACTOR_META[factor].ko}
+              label={summary.locale !== "ko" ? FACTOR_META[factor].en : FACTOR_META[factor].ko}
               tScore={byFactor.get(factor) ?? 50}
             />
           ))}
@@ -365,10 +365,10 @@ async function AttachmentShareBody({ summary }: { readonly summary: AttachmentSu
     { rawSum: 0, mean: summary.anxiety },
     { rawSum: 0, mean: summary.avoidance },
   );
-  const quadrantLabel = summary.locale === "en" ? classification.labelEn : classification.labelKo;
-  const quadrantDescription = summary.locale === "en" ? classification.descriptionEn : classification.descriptionKo;
-  const anxietyLabel = summary.locale === "en" ? AXIS_LABELS.anxiety.en : AXIS_LABELS.anxiety.ko;
-  const avoidanceLabel = summary.locale === "en" ? AXIS_LABELS.avoidance.en : AXIS_LABELS.avoidance.ko;
+  const quadrantLabel = summary.locale !== "ko" ? classification.labelEn : classification.labelKo;
+  const quadrantDescription = summary.locale !== "ko" ? classification.descriptionEn : classification.descriptionKo;
+  const anxietyLabel = summary.locale !== "ko" ? AXIS_LABELS.anxiety.en : AXIS_LABELS.anxiety.ko;
+  const avoidanceLabel = summary.locale !== "ko" ? AXIS_LABELS.avoidance.en : AXIS_LABELS.avoidance.ko;
 
   return (
     <>
@@ -452,7 +452,7 @@ async function EqShareBody({ summary }: { readonly summary: EqSummaryV1 }) {
                 <span>{tEq("percentileLabel", { n: totalNorm.percentile })}</span>
                 <span>
                   {tEq("normSample", {
-                    n: totalNorm.sampleSize.toLocaleString(summary.locale === "en" ? "en-US" : "ko-KR"),
+                    n: totalNorm.sampleSize.toLocaleString(intlLocale(summary.locale)),
                   })}
                 </span>
               </>

@@ -5,6 +5,8 @@
  * `InternalItem`에만 존재하며 `ItemPresentation`으로 직렬화해서는 안 된다.
  */
 
+import type { ContentLocale } from "../shared/explanation";
+
 export type StandardizedDomain = "gf" | "gc" | "gv" | "gwm" | "gs";
 
 export type RunStatus = "active" | "paused" | "completed" | "invalid";
@@ -29,7 +31,7 @@ export interface Voxel {
 }
 
 export interface DeviceCapability {
-  readonly locale: "ko" | "en";
+  readonly locale: ContentLocale;
   readonly device: "desktop" | "tablet" | "mobile";
   readonly keyboard: boolean;
   readonly pointer: boolean;

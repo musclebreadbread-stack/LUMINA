@@ -1,5 +1,6 @@
 import type { BirthInput, CalendarType, Gender } from "@engine/shared/birth";
 import type { DayBoundaryRule } from "@engine/saju/pillars";
+import type { Locale } from "@/i18n/locale";
 
 /**
  * 비회원 프로필 저장소.
@@ -202,7 +203,7 @@ const LEGACY_PLACE_LABELS_EN: Readonly<Record<string, string>> = Object.freeze({
  * 영어 로케일에서 그 값을 쓰고, 없으면(과거 저장분) 16개 레거시 프리셋
  * 표에서 찾는다. 그래도 없으면 원문을 그대로 돌려준다.
  */
-export function placeDisplayLabel(rawLabel: string, rawLabelEn: string, locale: "ko" | "en"): string {
+export function placeDisplayLabel(rawLabel: string, rawLabelEn: string, locale: Locale): string {
   if (locale === "ko") return rawLabel;
   if (rawLabelEn) return rawLabelEn;
   return LEGACY_PLACE_LABELS_EN[rawLabel] ?? rawLabel;

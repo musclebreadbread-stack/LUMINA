@@ -28,7 +28,7 @@ export async function buildHoroscopeOgCard(
     getTranslations({ locale, namespace: "common" }),
   ]);
 
-  const signName = locale === "en" ? sign.en : sign.ko;
+  const signName = locale !== "ko" ? sign.en : sign.ko;
   const kicker = t(system === "zodiac" ? "systemZodiac" : "systemChinese");
   const subheadline = t("resultTitleSuffix");
   const imagePath = system === "zodiac" ? `horoscope/zodiac/${sign.key}.png` : `saju/zodiac/${sign.key}.png`;

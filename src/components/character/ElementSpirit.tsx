@@ -52,8 +52,8 @@ export async function ElementSpirit({ character, size = 132, animate = false, cl
   const style = ELEMENT_STYLE[character.element];
   const color = style.cssVar;
   const { strength } = character;
-  const name = locale === "en" ? character.nameEn : character.name;
-  const tagline = locale === "en" ? character.taglineEn : character.tagline;
+  const name = locale !== "ko" ? character.nameEn : character.name;
+  const tagline = locale !== "ko" ? character.taglineEn : character.tagline;
 
   // 세력은 우열이 아니라 기운이 놓인 방식이다. 표정도 그렇게 갈린다.
   const eyeR = strength === "strong" ? 4.6 : strength === "balanced" ? 3.6 : 3;

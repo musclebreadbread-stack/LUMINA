@@ -54,6 +54,16 @@ next-env.d.ts
 /public/fonts/og/
 /public/og/
 
+# Planned commercial assets remain local source files until reviewed and integrated.
+/public/commerce/**/*.png
+/public/account/**/*.png
+/public/email/**/*.png
+/public/reports/**/*.png
+/public/brand/**/*.png
+/public/saju/day-masters/**/*.png
+/public/compatibility/**/*.png
+/public/tarot/ui/**/*.png
+
 # 규준 산출용 원자료 — 라이선스 불명확, 요약 통계(data/norms*.json)만 커밋한다
 /raw/
 

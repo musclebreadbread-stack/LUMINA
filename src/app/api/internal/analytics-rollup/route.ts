@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { Client } from "@neondatabase/serverless";
 import { NextResponse } from "next/server";
 import {
@@ -7,10 +8,11 @@ import {
   SEOUL_TIME_ZONE,
   type AnalyticsDateRange,
 } from "@/lib/adminAnalytics";
-import { fetchVercelAnalyticsRollup } from "@/server/admin/analytics/vercel";
+import { fetchUmamiAnalyticsRollup } from "@/server/admin/analytics/umami";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+export const runtime = "nodejs";
 
 function datePartsForSeoul(now: Date): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -45,18 +47,45 @@ function recentRollupRange(now = new Date()): AnalyticsDateRange {
 
 function isAuthorizedCron(request: Request): boolean {
   const secret = process.env.CRON_SECRET;
-  return typeof secret === "string" && secret.length >= 32 && request.headers.get("authorization") === `Bearer ${secret}`;
+  if (typeof secret !== "string" || secret.length < 32) return false;
+
+  const authorization = request.headers.get("authorization");
+  if (authorization === null || !authorization.startsWith("Bearer ")) return false;
+
+  const candidate = Buffer.from(authorization.slice("Bearer ".length), "utf8");
+  const expected = Buffer.from(secret, "utf8");
+  return candidate.length === expected.length && timingSafeEqual(candidate, expected);
+}
+
+function isJobsWorkerDatabaseUrl(value: string, expectedEndpointId: string): boolean {
+  try {
+    const url = new URL(value);
+    const hostname = url.hostname.toLowerCase();
+    if (!hostname.endsWith(".neon.tech")) return false;
+    const endpointId = hostname.split(".")[0]?.replace(/-pooler$/u, "");
+    return (url.protocol === "postgres:" || url.protocol === "postgresql:")
+      && url.username === "lumina_jobs_worker"
+      && endpointId === expectedEndpointId;
+  } catch {
+    return false;
+  }
 }
 
 async function runRollup(request: Request): Promise<NextResponse> {
   if (!isAuthorizedCron(request)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const databaseUrl = process.env.ANALYTICS_ROLLUP_DATABASE_URL;
-  if (typeof databaseUrl !== "string" || databaseUrl.length === 0) {
-    return NextResponse.json({ error: "rollup_not_configured" }, { status: 503 });
+  if (process.env.APP_ENV !== "production") {
+    return NextResponse.json({ error: "rollup_environment_unsupported" }, { status: 503 });
   }
 
-  const environment = resolveAnalyticsRollupEnvironment(process.env.VERCEL_ANALYTICS_ENVIRONMENT);
+  const databaseUrl = process.env.ANALYTICS_ROLLUP_DATABASE_URL;
+  const expectedEndpointId = process.env.ANALYTICS_ROLLUP_PRODUCTION_ENDPOINT_ID?.trim();
+  if (typeof databaseUrl !== "string" || !expectedEndpointId
+    || !isJobsWorkerDatabaseUrl(databaseUrl, expectedEndpointId)) {
+    return NextResponse.json({ error: "rollup_database_not_configured" }, { status: 503 });
+  }
+
+  const environment = resolveAnalyticsRollupEnvironment(process.env.APP_ENV);
   if (environment === null) {
     return NextResponse.json({ error: "rollup_environment_unsupported" }, { status: 503 });
   }
@@ -69,10 +98,10 @@ async function runRollup(request: Request): Promise<NextResponse> {
     const sync = await client.query(
       `insert into ops.analytics_sync_runs (source, requested_since, requested_until, status)
        values ($1, $2, $3, 'running') returning id`,
-      ["vercel-web-analytics", range.startDate, range.endDate],
+      ["umami", range.startDate, range.endDate],
     );
     syncId = typeof sync.rows[0]?.id === "string" ? sync.rows[0].id : null;
-    const aggregate = await fetchVercelAnalyticsRollup(range);
+    const aggregate = await fetchUmamiAnalyticsRollup(range);
 
     await client.query("begin");
     // Rebuild the event window atomically so corrected zero/missing rows cannot
@@ -86,7 +115,7 @@ async function runRollup(request: Request): Promise<NextResponse> {
       await client.query(
         `insert into ops.daily_traffic_metrics
           (metric_date, environment, pageviews, visitors, source, coverage_start, coverage_end, collected_at)
-         values ($1, $2, $3, $4, 'vercel-web-analytics', $5, $6, now())
+         values ($1, $2, $3, $4, 'umami', $5, $6, now())
          on conflict (metric_date, environment) do update set
            pageviews = excluded.pageviews, visitors = excluded.visitors,
            source = excluded.source, coverage_start = excluded.coverage_start,
@@ -99,7 +128,7 @@ async function runRollup(request: Request): Promise<NextResponse> {
       await client.query(
         `insert into ops.daily_solution_events
           (metric_date, environment, analysis_key, event_name, event_count, visitors, source, collected_at)
-         values ($1, $2, $3, $4, $5, $6, 'vercel-web-analytics', now())
+         values ($1, $2, $3, $4, $5, $6, 'umami', now())
          on conflict (metric_date, environment, analysis_key, event_name) do update set
            event_count = excluded.event_count, visitors = excluded.visitors,
            source = excluded.source, collected_at = excluded.collected_at`,

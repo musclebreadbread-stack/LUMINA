@@ -39,12 +39,14 @@ export default defineConfig({
     ],
     coverage: {
       provider: "v8",
-      include: ["src/engine/**/*.ts", "src/lib/**/*.ts"],
+      include: ["src/engine/**/*.ts", "src/lib/**/*.ts", "src/server/**/*.ts"],
       exclude: [
         "src/engine/**/*.test.ts",
         "src/engine/**/fixtures/**",
         "src/lib/**/*.test.ts",
         "src/lib/**/__tests__/**",
+        "src/server/**/*.test.ts",
+        "src/server/**/__tests__/**",
         // I/O 셸 — 빌드 시 생성되는 public/fonts/og, public/og 를 읽으므로 유닛 테스트 대상에서 제외한다.
         "src/lib/og/fonts.ts",
         "src/lib/og/image.ts",

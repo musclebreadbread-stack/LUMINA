@@ -80,7 +80,7 @@ export async function generateMetadata({
     const destiny = parsePublicDestiny(query.destiny);
     const view = buildNumerologyView(date, null, destiny ?? undefined);
     const dateLabel = formatNumerologyDate(view.date, locale);
-    const lifePathGloss = locale === "en" ? view.lifePath.meaning.glossEn : view.lifePath.meaning.gloss;
+    const lifePathGloss = locale !== "ko" ? view.lifePath.meaning.glossEn : view.lifePath.meaning.gloss;
     const title = view.destiny
       ? `${t("lifePath")} ${view.lifePath.value} · ${t("destiny")} ${view.destiny.value}`
       : `${t("lifePath")} ${view.lifePath.value}`;

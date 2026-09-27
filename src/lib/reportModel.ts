@@ -268,7 +268,7 @@ function offsetLabel(minutes: number): string {
  */
 export function formatBirthLabel(localISO: string, timeUnknown: boolean, locale: Locale): string {
   const dt = DateTime.fromISO(localISO, { setZone: true });
-  if (locale === "en") {
+  if (locale !== "ko") {
     return dt.toFormat(timeUnknown ? "MMMM d, yyyy" : "MMMM d, yyyy 'at' HH:mm");
   }
   return dt.toFormat(timeUnknown ? "yyyy년 M월 d일" : "yyyy년 M월 d일 HH시 mm분");
@@ -398,12 +398,12 @@ function buildNotes(result: SajuResult): ReportNote[] {
  * 화면(서버 컴포넌트·클라이언트 컴포넌트)에서 렌더 시점에 로케일을 받아 호출한다.
  */
 export function tenGodLabel(tenGod: TenGod, locale: Locale): string {
-  return locale === "en" ? TEN_GOD_LABEL[tenGod].en : tenGod;
+  return locale !== "ko" ? TEN_GOD_LABEL[tenGod].en : tenGod;
 }
 
 /** 십이운성 표시 문구. stage 값 자체가 한글 id다. */
 export function stageLabel(stage: string, locale: Locale): string {
-  return locale === "en" ? (TWELVE_STAGE_EN[stage] ?? stage) : stage;
+  return locale !== "ko" ? (TWELVE_STAGE_EN[stage] ?? stage) : stage;
 }
 
 export function buildReportView(profile: StoredProfile, referenceDate: Date): ReportView {

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import type { Locale } from "@/i18n/locale";
+import { intlLocale, type Locale } from "@/i18n/locale";
 import { NORM_SOURCE, PSYCHOMETRIC_CITATIONS, computeFactorScores } from "@engine/psychometrics";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
@@ -253,7 +253,7 @@ export default async function PsychometricsResultPage({
           title={td("methodTitle")}
           method={{
             ko: td("normSource", { n: NORM_SOURCE.sampleSize.toLocaleString("ko-KR") }) + " · " + td("normScope"),
-            en: td("normSource", { n: NORM_SOURCE.sampleSize.toLocaleString("en-US") }) + " · " + td("normScope"),
+            en: td("normSource", { n: NORM_SOURCE.sampleSize.toLocaleString(intlLocale(resolvedLocale)) }) + " · " + td("normScope"),
           }}
           citations={PSYCHOMETRIC_CITATIONS}
         />

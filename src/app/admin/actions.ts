@@ -30,13 +30,15 @@ export async function signInAdmin(
     if (result.error) return { error: GENERIC_LOGIN_ERROR };
 
     const access = await getAdminAccess();
-    if (access.status === "authorized") redirect("/admin/analytics");
-
-    await getNeonAuth().signOut();
-    return { error: GENERIC_LOGIN_ERROR };
+    if (access.status !== "authorized") {
+      await getNeonAuth().signOut();
+      return { error: GENERIC_LOGIN_ERROR };
+    }
   } catch {
     return { error: GENERIC_LOGIN_ERROR };
   }
+
+  redirect("/admin/analytics");
 }
 
 export async function signOutAdmin(): Promise<void> {

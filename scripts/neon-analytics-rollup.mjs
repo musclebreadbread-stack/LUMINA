@@ -1,26 +1,20 @@
-import { readFile } from "node:fs/promises";
 import { Client } from "@neondatabase/serverless";
+import { loadNeonAdminEnvironment } from "./lib/neonAdminEnv.mjs";
 
-const envFile = process.env.NEON_ENV_FILE ?? ".env.staging.admin.local";
-const allowedEnvFiles = [".env.staging.admin.local", ".env.production.admin.local", ".env.local"];
-if (!allowedEnvFiles.includes(envFile)) throw new Error("Analytics rollup requires an approved admin env file");
-
-const envPath = new URL(`../${envFile}`, import.meta.url);
-const envContents = await readFile(envPath, "utf8");
-for (const line of envContents.split(/\r?\n/u)) {
-  const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)=(.*)\s*$/u);
-  if (!match || process.env[match[1]] !== undefined) continue;
-  process.env[match[1]] = match[2].replace(/^"|"$/gu, "");
+if (process.env.NEON_ENV_FILE === undefined) {
+  process.env.NEON_ENV_FILE = ".env.production.admin.local";
 }
 
-if ([".env.production.admin.local", ".env.local"].includes(envFile) && process.env.NEON_ALLOW_PRODUCTION !== "1") {
-  throw new Error("Refusing to run the analytics rollup against production without NEON_ALLOW_PRODUCTION=1");
-}
+const env = await loadNeonAdminEnvironment({
+  databaseUrlKey: "ANALYTICS_ROLLUP_DATABASE_URL_UNPOOLED",
+  expectedRole: "lumina_jobs_worker",
+  requireProductionOptIn: true,
+});
+if (!env.isProduction) throw new Error("The Vercel analytics import only writes to the production database");
 
-const databaseUrl = process.env.DATABASE_URL_UNPOOLED;
-const projectId = process.env.VERCEL_PROJECT_ID;
-const readToken = process.env.VERCEL_ANALYTICS_READ_TOKEN;
-if (!databaseUrl) throw new Error("DATABASE_URL_UNPOOLED is not configured");
+const databaseUrl = env.databaseUrl;
+const projectId = process.env.VERCEL_PROJECT_ID ?? env.values.get("VERCEL_PROJECT_ID");
+const readToken = process.env.VERCEL_ANALYTICS_READ_TOKEN ?? env.values.get("VERCEL_ANALYTICS_READ_TOKEN");
 if (!projectId || !readToken) throw new Error("VERCEL_PROJECT_ID and VERCEL_ANALYTICS_READ_TOKEN are required");
 
 const ANALYSES = [
@@ -32,7 +26,7 @@ const ANALYTICS_ROLLUP_ENVIRONMENT = "production";
 const EVENT_NAMES = [
   "solution_entry", "test_start", "test_complete", "result_view", "share_open",
   "share_image_saved", "compatibility_compare", "integrated_report_view",
-  "share_landing_view", "share_landing_cta",
+  "share_landing_view", "share_landing_cta", "related_test_click",
 ];
 const API_BASE = "https://api.vercel.com/v1/query/web-analytics";
 const TIME_ZONE = "Asia/Seoul";
@@ -162,7 +156,7 @@ if (!isDate(requestedSince) || !isDate(requestedUntil) || requestedSince > reque
 }
 if (daysBetween(requestedSince, requestedUntil) > 31) throw new Error("Analytics rollup range cannot exceed 31 days");
 
-const configuredEnvironment = process.env.VERCEL_ANALYTICS_ENVIRONMENT?.trim();
+const configuredEnvironment = (process.env.APP_ENV ?? env.values.get("APP_ENV"))?.trim();
 if (configuredEnvironment && configuredEnvironment !== ANALYTICS_ROLLUP_ENVIRONMENT) {
   throw new Error("Analytics rollup only supports the production environment");
 }

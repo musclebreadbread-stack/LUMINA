@@ -23,14 +23,14 @@ function subjectLabel(subject: string, locale: Locale, t: Awaited<ReturnType<typ
   };
   const messageKey = key[subject];
   if (messageKey) return t(messageKey);
-  return locale === "en" ? subject : subject;
+  return locale !== "ko" ? subject : subject;
 }
 
 function valueLabel(value: string, locale: Locale, t: Awaited<ReturnType<typeof getTranslations<"horoscopeReading">>>): string {
   if (value.startsWith("zodiac-sign:")) {
     const index = Number(value.slice("zodiac-sign:".length));
     const sign = SIGNS[index];
-    return sign ? (locale === "en" ? sign.en : sign.ko) : value;
+    return sign ? (locale !== "ko" ? sign.en : sign.ko) : value;
   }
   if (value.startsWith("aspect:")) {
     const key = value.slice("aspect:".length);
@@ -69,7 +69,7 @@ function valueLabel(value: string, locale: Locale, t: Awaited<ReturnType<typeof 
   }
   if (value.startsWith("stage:")) {
     const stage = value.slice("stage:".length);
-    return locale === "en" ? (TWELVE_STAGE_EN[stage] ?? stage) : stage;
+    return locale !== "ko" ? (TWELVE_STAGE_EN[stage] ?? stage) : stage;
   }
   if (value.startsWith("branches:")) return value.slice("branches:".length);
   if (value.startsWith("day-pillar:")) {
@@ -77,7 +77,7 @@ function valueLabel(value: string, locale: Locale, t: Awaited<ReturnType<typeof 
     const pillar = pillarFromSexagenary(index);
     const stem = stemAt(pillar.stem);
     const branch = branchAt(pillar.branch);
-    return locale === "en"
+    return locale !== "ko"
       ? `${stem.en}${branch.en}`
       : `${stem.hanja}${branch.hanja}`;
   }

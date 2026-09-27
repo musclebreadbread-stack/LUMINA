@@ -6,7 +6,7 @@ export const ANALYTICS_ROLLUP_ENVIRONMENT = "production" as const;
 /** The admin rollup reader is production-only; reject writes for other environments. */
 export function resolveAnalyticsRollupEnvironment(value: string | undefined): typeof ANALYTICS_ROLLUP_ENVIRONMENT | null {
   const normalized = value?.trim();
-  if (normalized === undefined || normalized.length === 0) return ANALYTICS_ROLLUP_ENVIRONMENT;
+  if (normalized === undefined || normalized.length === 0) return null;
   return normalized === ANALYTICS_ROLLUP_ENVIRONMENT ? ANALYTICS_ROLLUP_ENVIRONMENT : null;
 }
 
@@ -36,6 +36,7 @@ export const ADMIN_EVENT_NAMES = Object.freeze([
   "integrated_report_view",
   "share_landing_view",
   "share_landing_cta",
+  "related_test_click",
 ] as const);
 
 export type AdminEventName = (typeof ADMIN_EVENT_NAMES)[number];

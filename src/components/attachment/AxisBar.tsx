@@ -1,10 +1,11 @@
 import type { AxisView } from "@/lib/attachmentModel";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { attachmentImagePath } from "@/lib/psychometricsAssets";
+import type { Locale } from "@/i18n/locale";
 
 interface AxisBarProps {
   readonly axis: AxisView;
-  readonly locale: "ko" | "en";
+  readonly locale: Locale;
   readonly axisKey: "anxiety" | "avoidance";
 }
 

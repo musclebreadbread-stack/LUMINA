@@ -11,6 +11,7 @@ import {
 import type { EvidenceTier } from "@engine/shared/tier";
 import type { FiveElement } from "@engine/saju";
 import type { Locale } from "@/i18n/locale";
+import { intlLocale } from "@/i18n/locale";
 import { assetPath } from "./assets";
 
 /**
@@ -97,8 +98,8 @@ export function buildHoroscopeView(
 export function formatHoroscopeDate(date: string, locale: Locale): string {
   const dt = DateTime.fromISO(date);
   if (!dt.isValid) return date;
-  return locale === "en"
-    ? dt.setLocale("en").toFormat("MMMM d, yyyy (ccc)")
+  return locale !== "ko"
+    ? dt.setLocale(intlLocale(locale)).toLocaleString({ year: "numeric", month: "long", day: "numeric", weekday: "short" })
     : dt.setLocale("ko").toFormat("yyyy년 M월 d일 (ccc)");
 }
 

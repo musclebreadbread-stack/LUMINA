@@ -55,8 +55,8 @@ export default async function Image({ params }: { params: Promise<{ data: string
   const view = buildReportView(profile, new Date());
   const spirit = view.character.def;
   const spiritHex = ELEMENT_HEX[spirit.element] ?? HOBUN;
-  const spiritName = locale === "en" ? spirit.nameEn : spirit.name;
-  const spiritTagline = locale === "en" ? spirit.taglineEn : spirit.tagline;
+  const spiritName = locale !== "ko" ? spirit.nameEn : spirit.name;
+  const spiritTagline = locale !== "ko" ? spirit.taglineEn : spirit.tagline;
   const birthLabel = formatBirthLabel(view.birthLocalISO, view.precision.timeUnknown, locale);
   const tierLabel = t("tierCultural");
   const placeLabel = placeDisplayLabel(view.placeLabel, view.placeLabelEn, locale);

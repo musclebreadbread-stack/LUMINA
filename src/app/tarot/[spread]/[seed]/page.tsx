@@ -41,8 +41,8 @@ export async function generateMetadata({
 
   const view = buildTarotView(spread, seed);
   const first = view.cards[0];
-  const spreadName = locale === "en" ? view.spreadEn : view.spreadKo;
-  const cardName = first ? (locale === "en" ? first.nameEn : first.name) : t("metaTitle");
+  const spreadName = locale !== "ko" ? view.spreadEn : view.spreadKo;
+  const cardName = first ? (locale !== "ko" ? first.nameEn : first.name) : t("metaTitle");
 
   return {
     robots: { index: false, follow: false },
@@ -68,7 +68,7 @@ export default async function TarotResultPage({ params }: { params: Promise<Para
     notFound();
   }
 
-  const spreadName = locale === "en" ? view.spreadEn : view.spreadKo;
+  const spreadName = locale !== "ko" ? view.spreadEn : view.spreadKo;
 
   const gridClass =
     view.cards.length === 1
@@ -99,7 +99,7 @@ export default async function TarotResultPage({ params }: { params: Promise<Para
           title={spreadName}
           summary={t("resultMetaDescription", { spread: spreadName })}
           imageSrc={view.cards[0]?.imageSrc}
-          imageAlt={view.cards[0] ? (locale === "en" ? view.cards[0].nameEn : view.cards[0].name) : spreadName}
+          imageAlt={view.cards[0] ? (locale !== "ko" ? view.cards[0].nameEn : view.cards[0].name) : spreadName}
           imageLabel={spreadName}
           tier="cultural"
         />
@@ -112,7 +112,7 @@ export default async function TarotResultPage({ params }: { params: Promise<Para
         <TarotRevealGate
           openLabel={t("revealCta")}
           hint={t("revealHint")}
-          choices={view.cards.map((card) => (locale === "en" ? card.positionEn : card.positionKo))}
+          choices={view.cards.map((card) => (locale !== "ko" ? card.positionEn : card.positionKo))}
         >
           <div className={gridClass}>
             {view.cards.map((card, i) => (

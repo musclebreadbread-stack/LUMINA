@@ -7,10 +7,12 @@ import { Suspense } from "react";
 import { AnalyticsGate } from "@/components/analytics/AnalyticsGate";
 import { ConsentBanner } from "@/components/ads/ConsentBanner";
 import { BgmControl } from "@/components/audio/BgmControl";
+import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
 import { PlatformAtmosphere } from "@/components/scene3d/PlatformAtmosphere";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildAlternates } from "@/lib/seoAlternates";
 import { getSiteUrl } from "@/lib/siteUrl";
+import { contentLocaleFor, DEFAULT_LOCALE, isLocale, openGraphLocale } from "@/i18n/locale";
 import "./globals.css";
 
 /* 본문·UI — 계측기 눈금판의 서체. 한글 전 굵기를 갖춘다. */
@@ -42,7 +44,8 @@ const notoSerifKr = Noto_Serif_KR({
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations();
-  const locale = await getLocale();
+  const localeValue = await getLocale();
+  const locale = isLocale(localeValue) ? localeValue : DEFAULT_LOCALE;
 
   return {
     metadataBase: getSiteUrl(),
@@ -59,7 +62,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: t("metaHome.title"),
       description: t("metaHome.ogDescription"),
       siteName: "LUMINA",
-      locale: locale === "ko" ? "ko_KR" : "en_US",
+      locale: openGraphLocale(contentLocaleFor(locale)),
       type: "website",
     },
   };
@@ -75,7 +78,9 @@ const adSenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const locale = await getLocale();
+  const localeValue = await getLocale();
+  const locale = isLocale(localeValue) ? localeValue : DEFAULT_LOCALE;
+  const contentLocale = contentLocaleFor(locale);
   const messages = await getMessages();
   const t = await getTranslations();
   const siteUrl = getSiteUrl().toString().replace(/\/$/u, "");
@@ -99,7 +104,7 @@ export default async function RootLayout({
         name: "LUMINA",
         url: siteUrl,
         description: t("metaHome.description"),
-        inLanguage: locale === "ko" ? "ko-KR" : "en-US",
+        inLanguage: contentLocale,
         publisher: { "@id": organizationId },
       },
     ],
@@ -107,10 +112,11 @@ export default async function RootLayout({
 
   return (
     <html
-      lang={locale}
+      lang={contentLocale}
       className={`${plexKr.variable} ${plexMono.variable} ${notoSerifKr.variable} h-full`}
     >
       <body className="lumina-app relative min-h-full">
+        <ServiceWorkerRegistration />
         <JsonLd data={structuredData} />
         {/* 게시자 ID가 없으면(지금 상태) 이 스크립트는 아예 렌더되지 않는다. */}
         {adSenseClient && (

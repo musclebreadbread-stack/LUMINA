@@ -18,6 +18,7 @@ import { ASTRO_OVERVIEW_IMAGE } from "@/lib/astroAssets";
 import { formatBirthLabel } from "@/lib/reportModel";
 import { placeDisplayLabel } from "@/lib/profile";
 import { decodeProfile } from "@/lib/share";
+import { resolveBirthReportProfile } from "@/server/reportProfileSession";
 import type { Locale } from "@/i18n/locale";
 import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
 import type { HouseSystem, Modality, ZodiacElement } from "@engine/astro";
@@ -25,6 +26,8 @@ import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
 import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
 import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
 import { toAstroSnapshot, type AstroSnapshotNote } from "@/lib/integratedPortrait/adapters";
+
+export const dynamic = "force-dynamic";
 
 interface Query {
   readonly houses?: string;
@@ -43,10 +46,10 @@ export async function generateMetadata({
   if (!profile) return { title: t("navLabel"), robots: { index: false } };
 
   const view = buildAstroView(profile, new Date());
-  const sunSign = locale === "en" ? view.bigThree.sun.en : view.bigThree.sun.ko;
-  const moonSign = locale === "en" ? view.bigThree.moon.en : view.bigThree.moon.ko;
+  const sunSign = locale !== "ko" ? view.bigThree.sun.en : view.bigThree.sun.ko;
+  const moonSign = locale !== "ko" ? view.bigThree.moon.en : view.bigThree.moon.ko;
   const risingSign = view.bigThree.rising
-    ? locale === "en"
+    ? locale !== "ko"
       ? view.bigThree.rising.en
       : view.bigThree.rising.ko
     : null;
@@ -103,7 +106,7 @@ export default async function AstroPage({
   const { data } = await params;
   const { houses } = await searchParams;
   const selectedHouseSystem = parseHouseSystem(houses);
-  const profile = decodeProfile(data);
+  const profile = await resolveBirthReportProfile(data);
   const locale = (await getLocale()) as Locale;
   const [t, tCommon] = await Promise.all([getTranslations("astro"), getTranslations("common")]);
 
@@ -203,7 +206,7 @@ export default async function AstroPage({
             <p className="mt-3 flex items-center justify-center gap-2">
               <span className="text-2xl leading-none text-hobun-dim">{item.symbol}</span>
               <span className="text-xl leading-none font-medium text-hobun">
-                {locale === "en" ? item.en : item.ko}
+                {locale !== "ko" ? item.en : item.ko}
               </span>
             </p>
             <p className="mt-3 text-[13px] text-hobun-faint">{item.gloss}</p>
@@ -304,7 +307,7 @@ export default async function AstroPage({
                 <tr id={`calculation-astro-placement-${p.key}-${p.signIndex}`} key={p.key} className="border-b border-ink-800">
                   <td className="py-2.5 pr-3">
                     <span className="mr-2 text-base text-hobun-dim">{p.symbol}</span>
-                    <span className="text-xs text-hobun">{locale === "en" ? p.en : p.ko}</span>
+                    <span className="text-xs text-hobun">{locale !== "ko" ? p.en : p.ko}</span>
                   </td>
                   <td className="py-2.5 pr-3 font-mono text-xs text-hobun-dim">
                     {formatPlanetPosition(p, locale)}
@@ -344,7 +347,7 @@ export default async function AstroPage({
                 >
                   <span className="flex items-center gap-2 text-xs text-hobun-dim">
                     <span className="text-base">{a.aSymbol}</span>
-                    <span className="text-hobun-faint">{locale === "en" ? a.en : a.ko}</span>
+                    <span className="text-hobun-faint">{locale !== "ko" ? a.en : a.ko}</span>
                     <span className="text-base">{a.bSymbol}</span>
                   </span>
                   <span className="tabular shrink-0 font-mono text-[13px] text-hobun-faint">
@@ -410,7 +413,7 @@ export default async function AstroPage({
       <AdSlot slot="astro-mid" label={tCommon("adLabel")} />
 
       <footer className="space-y-8 border-t border-ink-700 pt-8">
-        <ShareBar title={`${birthLabel} ${t("navLabel")} · LUMINA`} />
+        <ShareBar title={`${birthLabel} ${t("navLabel")} · LUMINA`} allowLinkShare={false} />
         <Disclaimer />
       </footer>
       </main>

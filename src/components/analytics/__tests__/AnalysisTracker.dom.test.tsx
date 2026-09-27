@@ -2,12 +2,23 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const sendVercelEvent = vi.hoisted(() => vi.fn());
-vi.mock("@vercel/analytics", () => ({ track: sendVercelEvent }));
+const sendUmamiEvent = vi.hoisted(() => vi.fn((payload: unknown) => { void payload; }));
 
 import { AnalysisEntryTracker, AnalysisResultTracker } from "../AnalysisTracker";
 import { ShareLandingAnalytics } from "@/components/report/ShareLandingAnalytics";
 import { notifyConsentChanged, saveConsent } from "@/lib/consent";
+
+function isUmamiEventFactory(
+  value: unknown,
+): value is (properties: Readonly<Record<string, unknown>>) => Readonly<Record<string, unknown>> {
+  return typeof value === "function";
+}
+
+function eventPayloadAt(index: number): Readonly<Record<string, unknown>> {
+  const payload = sendUmamiEvent.mock.calls[index]?.[0];
+  if (!isUmamiEventFactory(payload)) throw new Error("Expected a privacy-safe Umami event factory");
+  return payload({});
+}
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -17,7 +28,9 @@ describe("Analysis trackers", () => {
 
   beforeEach(() => {
     window.localStorage.clear();
-    sendVercelEvent.mockClear();
+    sendUmamiEvent.mockClear();
+    window.umami = { track: sendUmamiEvent };
+    vi.stubEnv("NEXT_PUBLIC_UMAMI_WEBSITE_ID", "test-website-id");
     container = document.createElement("div");
     document.body.append(container);
     root = createRoot(container);
@@ -26,6 +39,8 @@ describe("Analysis trackers", () => {
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
+    delete window.umami;
+    vi.unstubAllEnvs();
   });
 
   it("waits for a consent choice, then records entry and result once the choice changes", async () => {
@@ -38,7 +53,7 @@ describe("Analysis trackers", () => {
       );
     });
 
-    expect(sendVercelEvent).not.toHaveBeenCalled();
+    expect(sendUmamiEvent).not.toHaveBeenCalled();
 
     act(() => {
       saveConsent("accepted");
@@ -46,10 +61,10 @@ describe("Analysis trackers", () => {
     });
 
     await vi.waitFor(() => {
-      expect(sendVercelEvent).toHaveBeenCalledTimes(2);
+      expect(sendUmamiEvent).toHaveBeenCalledTimes(2);
     });
-    expect(sendVercelEvent).toHaveBeenNthCalledWith(1, "solution_entry", { analysis: "saju" });
-    expect(sendVercelEvent).toHaveBeenNthCalledWith(2, "result_view", { analysis: "saju" });
+    expect(eventPayloadAt(0)).toMatchObject({ name: "solution_entry__saju", data: { analysis: "saju" } });
+    expect(eventPayloadAt(1)).toMatchObject({ name: "result_view__saju", data: { analysis: "saju" } });
   });
 
   it("waits for consent before recording a share landing view", async () => {
@@ -57,7 +72,7 @@ describe("Analysis trackers", () => {
       root.render(<ShareLandingAnalytics analysisKey="jungian" />);
     });
 
-    expect(sendVercelEvent).not.toHaveBeenCalled();
+    expect(sendUmamiEvent).not.toHaveBeenCalled();
 
     act(() => {
       saveConsent("accepted");
@@ -65,8 +80,8 @@ describe("Analysis trackers", () => {
     });
 
     await vi.waitFor(() => {
-      expect(sendVercelEvent).toHaveBeenCalledTimes(1);
+      expect(sendUmamiEvent).toHaveBeenCalledTimes(1);
     });
-    expect(sendVercelEvent).toHaveBeenCalledWith("share_landing_view", { analysis: "jungian" });
+    expect(eventPayloadAt(0)).toMatchObject({ name: "share_landing_view__jungian", data: { analysis: "jungian" } });
   });
 });

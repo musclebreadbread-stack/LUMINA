@@ -35,7 +35,7 @@ export async function Mandala({ model, moment }: Props) {
   const mercury = model.nodes.find((node) => node.planetKey === "mercury");
   if (!moon || !mercury) throw new Error("Mandala requires moon and mercury nodes");
 
-  const moonSign = locale === "en" ? moon.sign.en : moon.sign.ko;
+  const moonSign = locale !== "ko" ? moon.sign.en : moon.sign.ko;
   const mercuryStatus = mercury.retrograde ? t("mandalaRetrograde") : t("mandalaDirect");
 
   return (
@@ -95,7 +95,7 @@ export async function Mandala({ model, moment }: Props) {
         <ul>
           {model.nodes.map((node) => (
             <li key={node.key}>
-              {t(node.titleKey)} · {locale === "en" ? node.sign.en : node.sign.ko} {Math.round(node.degreeInSign)}°
+              {t(node.titleKey)} · {locale !== "ko" ? node.sign.en : node.sign.ko} {Math.round(node.degreeInSign)}°
               {node.retrograde ? " R" : ""}
             </li>
           ))}

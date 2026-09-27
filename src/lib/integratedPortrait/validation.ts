@@ -6,6 +6,7 @@ import {
   type SignalValue,
 } from "./contracts";
 import { integrationRegistration, isSnapshotEligibleForPortrait } from "./registry";
+import { isLocale } from "@/i18n/locale";
 
 export type SnapshotValidationFailureReason =
   | "not-object"
@@ -112,10 +113,6 @@ function isCanonicalIso(value: unknown): value is string {
   return Number.isFinite(parsed.getTime()) && parsed.toISOString() === value;
 }
 
-function isLocale(value: unknown): value is "ko" | "en" {
-  return value === "ko" || value === "en";
-}
-
 export function validateSnapshot(value: unknown): SnapshotValidationResult {
   if (!isRecord(value)) return { ok: false, reason: "not-object" };
   if (!hasExactKeys(value, SNAPSHOT_KEYS)) return { ok: false, reason: "unknown-field" };
@@ -132,6 +129,7 @@ export function validateSnapshot(value: unknown): SnapshotValidationResult {
     !UUID_PATTERN.test(value.sourceAssessmentId) ||
     !isAnalysisKey(value.analysisKey) ||
     typeof value.lane !== "string" ||
+    typeof value.locale !== "string" ||
     !isLocale(value.locale) ||
     typeof value.instrumentVersion !== "string" ||
     typeof value.scoringModelVersion !== "string" ||

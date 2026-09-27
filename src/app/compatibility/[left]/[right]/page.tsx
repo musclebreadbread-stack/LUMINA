@@ -16,8 +16,8 @@ import { analysisDefinition } from "@/lib/analysisCatalog";
 import { assetPath } from "@/lib/assets";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { compatibilityToneImagePath } from "@/lib/compatibilityAssets";
-import { decodeProfile } from "@/lib/share";
 import { placeDisplayLabel, toBirthInput, type StoredProfile } from "@/lib/profile";
+import { resolveCompatibilityReportProfiles } from "@/server/reportProfileSession";
 import { computeSaju, branchAt, stemAt } from "@engine/saju";
 import {
   PILLARS,
@@ -85,12 +85,12 @@ function stemLabel(
 
 function pillarLabel(key: SynastryPillarKey, locale: Locale): string {
   const item = PILLARS.find((candidate) => candidate.key === key);
-  return item ? (locale === "en" ? item.en : item.ko) : key;
+  return item ? (locale !== "ko" ? item.en : item.ko) : key;
 }
 
 function stemDisplay(index: number, locale: Locale): string {
   const stem = stemAt(index);
-  return locale === "en" ? stem.en : stem.ko;
+  return locale !== "ko" ? stem.en : stem.ko;
 }
 
 function toneLabel(
@@ -111,9 +111,10 @@ export default async function CompatibilityResultPage({
   readonly params: Promise<Params>;
 }) {
   const { left, right } = await params;
-  const leftProfile = decodeProfile(left);
-  const rightProfile = decodeProfile(right);
-  if (!leftProfile || !rightProfile) notFound();
+  const profiles = await resolveCompatibilityReportProfiles(left, right);
+  if (!profiles) notFound();
+  const leftProfile = profiles.first;
+  const rightProfile = profiles.second;
 
   let leftSaju;
   let rightSaju;
@@ -175,15 +176,15 @@ export default async function CompatibilityResultPage({
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <ProfileVisual
               label={t("personA")}
-              zodiac={locale === "en" ? leftDayBranch.zodiacEn : leftDayBranch.zodiacKo}
+              zodiac={locale !== "ko" ? leftDayBranch.zodiacEn : leftDayBranch.zodiacKo}
               imageSrc={assetPath("saju/zodiac", leftDayBranch.zodiacEn.toLowerCase())}
-              imageAlt={t("profileImageAlt", { profile: t("personA"), zodiac: locale === "en" ? leftDayBranch.zodiacEn : leftDayBranch.zodiacKo })}
+              imageAlt={t("profileImageAlt", { profile: t("personA"), zodiac: locale !== "ko" ? leftDayBranch.zodiacEn : leftDayBranch.zodiacKo })}
             />
             <ProfileVisual
               label={t("personB")}
-              zodiac={locale === "en" ? rightDayBranch.zodiacEn : rightDayBranch.zodiacKo}
+              zodiac={locale !== "ko" ? rightDayBranch.zodiacEn : rightDayBranch.zodiacKo}
               imageSrc={assetPath("saju/zodiac", rightDayBranch.zodiacEn.toLowerCase())}
-              imageAlt={t("profileImageAlt", { profile: t("personB"), zodiac: locale === "en" ? rightDayBranch.zodiacEn : rightDayBranch.zodiacKo })}
+              imageAlt={t("profileImageAlt", { profile: t("personB"), zodiac: locale !== "ko" ? rightDayBranch.zodiacEn : rightDayBranch.zodiacKo })}
             />
           </div>
           <div className="assessment-result-art reveal mt-5 grid overflow-hidden rounded-[1.5rem] border border-ink-700 bg-ink-900/70 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
@@ -263,8 +264,8 @@ export default async function CompatibilityResultPage({
                       return (
                         <tr key={`${item.leftPillar}-${item.rightPillar}-${item.kind}-${index}`} className="border-b border-ink-800">
                           <td className="py-3 pr-4 text-hobun-faint">{pillarLabel(item.leftPillar, locale)} ↔ {pillarLabel(item.rightPillar, locale)}</td>
-                          <td className="py-3 pr-4 font-medium text-hobun">{locale === "en" ? leftBranch.en : leftBranch.ko}</td>
-                          <td className="py-3 pr-4 font-medium text-hobun">{locale === "en" ? rightBranch.en : rightBranch.ko}</td>
+                          <td className="py-3 pr-4 font-medium text-hobun">{locale !== "ko" ? leftBranch.en : leftBranch.ko}</td>
+                          <td className="py-3 pr-4 font-medium text-hobun">{locale !== "ko" ? rightBranch.en : rightBranch.ko}</td>
                           <td className="py-3 text-hobun-dim">{relationLabel(item.kind, t)}</td>
                         </tr>
                       );
@@ -296,7 +297,7 @@ export default async function CompatibilityResultPage({
 
         <AdSlot slot="compatibility-mid" label={tCommon("adLabel")} />
         <footer className="space-y-8 border-t border-ink-700 pt-8">
-          <ShareBar title={t("shareTitle")} restartHref="/compatibility" restartLabel={t("restart")} />
+          <ShareBar title={t("shareTitle")} restartHref="/compatibility" restartLabel={t("restart")} allowLinkShare={false} />
           <Disclaimer tier="cultural" />
         </footer>
       </main>

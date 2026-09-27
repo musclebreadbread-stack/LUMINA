@@ -26,8 +26,8 @@ export async function NumberPlate({
   const locale = (await getLocale()) as Locale;
 
   const title = t(card.kind === "lifePath" ? "lifePath" : "destiny");
-  const gloss = locale === "en" ? card.meaning.glossEn : card.meaning.gloss;
-  const keywords = locale === "en" ? card.meaning.keywordsEn : card.meaning.keywords;
+  const gloss = locale !== "ko" ? card.meaning.glossEn : card.meaning.gloss;
+  const keywords = locale !== "ko" ? card.meaning.keywordsEn : card.meaning.keywords;
   const note =
     card.kind === "lifePath"
       ? t("breakdownFormat", {

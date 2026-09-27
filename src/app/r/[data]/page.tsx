@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AdSlot } from "@/components/ads/AdSlot";
+import { PremiumTeaser } from "@/components/premium/PremiumTeaser";
 import { SpiritCard } from "@/components/character/SpiritCard";
 import { CollectionTracker } from "@/components/character/CollectionTracker";
 import { ElementSpectrum } from "@/components/report/ElementSpectrum";
@@ -32,14 +33,17 @@ import {
   type ReportView,
 } from "@/lib/reportModel";
 import { decodeProfile } from "@/lib/share";
+import { resolveBirthReportProfile } from "@/server/reportProfileSession";
 import { placeDisplayLabel } from "@/lib/profile";
 import { TWELVE_STAGES, branchAt, stageEvidenceRef } from "@engine/saju";
-import type { Locale } from "@/i18n/locale";
+import { contentLocaleFor, intlLocale, openGraphLocale, type Locale } from "@/i18n/locale";
 import { ExplorationRecorder } from "@/components/report/ExplorationRecorder";
 import { IntegratedResultRecorder } from "@/components/report/IntegratedResultRecorder";
 import { IntegratedReportEntry } from "@/components/report/IntegratedReportEntry";
 import { toSajuSnapshot } from "@/lib/integratedPortrait/adapters";
 import { AnalysisResultTracker } from "@/components/analytics/AnalysisTracker";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -55,8 +59,8 @@ export async function generateMetadata({
 
   const view = buildReportView(profile, new Date());
   const spirit = view.character.def;
-  const spiritName = locale === "en" ? spirit.nameEn : spirit.name;
-  const spiritTagline = locale === "en" ? spirit.taglineEn : spirit.tagline;
+  const spiritName = locale !== "ko" ? spirit.nameEn : spirit.name;
+  const spiritTagline = locale !== "ko" ? spirit.taglineEn : spirit.tagline;
   const birthLabel = formatBirthLabel(view.birthLocalISO, view.precision.timeUnknown, locale);
 
   return {
@@ -64,14 +68,14 @@ export async function generateMetadata({
     robots: { index: false, follow: false },
     title: `${spiritName} · ${birthLabel}`,
     description:
-      locale === "en"
+      locale !== "ko"
         ? `${birthLabel} Saju chart — ${spiritTagline} Solar terms and true solar time calculated by LUMINA.`
         : `${birthLabel} 사주 원국 — ${spiritTagline} LUMINA에서 절기와 진태양시를 계산했습니다.`,
     openGraph: {
       title: `${spiritName}(${spirit.hanja}) · ${birthLabel}`,
       description: spiritTagline,
       type: "article",
-      locale: locale === "en" ? "en_US" : "ko_KR",
+      locale: openGraphLocale(contentLocaleFor(locale)),
     },
     twitter: { card: "summary_large_image" },
   };
@@ -91,9 +95,9 @@ function noteText(
       const clock = branchAt(note.clockBranch);
       const solar = branchAt(note.solarBranch);
       return t("noteTrueSolarShift", {
-        clockName: locale === "en" ? clock.en : clock.ko,
+        clockName: locale !== "ko" ? clock.en : clock.ko,
         clockHanja: clock.hanja,
-        solarName: locale === "en" ? solar.en : solar.ko,
+        solarName: locale !== "ko" ? solar.en : solar.ko,
         solarHanja: solar.hanja,
       });
     }
@@ -108,7 +112,7 @@ function noteText(
 
 export default async function ReportPage({ params }: { params: Promise<{ data: string }> }) {
   const { data } = await params;
-  const profile = decodeProfile(data);
+  const profile = await resolveBirthReportProfile(data);
   const locale = (await getLocale()) as Locale;
   const [t, tCommon, tBirthForm] = await Promise.all([
     getTranslations("saju"),
@@ -161,8 +165,8 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
   }
 
   const dayMasterStyle = ELEMENT_STYLE[view.dayMaster.element];
-  const dayMasterReading = locale === "en" ? view.dayMaster.en : view.dayMaster.ko;
-  const dayMasterElementLabel = locale === "en" ? dayMasterStyle.en : dayMasterStyle.ko;
+  const dayMasterReading = locale !== "ko" ? view.dayMaster.en : view.dayMaster.ko;
+  const dayMasterElementLabel = locale !== "ko" ? dayMasterStyle.en : dayMasterStyle.ko;
   const monthColumn = view.pillars.find((p) => p.key === "month");
   const birthLabel = formatBirthLabel(view.birthLocalISO, view.precision.timeUnknown, locale);
   const lunarLabel = view.lunar
@@ -188,9 +192,9 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
         ? "strengthNoteBalanced"
         : "strengthNoteWeak",
   );
-  const termName = locale === "en" ? view.termEntry.en : view.termEntry.ko;
+  const termName = locale !== "ko" ? view.termEntry.en : view.termEntry.ko;
   const minuteUnit = t("minuteUnit");
-  const characterTagline = locale === "en" ? view.character.def.taglineEn : view.character.def.tagline;
+  const characterTagline = locale !== "ko" ? view.character.def.taglineEn : view.character.def.tagline;
   const yearPillar = view.pillars.find((pillar) => pillar.key === "year");
   const integratedSnapshot = toSajuSnapshot({
     locale,
@@ -221,7 +225,7 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
           title={birthLabel}
           summary={characterTagline}
           imageSrc={yearPillar?.zodiacImageSrc}
-          imageAlt={yearPillar ? (locale === "en" ? yearPillar.zodiacEn : yearPillar.zodiacKo) : birthLabel}
+          imageAlt={yearPillar ? (locale !== "ko" ? yearPillar.zodiacEn : yearPillar.zodiacKo) : birthLabel}
           imageLabel={t("resultTitleSuffix")}
           tier="cultural"
         />
@@ -423,8 +427,8 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
         <div id="calculation-saju-rarity" className="border border-ink-800 bg-ink-950/45 p-5 sm:p-6">
           <p className="font-mono text-sm text-hobun">
             {t("rarityStat", {
-              sample: view.rarity.sampleSpace.toLocaleString(locale === "en" ? "en-US" : "ko-KR"),
-              matching: view.rarity.matchingCombinations.toLocaleString(locale === "en" ? "en-US" : "ko-KR"),
+              sample: view.rarity.sampleSpace.toLocaleString(intlLocale(locale)),
+              matching: view.rarity.matchingCombinations.toLocaleString(intlLocale(locale)),
               percent: (view.rarity.probability * 100).toFixed(2),
             })}
           </p>
@@ -443,7 +447,7 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
       </Section>
 
       {/* 광고 — 게시자 ID가 없으면(지금 상태) 아무것도 렌더되지 않는다 */}
-      <AdSlot slot="saju-mid" label={tCommon("adLabel")} />
+      <PremiumTeaser />
 
       <Section id="section-tengods" index="05" title={t("sectionTenGods")} aside={<>{t("tenGodsAside")}</>}>
         <ul className="space-y-px">
@@ -583,7 +587,7 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
 
       <Reveal>
         <footer className="space-y-8 border-t border-ink-700 pt-8">
-          <ShareBar title={`${birthLabel} ${t("resultTitleSuffix")} · LUMINA`} />
+          <ShareBar title={`${birthLabel} ${t("resultTitleSuffix")} · LUMINA`} allowLinkShare={false} />
           <Disclaimer />
         </footer>
       </Reveal>

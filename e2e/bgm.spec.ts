@@ -2,8 +2,8 @@ import { expect, test } from '@playwright/test';
 import { dismissConsentBanner, setLocaleCookie } from './helpers';
 
 test.describe('global BGM control', () => {
-  test('is opt-in and follows the exploration area', async ({ page, context }) => {
-    await setLocaleCookie(context, 'ko');
+  test('is opt-in and follows the exploration area', async ({ page, context, baseURL }) => {
+    await setLocaleCookie(context, 'ko', baseURL);
     await page.goto('/');
     await dismissConsentBanner(page);
 
@@ -14,25 +14,57 @@ test.describe('global BGM control', () => {
 
     await control.click();
     await expect(control).toHaveAttribute('aria-pressed', 'true');
-    await expect.poll(async () => page.locator('audio').getAttribute('src')).toContain('/audio/bgm/home.mp3');
+    await expect(page.locator('audio')).toHaveAttribute('src', '/audio/bgm/digital-observatory.mp3');
 
     await page.goto('/tarot');
     await dismissConsentBanner(page);
     await expect(page.locator('[data-bgm-area="tarot"]')).toBeVisible();
     await expect(page.getByTestId('bgm-toggle')).toHaveAttribute('aria-pressed', 'true');
-    await expect.poll(async () => page.locator('audio').getAttribute('src')).toContain('/audio/bgm/tarot.mp3');
+    await expect(page.locator('audio')).toHaveAttribute('src', '/audio/bgm/digital-observatory.mp3');
 
     await page.goto('/psychometrics?to=types');
     await dismissConsentBanner(page);
     await expect(page.locator('[data-bgm-area="jungian"]')).toBeVisible();
-    await expect.poll(async () => page.locator('audio').getAttribute('src')).toContain('/audio/bgm/jungian.mp3');
+    await expect(page.locator('audio')).toHaveAttribute('src', '/audio/bgm/digital-observatory.mp3');
 
     await page.getByTestId('bgm-toggle').click();
     await expect(page.getByTestId('bgm-toggle')).toHaveAttribute('aria-pressed', 'false');
     await expect(page.locator('audio')).not.toHaveAttribute('src');
   });
 
-  test('offers a user-gesture retry when playback is blocked', async ({ page, context }) => {
+  test('keeps the floating control clear of the configuration header on desktop and mobile', async ({ page, context, baseURL }) => {
+    await setLocaleCookie(context, 'ko', baseURL);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+    await dismissConsentBanner(page);
+
+    const header = page.locator('main > header');
+    const control = page.getByTestId('bgm-toggle');
+
+    for (const viewport of [
+      { width: 1280, height: 800 },
+      { width: 390, height: 844 },
+    ]) {
+      await page.setViewportSize(viewport);
+      const [headerBox, controlBox] = await Promise.all([
+        header.boundingBox(),
+        control.boundingBox(),
+      ]);
+
+      if (!headerBox || !controlBox) {
+        throw new Error('The configuration header or floating BGM control is not visible.');
+      }
+
+      const overlaps = headerBox.x < controlBox.x + controlBox.width
+        && headerBox.x + headerBox.width > controlBox.x
+        && headerBox.y < controlBox.y + controlBox.height
+        && headerBox.y + headerBox.height > controlBox.y;
+      expect(overlaps, `BGM control overlaps the header at ${viewport.width}x${viewport.height}`)
+        .toBe(false);
+    }
+  });
+
+  test('offers a user-gesture retry when playback is blocked', async ({ page, context, baseURL }) => {
     await page.addInitScript(() => {
       const originalPlay = HTMLMediaElement.prototype.play;
       let rejectFirstPlay = true;
@@ -47,7 +79,7 @@ test.describe('global BGM control', () => {
       };
     });
 
-    await setLocaleCookie(context, 'ko');
+    await setLocaleCookie(context, 'ko', baseURL);
     await page.goto('/');
     await dismissConsentBanner(page);
 

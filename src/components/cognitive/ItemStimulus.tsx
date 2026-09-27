@@ -56,7 +56,7 @@ export function ItemStimulus({ item, locale, figureLabel, idPrefix, maxWidth }: 
   }
 
   // 수열 문항의 자극은 두 로케일에서 같은 기호열이지만, 분기를 따로 두지 않고 데이터를 그대로 믿는다.
-  const text = locale === "en" ? item.stimulus.textEn : item.stimulus.textKo;
+  const text = locale !== "ko" ? item.stimulus.textEn : item.stimulus.textKo;
   const isSeries = item.domain === "letterNumberSeries";
 
   return (
@@ -99,7 +99,7 @@ export function OptionContent({ option, locale, figureLabel, idPrefix, maxWidth,
     return <RotationStimulus figure={option.figure} label={figureLabel} maxWidth={maxWidth} className={className} />;
   }
 
-  return <span>{locale === "en" ? option.labelEn : option.labelKo}</span>;
+  return <span>{locale !== "ko" ? option.labelEn : option.labelKo}</span>;
 }
 
 interface StandardizedStimulusProps {
@@ -114,7 +114,7 @@ interface StandardizedStimulusProps {
 /** 표준화 실행에서 쓰는 공개 자극 DTO 전용 렌더러. 정답·IRT 모수는 받지 않는다. */
 export function StandardizedStimulus({ stimulus, locale, label, idPrefix, maxWidth, className }: StandardizedStimulusProps) {
   if (stimulus.kind === "text") {
-    return <p className={className}>{locale === "en" ? stimulus.textEn : stimulus.textKo}</p>;
+    return <p className={className}>{locale !== "ko" ? stimulus.textEn : stimulus.textKo}</p>;
   }
   if (stimulus.kind === "matrix") {
     return <MatrixBoard figure={stimulus} label={label} idPrefix={idPrefix} maxWidth={maxWidth} className={className} />;
@@ -135,7 +135,7 @@ export function StandardizedOptionContent({ option, locale, figureLabel, idPrefi
   if (option.figure !== null) {
     return <OptionFigure figure={option.figure} label={figureLabel} idPrefix={idPrefix} maxWidth={maxWidth} className={className} />;
   }
-  return <span>{locale === "en" ? option.labelEn : option.labelKo}</span>;
+  return <span>{locale !== "ko" ? option.labelEn : option.labelKo}</span>;
 }
 
 /** ItemPresentation DTO를 받는 얇은 어댑터로, 서버/클라이언트 경계를 확인하기 쉽다. */

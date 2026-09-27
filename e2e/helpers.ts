@@ -10,8 +10,14 @@ export async function dismissConsentBanner(page: Page): Promise<void> {
 }
 
 /** Seeds the "lumina.locale" cookie on a fresh browser context so pages load already in the given locale. */
-export async function setLocaleCookie(context: BrowserContext, locale: 'ko' | 'en'): Promise<void> {
+export async function setLocaleCookie(
+  context: BrowserContext,
+  locale: 'ko' | 'en',
+  baseURL = 'http://localhost:3000',
+): Promise<void> {
+  const cookieUrl = new URL(baseURL).origin;
+
   await context.addCookies([
-    { name: 'lumina.locale', value: locale, url: 'http://localhost:3000' },
+    { name: 'lumina.locale', value: locale, url: cookieUrl },
   ]);
 }

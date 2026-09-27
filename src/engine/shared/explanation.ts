@@ -4,7 +4,12 @@ import type { Citation } from "./citation";
 export interface LocalizedText {
   readonly ko: string;
   readonly en: string;
+  readonly ja?: string;
+  readonly "zh-Hant"?: string;
+  readonly es?: string;
 }
+
+export type ContentLocale = "ko" | "en" | "ja" | "zh-Hant" | "es";
 
 export interface ExplanationBlock {
   readonly id: string;
@@ -16,8 +21,9 @@ export interface ExplanationBlock {
   readonly tier: EvidenceTier;
 }
 
-export function localizeText(text: LocalizedText, locale: "ko" | "en"): string {
-  return locale === "en" ? text.en : text.ko;
+export function localizeText(text: LocalizedText, locale: ContentLocale): string {
+  if (locale === "ko") return text.ko;
+  return text[locale]?.trim() ? text[locale]! : text.en;
 }
 
 export function assertExplanationBlock(block: ExplanationBlock): void {

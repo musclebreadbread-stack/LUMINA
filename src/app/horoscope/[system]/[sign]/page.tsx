@@ -51,13 +51,13 @@ export async function generateMetadata({
 
   try {
     const view = buildHoroscopeView(system, sign, isDateString(d) ? d : utcToday());
-    const signName = locale === "en" ? view.sign.en : view.sign.ko;
+    const signName = locale !== "ko" ? view.sign.en : view.sign.ko;
     return {
       // 날짜 쿼리(?d=)가 붙어도 대표 URL은 하나로 모은다. 헬퍼가 쿼리를 떼고
       // 두 언어의 hreflang까지 함께 만들어 준다.
       alternates: await buildAlternates(`/horoscope/${system}/${sign}`),
       title: `${signName} ${t("resultTitleSuffix")}`,
-      description: locale === "en" ? view.mood.en : view.mood.ko,
+      description: locale !== "ko" ? view.mood.en : view.mood.ko,
     };
   } catch {
     return { title: t("resultTitleSuffix") };
@@ -91,13 +91,13 @@ export default async function HoroscopeResultPage({
     notFound();
   }
 
-  const signName = locale === "en" ? view.sign.en : view.sign.ko;
+  const signName = locale !== "ko" ? view.sign.en : view.sign.ko;
   const systemLabel = t(system === "zodiac" ? "systemZodiac" : "systemChinese");
   const dateLabel = formatHoroscopeDate(serverDate, locale);
-  const mood = locale === "en" ? view.mood.en : view.mood.ko;
-  const relationship = locale === "en" ? view.relationship.en : view.relationship.ko;
-  const work = locale === "en" ? view.work.en : view.work.ko;
-  const tip = locale === "en" ? view.tip.en : view.tip.ko;
+  const mood = locale !== "ko" ? view.mood.en : view.mood.ko;
+  const relationship = locale !== "ko" ? view.relationship.en : view.relationship.ko;
+  const work = locale !== "ko" ? view.work.en : view.work.ko;
+  const tip = locale !== "ko" ? view.tip.en : view.tip.ko;
 
   return (
     <SceneShell tone="horoscope">

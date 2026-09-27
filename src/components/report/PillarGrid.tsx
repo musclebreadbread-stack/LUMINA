@@ -206,9 +206,9 @@ function Pillar({
             {pillar.stem.hanja}
           </span>
           <span className="absolute bottom-1.5 text-[12px] text-hobun-dim">
-            {locale === "en" ? pillar.stem.en : pillar.stem.ko}
+            {locale !== "ko" ? pillar.stem.en : pillar.stem.ko}
             <span className="ml-1 text-hobun-faint">
-              {locale === "en" ? stemStyle.en : stemStyle.ko}
+              {locale !== "ko" ? stemStyle.en : stemStyle.ko}
             </span>
           </span>
         </div>
@@ -227,9 +227,9 @@ function Pillar({
             {pillar.branch.hanja}
           </span>
           <span className="absolute bottom-1.5 text-[12px] text-hobun-dim">
-            {locale === "en" ? pillar.branch.en : pillar.branch.ko}
+            {locale !== "ko" ? pillar.branch.en : pillar.branch.ko}
             <span className="ml-1 text-hobun-faint">
-              {locale === "en" ? branchStyle.en : branchStyle.ko}
+              {locale !== "ko" ? branchStyle.en : branchStyle.ko}
             </span>
           </span>
         </div>
@@ -256,13 +256,13 @@ function Pillar({
                 alt=""
                 sizes="13px"
                 className="object-cover object-top"
-                fallbackLabel={locale === "en" ? pillar.zodiacEn : pillar.zodiacKo}
+                fallbackLabel={locale !== "ko" ? pillar.zodiacEn : pillar.zodiacKo}
               />
             </span>
             {/* 좁은 기둥 폭에서 긴 띠 이름은 네 기둥의 발판 높이를 어긋나게 한다 —
                 이미지는 남기고 이름은 넓은 화면에서만 */}
             <span className="hidden sm:inline">
-              {locale === "en" ? pillar.zodiacEn : `${pillar.zodiacKo}띠`}
+              {locale !== "ko" ? pillar.zodiacEn : `${pillar.zodiacKo}띠`}
             </span>
           </span>
           {pillar.isVoid && <span className="text-[12px] text-hobun-faint">{t("voidMark")}</span>}

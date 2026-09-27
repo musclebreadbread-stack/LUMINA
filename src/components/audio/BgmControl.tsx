@@ -107,7 +107,10 @@ export function BgmControl() {
     : t("turnOn");
 
   return (
-    <div className="bgm-control no-print fixed right-4 top-4 z-[80] sm:right-6 sm:top-5" data-bgm-area={area}>
+    <div
+      className="bgm-control no-print fixed bottom-[calc(var(--consent-banner-h,0px)+1rem)] right-4 z-40 sm:bottom-[calc(var(--consent-banner-h,0px)+1.5rem)] sm:right-6"
+      data-bgm-area={area}
+    >
       <button
         type="button"
         className="theme-control inline-flex min-h-11 items-center gap-2 border border-ink-700 bg-ink-950/85 px-3 py-2 font-mono text-[11px] tracking-[0.12em] text-hobun-dim shadow-lg shadow-black/20 backdrop-blur-md transition-colors hover:text-hobun"

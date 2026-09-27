@@ -22,11 +22,7 @@ import type {
   SolutionMetric,
   TrafficPoint,
 } from "./types";
-import {
-  fetchVercelAnalyticsRange,
-  readVercelAnalyticsConfig,
-  type VercelAnalyticsRange,
-} from "./vercel";
+import { readUmamiAnalyticsConfig } from "./umami";
 
 const EMPTY_HEALTH: AnalyticsDataHealth = Object.freeze({
   sourceConfigured: false,
@@ -34,6 +30,7 @@ const EMPTY_HEALTH: AnalyticsDataHealth = Object.freeze({
   lastSyncAt: null,
   coverageStart: null,
   coverageEnd: null,
+  sourceChangeDate: null,
   message: null,
 });
 
@@ -209,39 +206,6 @@ function selectedEventMetrics(metrics: readonly EventMetric[], solution: Analyti
   return Object.freeze(solution === "all" ? metrics : metrics.filter((metric) => metric.analysis === solution));
 }
 
-function buildSnapshotFromLive(
-  query: AdminAnalyticsQuery,
-  range: AnalyticsDateRange,
-  previousRange: AnalyticsDateRange,
-  current: VercelAnalyticsRange,
-  previous: VercelAnalyticsRange,
-): AdminAnalyticsSnapshot {
-  const solutions = buildSolutionMetrics(current.eventMetrics, current.entryTrend, range);
-  const previousSolutions = buildSolutionMetrics(previous.eventMetrics, previous.entryTrend, previousRange);
-  return Object.freeze({
-    query,
-    range,
-    previousRange,
-    source: "vercel-live",
-    freshness: "live",
-    generatedAt: new Date().toISOString(),
-    summary: buildSummary(current.visits, previous.visits, solutions, previousSolutions),
-    trafficSeries: current.trafficSeries,
-    solutions,
-    selectedSolution: query.solution,
-    selectedSolutionSeries: selectedEventMetrics(current.eventMetrics, query.solution),
-    eventTrend: current.entryTrend,
-    health: Object.freeze({
-      sourceConfigured: true,
-      rollupAvailable: false,
-      lastSyncAt: null,
-      coverageStart: range.startDate,
-      coverageEnd: range.endDate,
-      message: null,
-    }),
-  });
-}
-
 function buildSnapshotFromRollup(
   query: AdminAnalyticsQuery,
   range: AnalyticsDateRange,
@@ -252,9 +216,11 @@ function buildSnapshotFromRollup(
     readonly lastSyncAt: string | null;
     readonly coverageStart: string | null;
     readonly coverageEnd: string | null;
+    readonly sourceChangeDate: string | null;
   },
   sourceConfigured: boolean,
   message: string | null,
+  source: "umami-rollup" | "neon-rollup" = "neon-rollup",
 ): AdminAnalyticsSnapshot {
   const currentEvents = eventRowsForRange(rollup.events, range);
   const previousEvents = eventRowsForRange(rollup.events, previousRange);
@@ -282,7 +248,7 @@ function buildSnapshotFromRollup(
     query,
     range,
     previousRange,
-    source: hasRows ? "neon-rollup" : "empty",
+    source: hasRows ? source : "empty",
     freshness,
     generatedAt: new Date().toISOString(),
     summary: buildSummary(visits, previousVisits, solutions, previousSolutions),
@@ -297,6 +263,7 @@ function buildSnapshotFromRollup(
       lastSyncAt: rollup.lastSyncAt,
       coverageStart: rollup.coverageStart,
       coverageEnd: rollup.coverageEnd,
+      sourceChangeDate: rollup.sourceChangeDate,
       message,
     }),
   });
@@ -337,22 +304,28 @@ export async function loadAdminAnalytics(query: AdminAnalyticsQuery): Promise<Ad
   const range = resolveAnalyticsDateRange(query);
   const previousRange = previousAnalyticsDateRange(range);
   await writeAnalyticsAudit(access.userId, "view_analytics", range).catch(() => undefined);
-  const sourceConfigured = readVercelAnalyticsConfig() !== null;
+  const sourceConfigured = readUmamiAnalyticsConfig() !== null;
 
-  if (sourceConfigured) {
-    try {
-      const [current, previous] = await Promise.all([
-        fetchVercelAnalyticsRange(range, query.solution),
-        fetchVercelAnalyticsRange(previousRange, query.solution),
-      ]);
-      return buildSnapshotFromLive(query, range, previousRange, current, previous);
-    } catch {
-      // A delayed or unavailable Vercel API should not make the admin console unusable.
-    }
+  let rollup: Awaited<ReturnType<typeof readAnalyticsRollups>> | null = null;
+  try {
+    rollup = await readAnalyticsRollups(access.userId, previousRange.startDate, range.endDate);
+  } catch {
+    // Report the unavailable rollup without leaking database error details.
   }
 
-  try {
-    const rollup = await readAnalyticsRollups(access.userId, previousRange.startDate, range.endDate);
+  if (sourceConfigured && rollup !== null) {
+    return buildSnapshotFromRollup(
+      query,
+      range,
+      previousRange,
+      rollup,
+      sourceConfigured,
+      "Umami pageview and event aggregates are stored in Neon. Visitors are daily unique counts.",
+      "umami-rollup",
+    );
+  }
+
+  if (rollup !== null) {
     return buildSnapshotFromRollup(
       query,
       range,
@@ -361,15 +334,15 @@ export async function loadAdminAnalytics(query: AdminAnalyticsQuery): Promise<Ad
       sourceConfigured,
       sourceConfigured
         ? "Live analytics is unavailable; showing the latest aggregate rollup."
-        : "Configure the Vercel Analytics read token to enable live traffic data.",
-    );
-  } catch {
-    return emptySnapshot(
-      query,
-      range,
-      previousRange,
-      sourceConfigured,
-      "Analytics data is not available until the operations migration and source configuration are complete.",
+        : "Configure Umami analytics to enable current traffic and event collection.",
     );
   }
+
+  return emptySnapshot(
+    query,
+    range,
+    previousRange,
+    sourceConfigured,
+    "Analytics rollups could not be loaded from Neon.",
+  );
 }

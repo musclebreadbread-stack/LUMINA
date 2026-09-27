@@ -1,5 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import type { Locale } from "@/i18n/locale";
+import { intlLocale, type Locale } from "@/i18n/locale";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import type { FactorView } from "@/lib/psychometricsModel";
 
@@ -22,9 +22,9 @@ export async function FactorBar({ factor }: { readonly factor: FactorView }) {
   const td = await getTranslations("psychometricsDeep");
   const locale = (await getLocale()) as Locale;
 
-  const name = locale === "en" ? factor.en : factor.ko;
-  const lowGloss = locale === "en" ? factor.lowGlossEn : factor.lowGloss;
-  const highGloss = locale === "en" ? factor.highGlossEn : factor.highGloss;
+  const name = locale !== "ko" ? factor.en : factor.ko;
+  const lowGloss = locale !== "ko" ? factor.lowGlossEn : factor.lowGloss;
+  const highGloss = locale !== "ko" ? factor.highGlossEn : factor.highGloss;
   const intervalStart = Math.max(0, Math.min(100, ((factor.reliability.ci95[0] - 10) / 40) * 100));
   const intervalEnd = Math.max(0, Math.min(100, ((factor.reliability.ci95[1] - 10) / 40) * 100));
   const intervalWidth = Math.max(1, intervalEnd - intervalStart);
@@ -57,7 +57,7 @@ export async function FactorBar({ factor }: { readonly factor: FactorView }) {
             <span>{factor.norm.normGroup === "all" ? td("normGroupAll") : td("normGroupAgeGender")}</span>
             <span>
               {td("normSample", {
-                n: factor.norm.sampleSize.toLocaleString(locale === "en" ? "en-US" : "ko-KR"),
+                n: factor.norm.sampleSize.toLocaleString(intlLocale(locale)),
               })}
             </span>
           </>
@@ -149,7 +149,7 @@ function ResponseList({
         {items.map((item) => (
           <li key={item.itemId}>
             <span className="mr-2 font-mono text-hobun-faint">#{item.itemId}</span>
-            {locale === "en" ? item.textEn : item.textKo}
+            {locale !== "ko" ? item.textEn : item.textKo}
             <span className="ml-2 font-mono text-hobun-faint">
               {formatResponse(item.response, item.scoredResponse)}
             </span>

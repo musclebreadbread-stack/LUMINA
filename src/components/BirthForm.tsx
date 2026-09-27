@@ -14,7 +14,7 @@ import {
   subscribeProfile,
   type StoredProfile,
 } from "@/lib/profile";
-import { encodeProfile } from "@/lib/share";
+import { establishReportSession } from "@/lib/reportSession.client";
 import type { Locale } from "@/i18n/locale";
 import { markCompletionArrival } from "@/lib/completionCinematic";
 
@@ -35,18 +35,18 @@ const MONTH_NAMES_EN = [
 ];
 
 function monthLabel(m: number, locale: Locale): string {
-  return locale === "en" ? MONTH_NAMES_EN[m - 1]! : `${m}월`;
+  return locale !== "ko" ? MONTH_NAMES_EN[m - 1]! : `${m}월`;
 }
 function dayLabel(d: number, locale: Locale): string {
-  return locale === "en" ? `${d}` : `${d}일`;
+  return locale !== "ko" ? `${d}` : `${d}일`;
 }
 function hourLabel(h: number, locale: Locale): string {
   const padded = String(h).padStart(2, "0");
-  return locale === "en" ? padded : `${padded}시`;
+  return locale !== "ko" ? padded : `${padded}시`;
 }
 function minuteLabel(m: number, locale: Locale): string {
   const padded = String(m).padStart(2, "0");
-  return locale === "en" ? padded : `${padded}분`;
+  return locale !== "ko" ? padded : `${padded}분`;
 }
 
 function daysInMonth(year: number, month: number): number {
@@ -88,6 +88,7 @@ export function BirthForm({
   );
   const [draft, setDraft] = useState<StoredProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const profile = draft ?? stored ?? DEFAULT_PROFILE;
   const restored = stored !== null;
@@ -105,22 +106,29 @@ export function BirthForm({
     setDraft(next.day > limit ? { ...next, day: limit } : next);
   }
 
-  function handleSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    if (submitting) return;
     if (profile.year < 1900 || profile.year > 2100) {
       setError(t("yearRangeError"));
       return;
     }
+    setSubmitting(true);
+    if (!await establishReportSession({ kind: "birth", profile })) {
+      setSubmitting(false);
+      setError(t("reportSessionError"));
+      return;
+    }
     saveProfile(profile);
     markCompletionArrival(resultSuffix === "/astro" ? "astro" : "saju");
-    router.push(`/r/${encodeProfile(profile)}${resultSuffix}`);
+    router.push(`/r/current${resultSuffix}`);
   }
 
   const timeUnknown = profile.hour === null;
   const selectedBranchIndex = branchIndexForHour(profile.hour ?? 12);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-7">
+    <form onSubmit={(event) => void handleSubmit(event)} className="space-y-7">
       {/* 태어난 날 */}
       <fieldset>
         <legend className={labelClass}>{t("dateLegend")}</legend>
@@ -264,10 +272,10 @@ export function BirthForm({
               >
                 <span className="block font-hanja text-base leading-none">{branch.hanja}</span>
                 <span className="mt-1 block text-[12px]">
-                  {locale === "en" ? branch.en : branch.ko}
+                  {locale !== "ko" ? branch.en : branch.ko}
                 </span>
                 <span className="mt-0.5 block font-mono text-[10px] text-hobun-faint">
-                  {locale === "en" ? branch.zodiacEn : branch.zodiacKo}
+                  {locale !== "ko" ? branch.zodiacEn : branch.zodiacKo}
                 </span>
               </button>
             );
@@ -276,7 +284,7 @@ export function BirthForm({
         <p className="mt-2 text-[12px] leading-relaxed text-hobun-faint">
           {timeUnknown
             ? t("timeUnknownNote")
-            : `${locale === "en" ? branchAt(selectedBranchIndex).zodiacEn : branchAt(selectedBranchIndex).zodiacKo} · ${hourLabel(profile.hour ?? 12, locale)}`}
+            : `${locale !== "ko" ? branchAt(selectedBranchIndex).zodiacEn : branchAt(selectedBranchIndex).zodiacKo} · ${hourLabel(profile.hour ?? 12, locale)}`}
         </p>
       </fieldset>
 
@@ -346,9 +354,10 @@ export function BirthForm({
       <div className="flex flex-wrap items-center gap-3 pt-1">
         <button
           type="submit"
+          disabled={submitting}
           className="bg-hobun px-6 py-3 text-sm font-medium text-ink-900 transition-opacity hover:opacity-85"
         >
-          {submitLabel ?? t("submit")}
+          {submitting ? t("submitting") : submitLabel ?? t("submit")}
         </button>
         {restored && (
           <button

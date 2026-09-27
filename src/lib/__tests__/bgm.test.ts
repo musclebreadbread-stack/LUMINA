@@ -18,22 +18,21 @@ const AREAS: readonly BgmArea[] = [
   "horoscope",
   "compatibility",
 ];
+const SHARED_TRACK_SRC = "/audio/bgm/digital-observatory.mp3";
 
 describe("BGM route catalogue", () => {
-  it("contains one local MP3 for every exploration area", () => {
+  it("uses the supplied track for every exploration area", () => {
     expect(Object.keys(BGM_TRACKS).sort()).toEqual([...AREAS].sort());
     for (const area of AREAS) {
-      expect(BGM_TRACKS[area].src).toBe(`/audio/bgm/${area}.mp3`);
+      expect(BGM_TRACKS[area].src).toBe(SHARED_TRACK_SRC);
     }
   });
 
-  it("ships every mapped MP3 under public/audio/bgm", () => {
-    for (const area of AREAS) {
-      const relativePath = BGM_TRACKS[area].src.replace(/^\//u, "");
-      const filePath = path.resolve(process.cwd(), "public", relativePath);
-      expect(existsSync(filePath), `${area} asset is missing`).toBe(true);
-      expect(statSync(filePath).size, `${area} asset is empty`).toBeGreaterThan(0);
-    }
+  it("ships the shared MP3 under public/audio/bgm", () => {
+    const relativePath = SHARED_TRACK_SRC.replace(/^\//u, "");
+    const filePath = path.resolve(process.cwd(), "public", relativePath);
+    expect(existsSync(filePath), "Digital Observatory asset is missing").toBe(true);
+    expect(statSync(filePath).size, "Digital Observatory asset is empty").toBeGreaterThan(0);
   });
 
   it.each([

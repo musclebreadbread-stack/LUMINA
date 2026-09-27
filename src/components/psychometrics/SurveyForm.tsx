@@ -86,7 +86,7 @@ export function SurveyForm() {
   }, [attempted, currentPage, firstUnanswered]);
 
   const itemViews = useMemo(
-    () => ITEMS.map((item) => ({ id: item.id, text: locale === "en" ? item.textEn : item.textKo })),
+    () => ITEMS.map((item) => ({ id: item.id, text: locale !== "ko" ? item.textEn : item.textKo })),
     [locale],
   );
   const pageItems = useMemo(

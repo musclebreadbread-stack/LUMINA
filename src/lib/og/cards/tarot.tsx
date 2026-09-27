@@ -60,8 +60,8 @@ export async function buildTarotOgCard(spread: SpreadKey, seed: string, locale: 
   );
 
   const primary = view.cards[0];
-  const spreadName = locale === "en" ? view.spreadEn : view.spreadKo;
-  const primaryName = primary ? (locale === "en" ? primary.nameEn : primary.name) : "";
+  const spreadName = locale !== "ko" ? view.spreadEn : view.spreadKo;
+  const primaryName = primary ? (locale !== "ko" ? primary.nameEn : primary.name) : "";
   const orientationLabel = primary ? t(primary.orientation === "reversed" ? "reversed" : "upright") : "";
   const kicker = t("sectionCards");
   const countLabel = t("cardCount", { count: view.cards.length });

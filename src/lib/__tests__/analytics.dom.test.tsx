@@ -19,7 +19,7 @@ function eventPayloadAt(index: number): Readonly<Record<string, unknown>> {
 
 /**
  * AdSlot과 같은 게이팅 조건(consent === null이면 신호 없음)과, 타입을 우회한 호출도
- * 런타임에서 다시 막는지를 검증한다 — 실제 Vercel 스크립트 전송은 목으로 대체한다.
+ * 런타임에서 다시 막는지를 검증한다 — 실제 Umami script.js 로딩은 목으로 대체한다.
  * consent.ts가 window 존재 여부로 분기하므로 jsdom 프로젝트(.dom.test.tsx)에서 돌린다.
  */
 describe("track", () => {

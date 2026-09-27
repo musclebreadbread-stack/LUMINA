@@ -32,7 +32,7 @@
 | OG / Twitter 카드 | ✅ | 동적 OG 이미지 4종(`/r`, `/s`, `/tarot`, `/horoscope`) |
 | 모바일 반응형 | ✅ | 코드 기준. 실기기 확인은 미완 |
 | sitemap `lastmod` | ❌ 의도적 미적용 | 4절 참고 |
-| GA4 | ❌ 미도입 | `@vercel/analytics` + 자체 이벤트(`src/lib/analytics.ts`) 사용 |
+| GA4 | ❌ 미도입 | 동의 후 Umami 계측 + 자체 이벤트(`src/lib/analytics.ts`) 사용 |
 | Search Console 소유확인 | ⚠️ 미확인 | 사용자 계정 작업 |
 | Core Web Vitals 실측 | ⚠️ 미측정 | — |
 

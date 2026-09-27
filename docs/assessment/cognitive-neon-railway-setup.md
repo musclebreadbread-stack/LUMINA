@@ -8,7 +8,7 @@
 - Region: `aws-ap-southeast-1` (Singapore)
 - Staging branch: `staging` (`br-odd-recipe-azz5ep5d`), dedicated role `lumina_cognitive_app`
 - Plan: Free
-- Vercel: `muscles-projects/lumina-cognitive` (`prj_1g7LiM2mFij73dpkEKtlspPI7Hm7`)
+- Hosting: Railway `LUMINA` project (`web` services in staging and production). The Vercel project was deleted on 2026-09-26 after production domain, TLS, and route verification.
 
 저장소에는 `.neon` 링크와 `neon.ts` 서비스 선언이 있으며, 로컬 `.env.local`에는
 Neon CLI가 발급한 `NEON_BRANCH`, `DATABASE_URL`, `DATABASE_URL_UNPOOLED`,
@@ -79,9 +79,9 @@ node scripts/neon-seed-cognitive-pilot.mjs
 
 ## 환경변수
 
-`.env.example`에 키 이름과 용도가 기록되어 있습니다. staging 값은 Vercel Preview/
-Development 환경에 민감 변수로 등록했으며, production 값은 별도 승인 후 등록합니다.
-로컬/Preview/Production마다
-`COGNITIVE_SUBJECT_COOKIE_SECRET`와 `NEON_AUTH_COOKIE_SECRET`는 서로 다른 무작위
-비밀값을 사용합니다. Vercel CLI가 인증되지 않은 환경에서는 Dashboard의 Preview와
-Production에 각각 값을 입력하고, 연결 문자열은 절대 `NEXT_PUBLIC_*`로 만들지 않습니다.
+`.env.example`에 키 이름과 용도가 기록되어 있습니다. 로컬 변수는 `.env.local`과
+`.env.staging.local`에만 두고, 배포 변수는 Railway의 해당 환경 `web` 서비스에
+등록합니다. `COGNITIVE_SUBJECT_COOKIE_SECRET`와 `NEON_AUTH_COOKIE_SECRET`는 staging과
+production에서 서로 다른 무작위 비밀값을 사용합니다. 연결 문자열과 비밀값은 저장소,
+로그, 클라이언트 번들 또는 `NEXT_PUBLIC_*` 변수에 넣지 않습니다. Vercel 프로젝트는
+삭제되어 더 이상 배포·환경변수 관리 대상으로 사용하지 않습니다.

@@ -28,7 +28,7 @@
 | D3 | 수익 모델 | 무료 핵심 결과 + 단건 리포트 + 구독(LUMINA+) | AdSense는 비활성으로 두고 코드는 보존 |
 | D4 | AI | OpenRouter `@openrouter/ai-sdk-provider` (AI SDK 7, Node 22+, ESM) | 요청마다 `data_collection:"deny"`, `zdr:true` 지정. 결정론 facts만 입력 |
 | D5 | DB | Neon 유지(`LUMINA-cognitive`, aws-ap-southeast-1, PG18) + 유료 플랜 전환 | 현재 한도는 512MB, 이력 6h. Supabase 레거시는 제거 |
-| D6 | 호스팅 | Vercel → **Railway 전면 이전**(Asia Southeast·싱가포르, Neon과 같은 권역) + Cloudflare | Vercel Analytics·Speed Insights·Cron·env 스크립트를 대체해야 함 |
+| D6 | 호스팅 | Vercel → **Railway 전면 이전**(Asia Southeast·싱가포르, Neon과 같은 권역) + Cloudflare | Railway 도메인·TLS·운영 경로 확인 후 Vercel 프로젝트를 2026-09-26 삭제. Analytics는 Umami, Cron은 Railway로 전환했고 Vercel 배포 설정·환경 동기화·분석 대체 코드를 2026-09-28 정리했다. Sentry 운영 DSN은 미설정 |
 | D7 | 로그인 | **Better Auth 자체 호스팅**(카카오·구글·애플·이메일 OTP, 비밀번호 없음). 사용자 정보는 Neon `identity` 스키마에 저장 | Neon Auth는 Google/GitHub/Vercel만 지원한다. 직원용 Neon Auth는 유지하되 경로와 쿠키를 분리 |
 | D8 | 첫 상품 | 2027 신년운세, 12월 초 국내 | — |
 | D9 | 다국어 | ko/en으로 검증 → `LocalizedText` 개편 → ja(4월) → zh-Hant(6월) → es(8월) | — |
@@ -234,7 +234,7 @@
 | Phase | 기간 | 범위 | 완료 기준(DoD) |
 |---|---|---|---|
 | **0 기반·보안·외부 착수** | 09-28 → 10-09 | 퀵윈(아래), 마이그레이션 원장과 가드 수정, Node 22 `engines`, `src/lib/flags.ts`, 커버리지 대상에 `src/server/**` 추가. [외부] 착수 항목은 표 아래에 정리 | staging에서 migrate를 두 번 실행하면 두 번째는 적용 0건. 보안 헤더 적용. `/privacy`의 "서버 미저장" 문구 정정 |
-| **1 Railway·Cloudflare 이전** | 10-05 → 10-23 | Dockerfile/standalone, Railway staging→prod, PR 환경을 staging 기준으로, cron 2개, Umami와 롤업 소스 교체, Sentry, Cloudflare 캐시·WAF·Turnstile, 병행 운영 후 DNS 전환 [승인]. Vercel은 2주간 롤백용으로 유지하고 이후 `@vercel/*`·`vercel.json`·동기화 스크립트 제거 [승인] | 운영 트래픽이 100% Railway로 감. 관리자 분석 연속성 확보(소스 변경일 표시). 오류 알림 수신. 롤백 리허설 완료 |
+| **1 Railway·Cloudflare 이전** | 10-05 → 10-23 (Railway 전환 실제 확인 09-26) | Dockerfile/standalone, Railway staging→prod, PR 환경을 staging 기준으로, cron 2개, Umami와 롤업 소스 교체, Cloudflare 캐시·WAF·Turnstile, DNS 전환 [승인]. Railway 도메인·TLS·운영 smoke 통과 후 Vercel 프로젝트를 2026-09-26 삭제했고, 저장소의 Vercel 배포·환경 동기화·분석 대체 경로를 2026-09-28 정리했다. | Railway production 도메인·TLS·경로 smoke 확인. **Phase 1은 부분 완료**: Sentry 운영 알림 수신과 롤백 리허설은 별도 검증 전까지 완료로 보지 않는다. |
 | **2 계정·DAL·서버 저장** | 10-12 → 11-06 | Better Auth, `src/server/{auth,dal,crypto}/**`, `src/app/account/**`, `ClaimLocalData`, `/p/[id]`, 계정 삭제·내보내기 | 소셜·OTP 로그인 동작. 교차 사용자 조회 0행(`scripts/neon-verify-rls.mjs`). claim이 멱등. 기존 `/r/*` 정상 |
 | **3 결제 코어(토스 단건)** | 10-26 → 11-20 | `src/server/billing/**`, checkout, `LockedChapter`/`PaywallPanel`/`WithdrawalNotice`, `/admin/billing`, `BusinessInfoFooter`, `/refund-policy`, 영수증 메일, reconcile cron | 결제→확정→권한→열람이 끝까지 동작. 같은 웹훅 5회 재전송에도 권한 1건. 금액 변조 시 거부. 셀프 환불 동작 |
 | **4 2027 신년운세 엔진·콘텐츠** | 10-12 → 11-20 (병행, 최장 경로) | `src/engine/saju/yearForecast.ts`: 丁未 세운 십신·십이운성, 未와 원국의 관계, 월운 壬寅~癸丑, 대운 겹침, 입춘 경계. `yearForecastExplanations.ts`, 리포트 페이지, 랜딩 `src/app/premium/saju-2027` + JSON-LD Offer, `r/[data]`의 AdSlot 자리에 `PremiumTeaser`. 이미지 Y01–Y07 | 엔진 커버리지 95%. 모든 블록 evidenceRefs ≥1. 전문가 검수 서명. 골든 차트(입춘 전후·시각 미상·야자시) 통과 |
@@ -338,7 +338,7 @@ Phase 9 출시 전에는 대상 기능의 기술 DoD와 관련 승인 조건을 
 - **일정**: 이전, 계정, 결제, 콘텐츠, AI를 10주 안에 끝내야 한다.
   - 12월 범위를 고정한다(D10).
   - AI 챕터는 플래그로 켜고 끈다(D11).
-  - Vercel을 롤백용으로 병행 유지한다.
+  - Railway 전환은 production 경로에서 확인했으나 Sentry DSN·알림 수신과 롤백 리허설 증거는 아직 없다.
 - **외부 리드타임**이 12-01을 좌우한다: PG 심사, 통신판매업 신고, 법무, 전문가 검수. 모두 09-29에 착수한다.
 - **LS 거절 또는 Stripe 편입**: 12월은 KR 전용이라 영향이 없다. 대안은 토스 해외결제와 세무 검토다.
 - **라이선스·상표**: 허가 전까지 유료 상품과 AI 입력에서 제외한다.

@@ -377,7 +377,7 @@ const variant = pick(VARIANTS[slot.id] ?? [slot], rng); // 난수는 여기서�
 
 ### 7-5. 관측
 
-에러 추적이 전무하다. 백엔드 없는 구조와 호환되는 클라이언트 사이드 에러 리포팅과 `@vercel/analytics` 수준의 최소 계측을 도입한다. 개인정보 비수집 원칙은 유지한다.
+Vercel Analytics는 Railway 기반의 동의 후 Umami 계측으로 대체했다. 관리자 분석 이벤트는 `src/lib/analytics.ts`에서 최소 수집하며 개인정보를 보내지 않는다. Sentry 연동 코드는 있으나 production `SENTRY_DSN`이 없어 운영 오류 알림은 비활성 상태다. 안전한 DSN 설정과 테스트 알림 수신을 관측성 미완료 항목으로 추적한다.
 
 ---
 

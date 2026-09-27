@@ -11,7 +11,7 @@ import { AnalyticsGate } from "../AnalyticsGate";
 
 /**
  * AdSlot이 동의 미선택 상태에서 아무것도 렌더하지 않는 것과 같은 계약을 검증한다 —
- * 실제 @vercel/* 스크립트 주입은 jsdom에서 신뢰성 있게 흉내 낼 수 없으므로(동의가
+ * 실제 Umami 스크립트 주입은 jsdom에서 신뢰성 있게 흉내 낼 수 없으므로(동의가
  * 있을 때의 마운트는 build/typecheck가 구조적으로 검증한다), 여기서는 게이팅
  * 조건 하나(동의 미선택 → 렌더 없음)만 확실히 잠근다.
  */

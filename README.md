@@ -49,15 +49,15 @@ pnpm fonts:prepare
 
 - 엔진 함수는 현재 시각이나 브라우저 API를 직접 읽지 않고 입력으로 받습니다.
 - 기존 프로필·탐색형 검사 초안은 브라우저 `localStorage`에 저장되고, 인지능력 표준화 파일럿의 실행·응답은 Neon Postgres의 server-only DAL에 저장됩니다. 표준화 파일럿 결과는 URL에 넣지 않습니다.
-- 인지능력 파일럿은 Neon Postgres RLS·서명된 익명 주체 쿠키·server-only DAL을 사용합니다. 연결 및 원격 마이그레이션 승인 게이트는 `docs/assessment/cognitive-neon-vercel-setup.md`에 기록되어 있으며, 연결 문자열과 비밀값은 클라이언트에 노출하지 않습니다.
+- 인지능력 파일럿은 Neon Postgres RLS·서명된 익명 주체 쿠키·server-only DAL을 사용합니다. 연결 및 원격 마이그레이션 승인 게이트는 `docs/assessment/cognitive-neon-railway-setup.md`에 기록되어 있으며, 연결 문자열과 비밀값은 클라이언트에 노출하지 않습니다.
 - 사주·점성술·타로·수비학·운세는 문화적 해석 또는 엔터테인먼트 계층입니다. IPIP-50은 영어권 온라인 공개 표본의 전체 집단 규준을 사용하며 한국인 인구 규준이나 의료 진단이 아닙니다.
 
 ## 운영 전 사람이 확인할 항목
 
-- Vercel의 `NEXT_PUBLIC_SITE_URL` 설정과 실제 도메인 확인
+- Railway의 `NEXT_PUBLIC_SITE_URL`, 운영 도메인 TLS, `/api/health` 확인
 - 실제 게시자 ID를 받은 뒤에만 AdSense 환경변수와 `public/ads.txt` 활성화
 - Google Funding Choices 등 CMP 연결 및 지역별 동의 문구 검토
 - `/privacy`, `/terms` 초안에 대한 법률 검토와 시행일 확정
 - 타로·조디악 원본 PNG를 삭제하거나 외부 전송하기 전 백업 및 확인
 - 실제 AdSense 게시자 ID와 Google 인증 CMP를 연결하기 전 정책 검토
-- 배포·Neon 프로젝트 연결·마이그레이션·git push
+- 운영 DB 마이그레이션은 스테이징 검증과 승인 기록을 거쳐 적용

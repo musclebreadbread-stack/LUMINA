@@ -347,6 +347,7 @@ export async function listBillingAdminOrders(): Promise<readonly Readonly<{
 }
 
 export interface BillingKpiSummary {
+  readonly netRevenue30dKrw: number;
   readonly mrrKrw: number;
   readonly arppuKrw: number | null;
   readonly refundRatePercent: number | null;
@@ -430,6 +431,7 @@ export async function getBillingKpiSummary(): Promise<BillingKpiSummary | null> 
     : null;
 
   return {
+    netRevenue30dKrw: billing.netRevenue30dKrw,
     mrrKrw: billing.mrrKrw,
     arppuKrw: billing.activePayers30d > 0 ? Math.round(billing.netRevenue30dKrw / billing.activePayers30d) : null,
     refundRatePercent: billing.paidOrders30d > 0

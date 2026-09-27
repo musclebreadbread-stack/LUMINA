@@ -26,8 +26,9 @@ export default async function AdminBillingPage() {
         <h1 className="mt-3 text-3xl font-medium text-hobun">{locale !== "ko" ? "Billing" : "결제 관리"}</h1>
       </header>
       {kpis ? (
-        <section className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label={locale !== "ko" ? "Billing metrics" : "결제 지표"}>
+        <section className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-5" aria-label={locale !== "ko" ? "Billing metrics" : "결제 지표"}>
           {([
+            [locale !== "ko" ? "Net revenue · 30 days" : "순매출 · 최근 30일", new Intl.NumberFormat(intlLocale(locale), { style: "currency", currency: "KRW", maximumFractionDigits: 0 }).format(kpis.netRevenue30dKrw)],
             [locale !== "ko" ? "MRR · KRW" : "월 반복 매출 · KRW", new Intl.NumberFormat(intlLocale(locale), { style: "currency", currency: "KRW", maximumFractionDigits: 0 }).format(kpis.mrrKrw)],
             [locale !== "ko" ? "ARPPU · 30 days" : "결제 고객당 매출 · 30일", kpis.arppuKrw === null ? "—" : new Intl.NumberFormat(intlLocale(locale), { style: "currency", currency: "KRW", maximumFractionDigits: 0 }).format(kpis.arppuKrw)],
             [locale !== "ko" ? "Refund rate · 30 days" : "환불률 · 30일", kpis.refundRatePercent === null ? "—" : kpis.refundRatePercent.toFixed(1) + "%"],
@@ -41,15 +42,17 @@ export default async function AdminBillingPage() {
         </section>
       ) : null}
       {kpis ? (
-        <p className="mt-3 text-[11px] leading-5 text-hobun-faint">
-          {locale !== "ko"
-            ? "Paying users (30 days): " + kpis.activePayers30d + " · AI cost rate: " +
-              (kpis.aiCostSharePercent === null ? "needs finance-approved REPORTING_KRW_PER_USD" : kpis.aiCostSharePercent.toFixed(2) + "%") +
-              " · estimated AI requests: " + (kpis.aiEstimatedRequests30d ?? "—")
-            : "결제 고객(30일): " + kpis.activePayers30d + "명 · AI 원가율: " +
-              (kpis.aiCostSharePercent === null ? "재무 승인 환율 REPORTING_KRW_PER_USD 필요" : kpis.aiCostSharePercent.toFixed(2) + "%") +
-              " · 추정 AI 요청: " + (kpis.aiEstimatedRequests30d ?? "—") + "건"}
-        </p>
+        <div className="mt-3 space-y-1 text-[11px] leading-5 text-hobun-faint">
+          <p>
+            {locale !== "ko"
+              ? "Net revenue is KRW orders paid in the last 30 days minus succeeded refunds. Paying users: " + kpis.activePayers30d + " · AI cost rate: " +
+                (kpis.aiCostSharePercent === null ? "needs finance-approved REPORTING_KRW_PER_USD" : kpis.aiCostSharePercent.toFixed(2) + "%") +
+                " · estimated AI requests: " + (kpis.aiEstimatedRequests30d ?? "—")
+              : "순매출은 최근 30일 내 결제된 KRW 주문에서 성공 처리된 환불을 뺀 값입니다. 결제 고객: " + kpis.activePayers30d + "명 · AI 원가율: " +
+                (kpis.aiCostSharePercent === null ? "재무 승인 환율 REPORTING_KRW_PER_USD 필요" : kpis.aiCostSharePercent.toFixed(2) + "%") +
+                " · 추정 AI 요청: " + (kpis.aiEstimatedRequests30d ?? "—") + "건"}
+          </p>
+        </div>
       ) : null}
       {orders === null ? (
         <p className="mt-8 text-sm text-hobun-dim">{locale !== "ko" ? "Billing data is unavailable." : "결제 데이터를 불러올 수 없습니다."}</p>

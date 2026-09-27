@@ -6,7 +6,7 @@ import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 export async function InfoNav() {
   const t = await getTranslations("nav");
   return (
-    <header className="site-header flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
+    <header className="site-header flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5 pr-16">
       <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">
         LUMINA
       </Link>

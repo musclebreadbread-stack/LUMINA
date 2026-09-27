@@ -2,7 +2,15 @@ import { expect, test } from '@playwright/test';
 import { dismissConsentBanner, setLocaleCookie } from './helpers';
 
 test.describe('global BGM control', () => {
-  test('is opt-in and follows the exploration area', async ({ page, context, baseURL }) => {
+  test('is opt-in and loops the supplied track across exploration pages', async ({ page, context, baseURL }) => {
+    await page.addInitScript(() => {
+      window.name = '0';
+      HTMLMediaElement.prototype.play = function countPlayback(): Promise<void> {
+        window.name = String(Number(window.name) + 1);
+        return Promise.resolve();
+      };
+    });
+
     await setLocaleCookie(context, 'ko', baseURL);
     await page.goto('/');
     await dismissConsentBanner(page);
@@ -10,21 +18,23 @@ test.describe('global BGM control', () => {
     const control = page.getByTestId('bgm-toggle');
     await expect(control).toBeVisible();
     await expect(control).toHaveAttribute('aria-pressed', 'false');
-    await expect(page.locator('[data-bgm-area="home"]')).toBeVisible();
 
     await control.click();
     await expect(control).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('audio')).toHaveAttribute('src', '/audio/bgm/digital-observatory.mp3');
+    await expect.poll(async () => page.evaluate(() => Number(window.name))).toBe(1);
+
+    await page.locator('audio').evaluate((audio: HTMLAudioElement) => audio.dispatchEvent(new Event('ended')));
+    await expect.poll(async () => page.evaluate(() => Number(window.name))).toBe(2);
+    await expect(page.locator('audio')).toHaveAttribute('src', '/audio/bgm/digital-observatory.mp3');
 
     await page.goto('/tarot');
     await dismissConsentBanner(page);
-    await expect(page.locator('[data-bgm-area="tarot"]')).toBeVisible();
     await expect(page.getByTestId('bgm-toggle')).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('audio')).toHaveAttribute('src', '/audio/bgm/digital-observatory.mp3');
 
     await page.goto('/psychometrics?to=types');
     await dismissConsentBanner(page);
-    await expect(page.locator('[data-bgm-area="jungian"]')).toBeVisible();
     await expect(page.locator('audio')).toHaveAttribute('src', '/audio/bgm/digital-observatory.mp3');
 
     await page.getByTestId('bgm-toggle').click();

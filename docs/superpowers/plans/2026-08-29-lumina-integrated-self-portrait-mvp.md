@@ -1,5 +1,7 @@
 # LUMINA 통합 자기초상 로컬 우선 MVP Implementation Plan
 
+> 과거 구현 단계의 완료 계획입니다. 당시 배포 경계는 그 작업에만 적용됐으며, 현재 호스팅은 Railway입니다. 현재 배포·운영 기준은 `docs/RAILWAY-DEPLOYMENT.md`를 확인하세요.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 사용자가 완료한 여러 분석의 개인정보 없는 파생 요약을 브라우저에만 보관하고, 근거 수준과 출처를 분리한 결정론적 `통합 자기초상 / Integrated Self Portrait`을 `/integrated-report`에서 확인하게 한다.

@@ -220,7 +220,8 @@ describe("Phase 9 growth feature gates", () => {
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("SENTRY_SERVER_ENABLED must be unset, empty, true, or false");
     expect(result.stdout + result.stderr).not.toContain(dsn);
-    expect(result.stdout).not.toContain('"event":"warning"');
+    expect(result.stdout).not.toContain("server errors to Sentry");
+    expect(result.stdout).toContain("Production billing checkout is disabled");
   });
 
   it("keeps the Sentry warning accurate when another preflight check blocks startup", () => {

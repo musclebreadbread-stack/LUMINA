@@ -36,6 +36,7 @@
 | P1 | Phase 9 상품별 DoD와 정책 승인 조건 | 기술 DoD를 `COMMERCIALIZATION-PLAN.md`에 구체화했고, 승인 조건과 분리했다. 보상·가격·환불·메일 등 정책 값은 승인 후에만 확정·활성화 |
 | P1 | 2027 리포트 유입·전환 측정 | 페이지 조회·무료 분석 클릭·약관 확인 뒤 결제 시작을 동의 기반 익명 이벤트로 계측하고 관리자 퍼널에 노출한다. 승인 후 1,000회 적격 방문 표본부터 결제 원장의 주문·환불·순매출과 대조한다. |
 | P1 | Phase 1 production 서버 오류 모니터링 | production `SENTRY_DSN`이 없어 서버 오류가 Sentry로 전송되지 않는다. preflight는 비활성 상태를 경고하되 서비스를 시작하고, 부분·잘못된 활성화는 차단하도록 보강했다. 완료 전 Sentry 설정, 테스트 오류 전송, 수신 경보를 확인한다. |
+| P1 | 실제 결제 개통 | production 회원 인증·결제 기능 플래그, `BILLING_DATABASE_URL`, Toss 키, billing·회원 동의 문서 버전이 준비되지 않았다. 사용자가 정책·PG 미준비를 확인했다. 승인 전까지 판매는 닫고, 값이 마련되면 staging 결제·환불·RLS 검증 후 별도 production 절차로 진행한다. |
 | P2 | Railway 분석 저장소 권역 정렬 | `web`과 cron은 Singapore지만 Umami와 볼륨이 있는 Railway Postgres는 SFO다. 상태 저장소 이동 전 백업·복원 검증, 중단 허용 범위와 롤백 절차를 마련한다. |
 | P2 | Railway cron 실행 결과 가시성 | production `cron-10min` 최근 로그가 컨테이너 시작만 보여 작업 완료·실패와 게이트로 건너뛴 작업 수를 알 수 없었다. 로컬 코드에 비식별 구조화 로그를 추가했으며 production 반영 후 실제 실행 이벤트를 확인한다. |
 | P2 | Phase 9 PWA 설치 인수 검증 | Chromium에서 standalone manifest와 아이콘, 오프라인 진입·복구, 비공개 경로 비저장, 실제 서비스 워커 버전 교체를 검증했다. OS 설치 UI와 설치된 앱 단독 실행은 기기별 검증이 남았다. |
@@ -240,3 +241,10 @@
 - **변경:** 무료 분석 CTA를 히어로 다음으로 이동하고, 구매 제안은 승인된 판매 정보가 있을 때만 미리보기 설명 바로 뒤에 노출한다. 개선 루프에 결제·확정 환불 기준 순매출, 첫 30일 1,000회 적격 방문·2% 전환 가설과 2,500회 확장 목표를 추가했다. ₩9,900은 미승인 가격 가설로 표시했다.
 - **검증:** premium landing Playwright 1/1, ESLint, typecheck, Vitest 145개 파일·1,197개 테스트, Next production build가 통과했다. 사후 검사기 `verify --run`은 Windows에서 `pnpm`을 찾지 못해 WinError 2를 반환했으나, 직접 `pnpm.cmd`로 동일 lint/typecheck/test/build를 통과했다.
 - **운영 상태와 다음 단계:** production 결제 플래그, 결제 DB 연결, Toss 키와 법률 문서 승인 버전이 준비되지 않아 구매 제안은 계속 닫혀 있다. 배포나 DB 변경은 하지 않았다. 정책·계정·결제 준비 후 적격 방문 표본과 원장 순매출을 대조하며 가격을 검증한다.
+
+## 2026-09-28 production 결제 개통 사전 차단
+
+- **관찰:** Railway production 변수 목록을 비밀값 출력 없이 점검했다. `FEATURE_MEMBER_AUTH`와 `FEATURE_BILLING`은 꺼져 있고, 결제 전용 DB URL, Toss 운영 키, 승인 문서 버전은 설정되지 않았다. 사용자는 정책과 PG가 아직 준비되지 않아 기술 기반을 계속 보강하라고 확인했다.
+- **변경:** web 시작 preflight가 billing 기능 플래그 형식을 검사하고, 결제를 켤 때 Better Auth·회원 동의·DB 연결 변수·Toss 키·법무 승인 버전·AES/HMAC 키 형식을 함께 확인한다. 통합결제창 API 개별 키는 staging에서 테스트 접두사, production에서 라이브 접두사만 허용한다. production에서 billing이 꺼져 있으면 유료 주문을 받을 수 없다는 비식별 구조화 경고를 남긴다. 설정 값과 결제 게이트는 바꾸지 않았다.
+- **검증 범위:** preflight 회귀는 기능 off 경고, 누락된 필수 설정 차단, 완전한 합성 staging 설정, 잘못된 키 형식, production 테스트 키 차단·라이브 키 형식을 포함한다. DB 연결·Toss 계약·법률 문서의 실승인은 이 정적 점검 범위 밖이다. Railway 변수·DB·배포는 변경하지 않는다.
+- **다음:** Toss PG 승인, 확정 상품 가격·환불/철회·국외 이전 문서와 회원 동의 문서가 준비되면 staging 전용 역할과 RLS부터 검증한다. 그 뒤 production migration, 변수 등록과 live transaction/환불 확인을 각 단계 승인 아래 진행한다.

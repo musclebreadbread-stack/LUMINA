@@ -68,7 +68,7 @@ function unavailableSnapshot(sourceConfigured: boolean): AdminAnalyticsSnapshot 
   };
 }
 
-function premiumFunnelSnapshot(
+function premiumActivitySnapshot(
   selectedSolution: AdminAnalyticsSnapshot["selectedSolution"],
   counts: readonly [number, number, number] = [120, 30, 8],
 ): AdminAnalyticsSnapshot {
@@ -113,19 +113,22 @@ describe("AdminAnalyticsDashboard unavailable rollup notices", () => {
   });
 });
 
-describe("AdminAnalyticsDashboard premium report funnel", () => {
-  it("shows funnel event counts for all solutions", () => {
+describe("AdminAnalyticsDashboard premium report activity", () => {
+  it("shows independent report event counts without ordered funnel semantics", () => {
     const labels = labelsByLocale.en;
     const markup = renderToStaticMarkup(
-      <AdminAnalyticsDashboard snapshot={premiumFunnelSnapshot("all")} labels={labels} locale="en" />,
+      <AdminAnalyticsDashboard snapshot={premiumActivitySnapshot("all")} labels={labels} locale="en" />,
     );
+    const activitySection = markup.match(/<section\b[^>]*aria-labelledby="admin-premium-activity-title"[^>]*>([\s\S]*?)<\/section>/)?.[1] ?? "";
 
-    expect(markup).toContain(labels.premiumFunnel);
+    expect(markup).toContain(labels.premiumReportActivity);
+    expect(activitySection).toContain("<ul");
+    expect(activitySection).not.toContain("<ol");
     expect(markup).toContain(labels.premiumReportViews);
     expect(markup).toContain(labels.premiumFreeAnalysisClicks);
     expect(markup).toContain(labels.premiumCheckoutStarts);
-    expect(markup).toContain(labels.premiumFunnelBaseline);
-    expect(markup.split(labels.premiumFunnelViewRate)).toHaveLength(3);
+    expect(markup).toContain(labels.premiumReportActivityBaseline);
+    expect(markup.split(labels.premiumReportPageViewRate)).toHaveLength(3);
     expect(markup).toContain("25%");
     expect(markup).toContain("6.7%");
     expect(markup).not.toContain("26.7%");
@@ -138,10 +141,10 @@ describe("AdminAnalyticsDashboard premium report funnel", () => {
   it("keeps a zero denominator unavailable and does not cap action rates above 100 percent", () => {
     const labels = labelsByLocale.en;
     const zeroDenominatorMarkup = renderToStaticMarkup(
-      <AdminAnalyticsDashboard snapshot={premiumFunnelSnapshot("all", [0, 1, 3])} labels={labels} locale="en" />,
+      <AdminAnalyticsDashboard snapshot={premiumActivitySnapshot("all", [0, 1, 3])} labels={labels} locale="en" />,
     );
     const largerActionRateMarkup = renderToStaticMarkup(
-      <AdminAnalyticsDashboard snapshot={premiumFunnelSnapshot("all", [2, 3, 0])} labels={labels} locale="en" />,
+      <AdminAnalyticsDashboard snapshot={premiumActivitySnapshot("all", [2, 3, 0])} labels={labels} locale="en" />,
     );
 
     expect(zeroDenominatorMarkup).toContain('class="mt-1 font-mono text-lg tabular-nums text-hobun">—</p>');
@@ -151,9 +154,9 @@ describe("AdminAnalyticsDashboard premium report funnel", () => {
   it("hides the product funnel when another solution is selected", () => {
     const labels = labelsByLocale.en;
     const markup = renderToStaticMarkup(
-      <AdminAnalyticsDashboard snapshot={premiumFunnelSnapshot("astro")} labels={labels} locale="en" />,
+      <AdminAnalyticsDashboard snapshot={premiumActivitySnapshot("astro")} labels={labels} locale="en" />,
     );
 
-    expect(markup).not.toContain(labels.premiumFunnel);
+    expect(markup).not.toContain(labels.premiumReportActivity);
   });
 });

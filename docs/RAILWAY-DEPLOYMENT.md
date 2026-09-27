@@ -61,3 +61,11 @@ Railway의 프로젝트 구성은 현재 IaC(TypeScript) 방식으로 관리할 
 - 기존 `Postgres` 서비스는 SFO, Umami도 SFO이며, production `web`과 cron은 Singapore다. 기존 Postgres에는 persistent volume이 연결되어 있다. 권역 이동은 Railway 볼륨 이행과 서비스 중단을 수반하므로, 변경 전에 오프사이트 논리 백업과 별도 복원 검증, 전환·롤백 절차를 마련한다. Railway 공식 문서: [Regions](https://docs.railway.com/deployments/regions), [Postgres backups and restores](https://docs.railway.com/guides/postgres-backups-restores).
 - 2026-09-27 점검 중 생성된 `Postgres-b2aR`와 `postgres-volume-a1qN`은 SFO에서 자동 배포됐으나, 배포는 `railway down`으로 중지했다. 이 신규 서비스에는 Umami나 업무 DB를 연결하지 않았고 기존 데이터도 복사하지 않았다. 서비스 삭제와 볼륨 삭제는 각각 복구 불가능한 작업이므로 사용자 선택 전에는 보존한다. CLI 확인 시 deployment는 없고 volume은 READY 상태였다.
 - Railway Hobby 환경에서는 현재 Backups 화면에 새 백업 생성 및 PITR 사용 불가로 표시된다. 논리 백업 파일을 안전한 별도 저장소에 확보하고 복원을 검증하기 전에는 기존 분석 DB의 권역 변경을 실행하지 않는다.
+
+## 2026-09-28 Vercel 잔여물 정리 후 운영 배포
+
+- `31a9323`을 Railway staging `web`에 배포한 결과 `94b40b76-c038-4365-b111-f862653d7341`은 `SUCCESS`이며 preflight 9개 성장 게이트와 Next 서버 준비를 확인했다.
+- 같은 커밋을 production `web`에 배포한 결과 `a2769d8f-b569-4725-9de8-972bf8a7db08`은 `SUCCESS`다. production preflight 9개 게이트를 통과했고 Next 서버가 준비됐다.
+- `https://lumina.jack.ai.kr` 비변경 smoke 18/18 통과: 홈페이지·health·auth session, 회원 API의 닫힌 상태(403), 내부 롤업 비인증 차단(401), BGM audio/mpeg, Umami 프록시, ko/en/ja/zh-Hant/es 비공개 공유 경로의 응답·캐시·referrer 헤더. 분석 이벤트는 보내지 않았다. 배포 후 15분 Railway HTTP 5xx는 0건이었다.
+- Vercel CLI의 `lumina-cognitive` 읽기 전용 재조회 결과 `project_not_found`였다. Vercel 프로젝트는 앞서 삭제 완료했고, 이번 저장소 정리에서 `vercel.json`, 환경 동기화·분석 fallback/import 코드 및 로컬 `.vercel` 링크를 제거했다.
+- DB 마이그레이션, Railway 환경 변수, 기능 플래그는 변경하지 않았다. Sentry DSN 미설정과 결제 비활성은 의도된 현재 상태다.

@@ -270,3 +270,11 @@
 - **변경:** 섹션을 행동 지표로 이름 붙이고 순서형 목록을 비순서 목록으로 바꿨다. 기준 이벤트와 페이지 조회 대비율을 각 카드에 명시한다. 집계 이벤트·DB·결제 설정은 바꾸지 않았다.
 - **검증:** 관리자 DOM·메시지 테스트 13/13, 전체 Vitest 146개 파일·1,184개 테스트, lint, typecheck, Next production build가 통과했다. Railway staging/production 사전 점검은 각각 9개 성장 게이트를 통과했다. skill-manager 검증기는 bare `pnpm`을 찾지 못해 `WinError 2`였으며 `pnpm.cmd` 직접 게이트는 통과했다.
 - **운영·다음:** production `web`에는 이전 배포 `d7c21db4-e8cb-4424-b008-3215f3d62448`가 활성이고 이 코드는 아직 배포 전이다. staging `web`에는 공개 도메인이 없으므로 새로 외부 노출하지 않고 내부 상태로 확인한다. Vercel `lumina-cognitive`는 이미 삭제되어 재조회 결과 `project_not_found`다. 변경 코드를 별도 산출물로 업로드해 staging과 production 웹만 갱신한 뒤 실제 운영 smoke를 실행한다. Neon·Railway Postgres와 기능 플래그는 변경하지 않는다.
+
+## 2026-09-28 Vercel 전환 잔여물 정리와 production 배포
+
+- **관찰:** 삭제된 Vercel 프로젝트를 대상으로 하는 환경 동기화 명령과 Vercel cron 설정이 저장소에 남아 있었다. 분석 API fallback·과거 Vercel import 도구, 테스트와 관리자 안내서의 2주 롤백·수동 backfill 절차도 현재 운영 경로와 맞지 않았다. 로컬 `.vercel` 연결은 삭제된 `lumina-cognitive`를 가리켰다.
+- **변경:** `vercel.json`, Vercel env-sync/import 스크립트, 미사용 분석 adapter·테스트, 추적되지 않는 Vercel 로고와 로컬 link를 제거했다. 과거 집계를 표시할 Neon source/schema는 보존했다. 인지 파일럿 설정 안내서를 Railway 기준으로 이동·수정하고, 대안 Supabase 문서는 보관 제안임을 표시했다. 관리자 DOCX 생성 원본과 산출물에서 죽은 Vercel 설정과 지원하지 않는 수동 backfill 명령을 제거했다.
+- **검증:** `pnpm.cmd lint`, `typecheck`, 전체 Vitest(145개 파일·1,183개 테스트), Next production build 통과. DOCX ZIP 구조와 여섯 가지 cutover 문구 검사 통과. skill-manager `verify --run`은 bare `pnpm`을 찾지 못해 네 항목 모두 Windows `WinError 2`였으나, 직접 `pnpm.cmd` 검증은 통과했다. Word·LibreOffice가 없어 페이지 레이아웃 시각 검토는 하지 않았다.
+- **배포:** 커밋 `31a9323`을 staging 배포 `94b40b76-c038-4365-b111-f862653d7341`과 production 배포 `a2769d8f-b569-4725-9de8-972bf8a7db08`에 반영했다. 양쪽 preflight는 각각 9개 성장 게이트를 통과하고 Next 서버가 준비됐다. `lumina.jack.ai.kr` 비변경 smoke 18/18, 배포 후 15분 HTTP 5xx 0건. Vercel 재조회는 `project_not_found`였다. DB·환경 변수·기능 플래그·분석 이벤트는 변경하지 않았다.
+- **남은 운영 항목:** Sentry production DSN과 알림 수신은 미설정이다. 유료 결제는 상품·법무·PG 승인이 없어 계속 비활성이다. 최근 3일보다 오래된 Umami 집계 backfill CLI는 제공하지 않는다. 이 항목은 승인·절차가 준비될 때까지 열어 둔다.

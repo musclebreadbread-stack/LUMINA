@@ -50,7 +50,7 @@ export interface AdminAnalyticsLabels {
   readonly premiumFreeAnalysisClicks: string;
   readonly premiumCheckoutStarts: string;
   readonly premiumFunnelBaseline: string;
-  readonly premiumFunnelStepRate: string;
+  readonly premiumFunnelViewRate: string;
   readonly completionRate: string;
   readonly resultRate: string;
   readonly noData: string;
@@ -332,9 +332,9 @@ function PremiumReportFunnel({ snapshot, labels, locale }: DashboardProps) {
   const freeAnalysisClicks = eventCount(snapshot.selectedSolutionSeries, "premium_report_free_analysis_click");
   const checkoutStarts = eventCount(snapshot.selectedSolutionSeries, "premium_report_checkout_start");
   const stages = [
-    { label: labels.premiumReportViews, value: views, previousValue: null },
-    { label: labels.premiumFreeAnalysisClicks, value: freeAnalysisClicks, previousValue: views },
-    { label: labels.premiumCheckoutStarts, value: checkoutStarts, previousValue: freeAnalysisClicks },
+    { label: labels.premiumReportViews, value: views, baselineViews: null },
+    { label: labels.premiumFreeAnalysisClicks, value: freeAnalysisClicks, baselineViews: views },
+    { label: labels.premiumCheckoutStarts, value: checkoutStarts, baselineViews: views },
   ];
 
   return (
@@ -342,16 +342,16 @@ function PremiumReportFunnel({ snapshot, labels, locale }: DashboardProps) {
       <h2 id="admin-premium-funnel-title" className="text-xl font-semibold text-hobun">{labels.premiumFunnel}</h2>
       <p className="mt-2 max-w-3xl text-sm leading-relaxed text-hobun-dim">{labels.premiumFunnelDescription}</p>
       <ol className="mt-6 grid gap-3 sm:grid-cols-3">
-        {stages.map((stage, index) => (
+        {stages.map((stage) => (
           <li key={stage.label} className="border border-ink-800 bg-ink-950/50 p-4">
             <p className="text-xs text-hobun-faint">{stage.label}</p>
             <p className="mt-2 font-mono text-3xl tabular-nums text-hobun">{numberFormat(locale, stage.value)}</p>
             <p className="mt-3 text-xs text-hobun-faint">
-              {index === 0 ? labels.premiumFunnelBaseline : labels.premiumFunnelStepRate}
+              {stage.baselineViews === null ? labels.premiumFunnelBaseline : labels.premiumFunnelViewRate}
             </p>
-            {stage.previousValue !== null && (
+            {stage.baselineViews !== null && (
               <p className="mt-1 font-mono text-lg tabular-nums text-hobun">
-                {eventRatioFormat(locale, stage.value, stage.previousValue)}
+                {eventRatioFormat(locale, stage.value, stage.baselineViews)}
               </p>
             )}
           </li>

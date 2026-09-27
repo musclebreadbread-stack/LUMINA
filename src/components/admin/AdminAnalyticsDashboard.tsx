@@ -44,6 +44,11 @@ export interface AdminAnalyticsLabels {
   readonly funnelCompletion: string;
   readonly funnelResult: string;
   readonly funnelShare: string;
+  readonly premiumFunnel: string;
+  readonly premiumFunnelDescription: string;
+  readonly premiumReportViews: string;
+  readonly premiumFreeAnalysisClicks: string;
+  readonly premiumCheckoutStarts: string;
   readonly completionRate: string;
   readonly resultRate: string;
   readonly noData: string;
@@ -310,6 +315,31 @@ function Funnel({ snapshot, labels, locale }: DashboardProps) {
   );
 }
 
+function PremiumReportFunnel({ snapshot, labels, locale }: DashboardProps) {
+  if (snapshot.selectedSolution !== "all" && snapshot.selectedSolution !== "saju") return null;
+
+  const stages = [
+    { label: labels.premiumReportViews, value: eventCount(snapshot.selectedSolutionSeries, "premium_report_view") },
+    { label: labels.premiumFreeAnalysisClicks, value: eventCount(snapshot.selectedSolutionSeries, "premium_report_free_analysis_click") },
+    { label: labels.premiumCheckoutStarts, value: eventCount(snapshot.selectedSolutionSeries, "premium_report_checkout_start") },
+  ];
+
+  return (
+    <section className="border border-ink-700 bg-ink-900/55 p-5 sm:p-7" aria-labelledby="admin-premium-funnel-title">
+      <h2 id="admin-premium-funnel-title" className="text-xl font-semibold text-hobun">{labels.premiumFunnel}</h2>
+      <p className="mt-2 max-w-3xl text-sm leading-relaxed text-hobun-dim">{labels.premiumFunnelDescription}</p>
+      <ol className="mt-6 grid gap-3 sm:grid-cols-3">
+        {stages.map((stage) => (
+          <li key={stage.label} className="border border-ink-800 bg-ink-950/50 p-4">
+            <p className="text-xs text-hobun-faint">{stage.label}</p>
+            <p className="mt-2 font-mono text-3xl tabular-nums text-hobun">{numberFormat(locale, stage.value)}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 function HealthPanel({ snapshot, labels, locale }: DashboardProps) {
   const sourceLabel = snapshot.source === "umami-rollup"
     ? labels.sourceUmami
@@ -419,6 +449,7 @@ export function AdminAnalyticsDashboard({ snapshot, labels, locale }: DashboardP
         <TrafficTrend snapshot={snapshot} labels={labels} locale={locale} />
         <SolutionUsage snapshot={snapshot} labels={labels} locale={locale} />
         <Funnel snapshot={snapshot} labels={labels} locale={locale} />
+        <PremiumReportFunnel snapshot={snapshot} labels={labels} locale={locale} />
         <HealthPanel snapshot={snapshot} labels={labels} locale={locale} />
       </div>
     </main>

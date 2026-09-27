@@ -5,6 +5,7 @@ import Link from "next/link";
 import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import { z } from "zod";
 import { localePath, type Locale } from "@/i18n/locale";
+import { trackPremiumReportEvent } from "@/lib/premiumReportAnalytics";
 
 const orderResponseSchema = z.object({
   orderId: z.string().uuid(),
@@ -38,6 +39,7 @@ export function CheckoutButton({ locale }: CheckoutButtonProps) {
     setError(null);
     setPending(true);
     try {
+      trackPremiumReportEvent("premium_report_checkout_start");
       const response = await fetch("/api/billing/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

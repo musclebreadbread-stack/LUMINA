@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  ADMIN_EVENT_NAMES,
   resolveAnalyticsRollupEnvironment,
   parseAnalyticsQuery,
   previousAnalyticsDateRange,
@@ -7,6 +8,12 @@ import {
 } from "../adminAnalytics";
 
 describe("admin analytics date contract", () => {
+  it("allows the 2027 report funnel events in aggregate rollups", () => {
+    expect(ADMIN_EVENT_NAMES).toContain("premium_report_view");
+    expect(ADMIN_EVENT_NAMES).toContain("premium_report_free_analysis_click");
+    expect(ADMIN_EVENT_NAMES).toContain("premium_report_checkout_start");
+  });
+
   it("resolves the current day in Asia/Seoul", () => {
     const range = resolveAnalyticsDateRange(
       { preset: "today", from: null, to: null },

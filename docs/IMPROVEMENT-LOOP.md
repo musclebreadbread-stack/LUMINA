@@ -34,7 +34,7 @@
 | 우선순위 | 항목 | 상태와 다음 단계 |
 |---|---|---|
 | P1 | Phase 9 상품별 DoD와 정책 승인 조건 | 기술 DoD를 `COMMERCIALIZATION-PLAN.md`에 구체화했고, 승인 조건과 분리했다. 보상·가격·환불·메일 등 정책 값은 승인 후에만 확정·활성화 |
-| P1 | 2027 리포트 유입·전환 측정 | 무료 분석 CTA를 첫 화면 바로 뒤로 배치하고 미리보기 이전에 판매 제안을 두었다. 승인 후 1,000회 적격 방문 표본부터 주간 퍼널과 billing 순매출을 대조한다. |
+| P1 | 2027 리포트 유입·전환 측정 | 페이지 조회·무료 분석 클릭·약관 확인 뒤 결제 시작을 동의 기반 익명 이벤트로 계측하고 관리자 퍼널에 노출한다. 승인 후 1,000회 적격 방문 표본부터 결제 원장의 주문·환불·순매출과 대조한다. |
 | P1 | Phase 1 production 서버 오류 모니터링 | production `SENTRY_DSN`이 없어 서버 오류가 Sentry로 전송되지 않는다. preflight는 비활성 상태를 경고하되 서비스를 시작하고, 부분·잘못된 활성화는 차단하도록 보강했다. 완료 전 Sentry 설정, 테스트 오류 전송, 수신 경보를 확인한다. |
 | P2 | Railway 분석 저장소 권역 정렬 | `web`과 cron은 Singapore지만 Umami와 볼륨이 있는 Railway Postgres는 SFO다. 상태 저장소 이동 전 백업·복원 검증, 중단 허용 범위와 롤백 절차를 마련한다. |
 | P2 | Railway cron 실행 결과 가시성 | production `cron-10min` 최근 로그가 컨테이너 시작만 보여 작업 완료·실패와 게이트로 건너뛴 작업 수를 알 수 없었다. 로컬 코드에 비식별 구조화 로그를 추가했으며 production 반영 후 실제 실행 이벤트를 확인한다. |
@@ -50,6 +50,15 @@
 - **2026-09-27 staging DB·배포 검증:** staging endpoint가 production과 다른 Neon임을 가드로 확인하고, migration dry-run 대기 0건 및 연속 `--apply` 두 번 모두 `appliedCount: 0`을 확인했다. 합성 `.invalid` 사용자·프로필 두 건으로 기존 RLS 검증기를 실행해 38개 테이블을 점검했고 양방향 모두 본인 1행·교차 0행이었다. 임시 행을 삭제하고 `lumina_member_app` 암호를 기존 미설정 상태로 복구했다. staging 웹은 오래된 이미지와 Neon Auth 환경변수 누락 때문에 세션 500 및 공유 헤더 실패가 있었으며 staging 전용 base URL·쿠키 키를 반영한 뒤 Railway deployment `6f14392c-168f-4e3e-bdd3-254cd1cd6baf`를 배포했다. staging preflight 9/9와 smoke 16/16, production preflight 9/9와 smoke 16/16을 확인했다. staging Umami 서비스는 없고 smoke는 의도된 비활성 503을 확인한다. 회원 인증·결제·AI 기능 플래그와 production 설정은 변경하지 않았고 분석 이벤트를 보내지 않았다. 다음은 승인된 회원 인증 제공자·메일·Turnstile 설정과 동의 정책 버전이 준비된 뒤 Phase 2 로그인 E2E를 수행하는 것이다.
 
 대기열은 새 증거나 사용자의 수정 지시가 들어오면 다시 우선순위를 정합니다. 코드에서 차단 정책을 구현하는 일과 실제 판매·메일 발송·AI 호출을 활성화하는 일은 서로 다른 승인 범위로 취급합니다.
+
+## 2026-09-28 2027 리포트 매출 퍼널 계측
+
+- **관찰:** 무료 분석 CTA를 상품 첫 화면 아래로 옮겼지만, 상품 페이지에 들어온 수와 CTA 클릭·결제 의향을 서로 구분할 이벤트가 없었다. 기존 이벤트 패널도 이 상품의 구매 여정을 보여주지 않았다.
+- **변경:** 동의 선택이 있을 때만 `premium_report_view`, `premium_report_free_analysis_click`, `premium_report_checkout_start`를 보낸다. 세 이벤트에는 고정된 `analysis: saju`만 담고 URL·계정·프로필·출생정보·금액은 전송하지 않는다. 결제 시작은 구매 약관과 철회 안내 확인 이후 주문 API 요청을 시작할 때 기록한다. 관리자 분석의 전체 또는 사주 보기에서 일일 롤업 건수를 확인하도록 했다. 결제 제안·판매가·정책 플래그는 변경하지 않았다.
+- **목표와 판정:** 30일 표본 목표는 이전에 정한 적격 방문 1,000건이며, 2% 전환·20건 판매는 미검증 내부 가설이다. 화면 이벤트는 건수이고 고유 방문자 수나 완료 결제가 아니다. 완료 주문·확정 환불·순매출은 `billing.orders` 원장만 기준으로 한다. 현재 production 결제 게이트가 닫혀 있어 주문 목표를 검증할 수 없다.
+- **시장 근거와 한계:** 포스텔러 공식 Google Play 소개는 6,000개 이상의 무료·유료 운세와 46개 주제를 내세우며, The Pattern은 글·오디오·프로필·관계 기능을 구독 묶음으로 안내한다. 따라서 LUMINA는 카탈로그 폭이나 구독 혜택을 모방하기보다 계산 근거·해석 한계가 드러나는 단건 상품의 구매 의사를 측정한다. RevenueCat의 2026 수치는 앱 구독의 다운로드 후 35일 기준으로 freemium 중앙값 2.1%, hard-paywall 10.7%를 제시한다. 이는 웹의 단건 상품과 표본·분모·구매 모델이 달라 LUMINA 전환 목표나 전망치로 사용하지 않는다. ([포스텔러](https://play.google.com/store/apps/details?hl=ko&id=com.un7qi3.forceteller), [The Pattern](https://thepattern.zendesk.com/hc/en-us/articles/360055659311-What-does-the-Go-Deeper-Subscription-include), [RevenueCat State of Subscription Apps 2026](https://www.revenuecat.com/state-of-subscription-apps-2026))
+- **검증:** 단위·DOM 회귀, lint, typecheck, 전체 테스트, production build를 실행한다. 이 이벤트는 개인정보 선택과 기존 롤업 예약을 존중하며, 배포 이후 통계가 쌓이기 전에는 실제 전환율·순매출 개선을 주장하지 않는다.
+- **다음:** 관리자 화면에서 2027 상품 이벤트 유입을 관찰한다. 주문 수·환불·순매출 패널은 결제 정책과 운영 게이트가 승인되어 실제 주문 원장을 쓸 수 있을 때 추가한다. 구매 정책과 billing 설정을 승인 없이 활성화하거나 가격 A/B를 실행하지 않는다.
 
 ## 2026-09-27 staging 회원 인증 DB 역할 준비
 

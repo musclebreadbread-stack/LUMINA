@@ -68,6 +68,18 @@ function unavailableSnapshot(sourceConfigured: boolean): AdminAnalyticsSnapshot 
   };
 }
 
+function premiumFunnelSnapshot(selectedSolution: AdminAnalyticsSnapshot["selectedSolution"]): AdminAnalyticsSnapshot {
+  return {
+    ...unavailableSnapshot(true),
+    selectedSolution,
+    selectedSolutionSeries: [
+      { analysis: "saju", eventName: "premium_report_view", count: 120, visitors: 80 },
+      { analysis: "saju", eventName: "premium_report_free_analysis_click", count: 30, visitors: 26 },
+      { analysis: "saju", eventName: "premium_report_checkout_start", count: 8, visitors: 7 },
+    ],
+  };
+}
+
 describe("AdminAnalyticsDashboard unavailable rollup notices", () => {
   it("renders one Korean rollup error and keeps the Umami setup hint separate", () => {
     const labels = labelsByLocale.ko;
@@ -95,5 +107,31 @@ describe("AdminAnalyticsDashboard unavailable rollup notices", () => {
     expect(markup.split(labels.rollupUnavailable)).toHaveLength(2);
     expect(markup).not.toContain("Analytics rollups could not be loaded from Neon.");
     expect(markup).not.toContain(labels.configureSource);
+  });
+});
+
+describe("AdminAnalyticsDashboard premium report funnel", () => {
+  it("shows funnel event counts for all solutions", () => {
+    const labels = labelsByLocale.en;
+    const markup = renderToStaticMarkup(
+      <AdminAnalyticsDashboard snapshot={premiumFunnelSnapshot("all")} labels={labels} locale="en" />,
+    );
+
+    expect(markup).toContain(labels.premiumFunnel);
+    expect(markup).toContain(labels.premiumReportViews);
+    expect(markup).toContain(labels.premiumFreeAnalysisClicks);
+    expect(markup).toContain(labels.premiumCheckoutStarts);
+    expect(markup).toContain(">120<");
+    expect(markup).toContain(">30<");
+    expect(markup).toContain(">8<");
+  });
+
+  it("hides the product funnel when another solution is selected", () => {
+    const labels = labelsByLocale.en;
+    const markup = renderToStaticMarkup(
+      <AdminAnalyticsDashboard snapshot={premiumFunnelSnapshot("astro")} labels={labels} locale="en" />,
+    );
+
+    expect(markup).not.toContain(labels.premiumFunnel);
   });
 });

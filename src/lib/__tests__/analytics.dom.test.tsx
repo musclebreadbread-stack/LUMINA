@@ -66,6 +66,21 @@ describe("track", () => {
     expect(eventPayloadAt(3)).toMatchObject({ name: "integrated_report_view__integrated-report", data: { analysis: "integrated-report" } });
   });
 
+  it("sends only categorical properties for the 2027 report funnel events", () => {
+    saveConsent("accepted");
+    track("premium_report_view", { analysis: "saju" });
+    track("premium_report_free_analysis_click", { analysis: "saju" });
+    track("premium_report_checkout_start", { analysis: "saju" });
+
+    expect(sendUmamiEvent).toHaveBeenCalledTimes(3);
+    expect(eventPayloadAt(0)).toMatchObject({ name: "premium_report_view__saju", data: { analysis: "saju" } });
+    expect(eventPayloadAt(1)).toMatchObject({ name: "premium_report_free_analysis_click__saju", data: { analysis: "saju" } });
+    expect(eventPayloadAt(2)).toMatchObject({ name: "premium_report_checkout_start__saju", data: { analysis: "saju" } });
+    for (let index = 0; index < 3; index += 1) {
+      expect(Object.keys(eventPayloadAt(index).data as object)).toEqual(["analysis"]);
+    }
+  });
+
   it("sends a well-formed event once consent is rejected", () => {
     saveConsent("rejected");
     track("share_open", { analysis: "jungian", method: "web-share" });

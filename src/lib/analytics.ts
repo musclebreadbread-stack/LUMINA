@@ -32,6 +32,9 @@ interface AnalyticsEventPropsMap {
   readonly share_landing_view: { readonly analysis: AnalysisKey };
   readonly share_landing_cta: { readonly analysis: AnalysisKey };
   readonly related_test_click: { readonly analysis: AnalysisKey };
+  readonly premium_report_view: { readonly analysis: "saju" };
+  readonly premium_report_free_analysis_click: { readonly analysis: "saju" };
+  readonly premium_report_checkout_start: { readonly analysis: "saju" };
 }
 
 export type AnalyticsEventName = keyof AnalyticsEventPropsMap;

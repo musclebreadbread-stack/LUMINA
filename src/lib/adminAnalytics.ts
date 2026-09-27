@@ -37,6 +37,9 @@ export const ADMIN_EVENT_NAMES = Object.freeze([
   "share_landing_view",
   "share_landing_cta",
   "related_test_click",
+  "premium_report_view",
+  "premium_report_free_analysis_click",
+  "premium_report_checkout_start",
 ] as const);
 
 export type AdminEventName = (typeof ADMIN_EVENT_NAMES)[number];

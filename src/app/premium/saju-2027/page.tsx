@@ -10,6 +10,10 @@ import { assetPath } from "@/lib/assets";
 import { buildAlternates } from "@/lib/seoAlternates";
 import { contentLocaleFor, intlLocale, localePath, type Locale } from "@/i18n/locale";
 import { CheckoutButton } from "@/components/premium/CheckoutButton";
+import {
+  PremiumReportFreeAnalysisLink,
+  PremiumReportViewTracker,
+} from "@/components/premium/PremiumReportAnalytics";
 import { getActiveSaju2027Sale } from "@/server/billing/service";
 
 export const dynamic = "force-dynamic";
@@ -75,6 +79,7 @@ export default async function YearlySaju2027Page({ searchParams }: YearlySaju202
 
   return (
     <SceneShell tone="saju">
+      <PremiumReportViewTracker />
       <JsonLd data={structuredData} />
       <main className="mx-auto w-full max-w-5xl px-5 pb-20 sm:px-8">
         <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-ink-700 py-5">
@@ -121,12 +126,11 @@ export default async function YearlySaju2027Page({ searchParams }: YearlySaju202
               {t("freeAnalysisDescription")}
             </p>
           </div>
-          <Link
-            href="/saju"
+          <PremiumReportFreeAnalysisLink
             className="inline-flex min-h-11 shrink-0 items-center justify-center border border-hobun/70 px-5 text-xs text-hobun transition-colors hover:bg-hobun hover:text-ink-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-hobun"
           >
             {t("freeAnalysisCta")}
-          </Link>
+          </PremiumReportFreeAnalysisLink>
         </section>
 
         <section aria-labelledby="yearly-report-chapters" className="mt-10 border-t border-ink-700 pt-10">

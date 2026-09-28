@@ -8,6 +8,7 @@ import { AnalyticsGate } from "@/components/analytics/AnalyticsGate";
 import { AttributionCapture } from "@/components/analytics/AttributionCapture";
 import { ConsentBanner } from "@/components/ads/ConsentBanner";
 import { BgmControl } from "@/components/audio/BgmControl";
+import { BusinessInfoFooter } from "@/components/commerce/BusinessInfoFooter";
 import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
 import { PlatformAtmosphere } from "@/components/scene3d/PlatformAtmosphere";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -131,6 +132,7 @@ export default async function RootLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <PlatformAtmosphere />
           <div className="lumina-app-shell relative z-10">{children}</div>
+          <BusinessInfoFooter locale={locale} />
           <Suspense fallback={null}>
             <BgmControl />
           </Suspense>

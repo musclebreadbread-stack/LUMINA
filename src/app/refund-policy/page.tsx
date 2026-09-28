@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale } from "next-intl/server";
-import { BusinessInfoFooter } from "@/components/commerce/BusinessInfoFooter";
 import { isLocale, localePath } from "@/i18n/locale";
 
 export const metadata: Metadata = {
@@ -45,7 +44,6 @@ export default async function RefundPolicyPage() {
           </>
         )}
       </article>
-      <BusinessInfoFooter />
     </main>
   );
 }

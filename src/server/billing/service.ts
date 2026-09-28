@@ -262,6 +262,8 @@ export async function createPendingOrder(input: CreateOrderInput): Promise<Creat
   }
   const successUrl = new URL("/api/billing/toss/return", siteUrl.origin);
   const failUrl = new URL("/api/billing/toss/fail", siteUrl.origin);
+  successUrl.searchParams.set("locale", input.locale);
+  failUrl.searchParams.set("locale", input.locale);
   const customerKey = createHmac("sha256", billingHmacKey())
     .update(`toss-customer:${member.id}`)
     .digest("base64url");

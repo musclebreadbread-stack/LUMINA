@@ -1972,6 +1972,9 @@
       "correctLabel": "Items answered correctly",
       "accuracyLabel": "{percent}% overall accuracy",
       "domainsHeading": "Accuracy by format"
+    },
+    "saju": {
+      "footerNotice": "A calculated reference from traditional Bazi rules — not a prediction."
     }
   },
   "yearlyReport": {

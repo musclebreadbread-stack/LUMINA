@@ -7,6 +7,7 @@ import { buildCognitiveOgCard } from "@/lib/og/cards/cognitive";
 import { buildDarkTriadOgCard } from "@/lib/og/cards/darktriad";
 import { buildEqOgCard } from "@/lib/og/cards/eq";
 import { buildJungianOgCard } from "@/lib/og/cards/jungian";
+import { buildSajuOgCard } from "@/lib/og/cards/saju";
 import { loadOgFonts } from "@/lib/og/fonts";
 import { HOBUN, INK } from "@/lib/og/theme";
 import { decodeShareCode, isShareKind } from "@/lib/shareCode";
@@ -89,6 +90,8 @@ export default async function Image({
       return composeCardImage(
         await buildCognitiveOgCard(summary),
       );
+    case "saju":
+      return composeCardImage(await buildSajuOgCard(summary));
     default:
       // ShareKind에 새 kind가 추가되면 여기서 컴파일 타임에 걸린다.
       return summary;

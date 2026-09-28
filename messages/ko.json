@@ -1972,6 +1972,9 @@
       "correctLabel": "맞힌 문항 수",
       "accuracyLabel": "전체 정답률 {percent}%",
       "domainsHeading": "형식별 정답률"
+    },
+    "saju": {
+      "footerNotice": "전통 명리 규칙을 계산한 참고 자료 — 예언이 아닙니다."
     }
   },
   "yearlyReport": {

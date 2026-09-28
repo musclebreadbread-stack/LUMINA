@@ -21,6 +21,9 @@ import {
 import type { CognitiveResult } from "@engine/cognitive/scoring";
 import type { EstimatedScore, StandardizedDomain } from "@engine/cognitive-standardized/types";
 import type { AttachmentQuadrant } from "@engine/attachment/quadrants";
+import type { CharacterStrength } from "@engine/characters";
+import type { FiveElement } from "@engine/saju/constants";
+import { ELEMENT_SEQUENCE } from "@/lib/elements";
 import type { AttachmentView } from "./attachmentModel";
 
 /**
@@ -39,9 +42,17 @@ import type { AttachmentView } from "./attachmentModel";
 const ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
 const ALPHABET_INDEX: ReadonlyMap<string, number> = new Map([...ALPHABET].map((ch, index) => [ch, index] as const));
 
-export type ShareKind = "jungian" | "bigfive" | "darktriad" | "attachment" | "eq" | "cognitive";
+export type ShareKind = "jungian" | "bigfive" | "darktriad" | "attachment" | "eq" | "cognitive" | "saju";
 
-const SHARE_KINDS: readonly ShareKind[] = ["jungian", "bigfive", "darktriad", "attachment", "eq", "cognitive"];
+const SHARE_KINDS: readonly ShareKind[] = [
+  "jungian",
+  "bigfive",
+  "darktriad",
+  "attachment",
+  "eq",
+  "cognitive",
+  "saju",
+];
 
 export function isShareKind(value: string): value is ShareKind {
   return (SHARE_KINDS as readonly string[]).includes(value);
@@ -54,6 +65,7 @@ const KIND_CHARS: Readonly<Record<ShareKind, string>> = Object.freeze({
   attachment: "a",
   eq: "e",
   cognitive: "c",
+  saju: "s",
 });
 const CHAR_TO_KIND: ReadonlyMap<string, ShareKind> = new Map(
   SHARE_KINDS.map((kind) => [KIND_CHARS[kind], kind] as const),
@@ -180,6 +192,24 @@ export interface CognitiveSummaryV2 {
   readonly confidenceInterval95: readonly [number, number];
 }
 
+/**
+ * 사주 요약 — 일주·주도 오행·일간 세력 셋뿐이다.
+ *
+ * 일주는 60갑자 순번(0~59)이라 60일마다 반복되므로 생년월일을 특정하지 못한다.
+ * 오행 5 × 세력 3 = 15가지뿐이라 이것만으로도 개인을 특정할 수 없다. 2027년 세운
+ * 십신·십이운성·지지 관계는 담지 않는다 — 링크를 열 때 sexagenary에서 그 자리에서
+ * 다시 계산한다(정미년 상수는 엔진 쪽에 이미 있다).
+ */
+export interface SajuSummaryV1 {
+  readonly kind: "saju";
+  readonly version: 1;
+  readonly locale: Locale;
+  /** 0..59 — 일주(日柱)의 60갑자 순번. Pillar.sexagenary와 같은 값. */
+  readonly sexagenary: number;
+  readonly dominantElement: FiveElement;
+  readonly strength: CharacterStrength;
+}
+
 export type ShareSummaryV1 =
   | JungianSummaryV1
   | BigFiveSummaryV1
@@ -187,7 +217,8 @@ export type ShareSummaryV1 =
   | AttachmentSummaryV1
   | EqSummaryV1
   | CognitiveSummaryV1
-  | CognitiveSummaryV2;
+  | CognitiveSummaryV2
+  | SajuSummaryV1;
 
 /**
  * 정답률에서 정답 수를 되돌린다. 정답률은 정답 수/문항 수에서만 나오고 양자화 스텝이
@@ -248,6 +279,13 @@ const FIELD_SPECS: Readonly<Record<ShareKind, readonly FieldSpec[]>> = Object.fr
       Object.freeze({ name: domain, min: 0, max: 100, step: 100 / COGNITIVE_ITEMS_PER_DOMAIN }),
     ),
     Object.freeze({ name: "overall", min: 0, max: 100, step: 100 / COGNITIVE_ITEM_COUNT }),
+  ]),
+  // 세 필드 모두 단순 정수 인덱스다. 12비트에 한참 못 미쳐 압축할 이유가 없으므로
+  // 다른 kind처럼 비트를 아끼지 않고 명확성을 우선한다.
+  saju: Object.freeze([
+    Object.freeze({ name: "sexagenary", min: 0, max: 59, step: 1 }),
+    Object.freeze({ name: "dominantElement", min: 0, max: 4, step: 1 }),
+    Object.freeze({ name: "strength", min: 0, max: 2, step: 1 }),
   ]),
 });
 
@@ -315,6 +353,8 @@ const ATTACHMENT_QUADRANTS: readonly AttachmentQuadrant[] = Object.freeze([
   "avoidant",
   "fearful",
 ]);
+
+const SAJU_STRENGTHS: readonly CharacterStrength[] = Object.freeze(["strong", "balanced", "weak"]);
 
 function assertNever(value: never): never {
   throw new Error(`shareCode: unreachable branch for ${JSON.stringify(value)}`);
@@ -403,6 +443,13 @@ function fieldValuesFor(summary: ShareSummaryV1): readonly number[] {
       return [
         ...COGNITIVE_DOMAINS.map((domain) => byDomain.get(domain) ?? 0),
         summary.accuracy0to100,
+      ];
+    }
+    case "saju": {
+      return [
+        summary.sexagenary,
+        ELEMENT_SEQUENCE.indexOf(summary.dominantElement),
+        SAJU_STRENGTHS.indexOf(summary.strength),
       ];
     }
     default:
@@ -502,6 +549,12 @@ function buildSummaryFromValues(
         domains: Object.freeze(domains),
         accuracy0to100: values[COGNITIVE_DOMAINS.length]!,
       });
+    }
+    case "saju": {
+      const sexagenary = Math.round(values[0]!);
+      const dominantElement = ELEMENT_SEQUENCE[Math.round(values[1]!)] ?? ELEMENT_SEQUENCE[0]!;
+      const strength = SAJU_STRENGTHS[Math.round(values[2]!)] ?? SAJU_STRENGTHS[1]!;
+      return Object.freeze({ kind: "saju" as const, version: 1 as const, locale, sexagenary, dominantElement, strength });
     }
     default:
       return assertNever(kind);
@@ -671,5 +724,28 @@ export function cognitiveSummaryFromEstimate(score: EstimatedScore, locale: Loca
     domains: Object.freeze(domains),
     iq: score.fullScaleIq,
     confidenceInterval95: score.confidenceInterval95,
+  });
+}
+
+/**
+ * ReportView가 쓰는 넓은 타입 대신, 필요한 필드만 담은 구조적 타입을 받는다 —
+ * 이 코덱 모듈이 reportModel.ts의 무거운 타입 전체에 의존하지 않게 하기 위함이다.
+ * ReportView는 이 구조를 그대로 만족한다.
+ */
+export interface SajuViewForShare {
+  readonly pillars: readonly { readonly key: "hour" | "day" | "month" | "year"; readonly sexagenary: number }[];
+  readonly elements: { readonly dominant: FiveElement };
+  readonly strength: { readonly verdict: CharacterStrength };
+}
+
+export function sajuSummaryFromView(view: SajuViewForShare, locale: Locale): SajuSummaryV1 {
+  const dayPillar = view.pillars.find((pillar) => pillar.key === "day");
+  return Object.freeze({
+    kind: "saju",
+    version: 1,
+    locale,
+    sexagenary: dayPillar?.sexagenary ?? 0,
+    dominantElement: view.elements.dominant,
+    strength: view.strength.verdict,
   });
 }

@@ -5,6 +5,7 @@ import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import Script from "next/script";
 import { Suspense } from "react";
 import { AnalyticsGate } from "@/components/analytics/AnalyticsGate";
+import { AttributionCapture } from "@/components/analytics/AttributionCapture";
 import { ConsentBanner } from "@/components/ads/ConsentBanner";
 import { BgmControl } from "@/components/audio/BgmControl";
 import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
@@ -135,6 +136,7 @@ export default async function RootLayout({
           </Suspense>
           <ConsentBanner />
           <AnalyticsGate />
+          <AttributionCapture />
         </NextIntlClientProvider>
       </body>
     </html>

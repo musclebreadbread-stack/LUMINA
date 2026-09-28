@@ -45,7 +45,9 @@
     "docs:admin-guide": "node scripts/create-admin-guide-docx.mjs",
     "images:optimize": "node scripts/optimize-images.mjs",
     "fonts:prepare": "node scripts/prepare-og-fonts.mjs",
-    "og:images": "node scripts/prepare-og-images.mjs"
+    "og:images": "node scripts/prepare-og-images.mjs",
+    "social:cards": "node scripts/generate-social-cards.mjs",
+    "test:social-cards": "node --test scripts/test-generate-social-cards.mjs"
   },
   "dependencies": {
     "@fontsource/ibm-plex-sans-kr": "^5.3.0",

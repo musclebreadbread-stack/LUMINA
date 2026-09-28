@@ -1,6 +1,4 @@
 import { after, NextResponse } from "next/server";
-import { computeSaju } from "@engine/saju";
-import { buildYearForecast } from "@engine/saju/yearForecast";
 import { isLocale, type Locale } from "@/i18n/locale";
 import { readBoundedJson } from "@/server/http/readBoundedJson";
 import { getSignedInMember } from "@/server/auth/session";
@@ -11,6 +9,7 @@ import { enqueueYearForecastNarrative, getOwnYearForecastNarrative, AIQuotaError
 import { buildYearForecastFacts } from "@/server/ai/facts";
 import { isAIReportingEnabled } from "@/server/ai/settings";
 import { processYearForecastNarrative } from "@/server/ai/worker";
+import { forecastFromProfile } from "@/server/premium/forecastFromProfile";
 import { captureServerError } from "@/server/observability/captureServerError";
 
 export const runtime = "nodejs";
@@ -35,17 +34,6 @@ async function getMember() {
   return session.user;
 }
 
-function createForecast(profile: NonNullable<Awaited<ReturnType<typeof getOwnProfile>>>) {
-  return buildYearForecast(computeSaju({
-    date: { year: profile.year, month: profile.month, day: profile.day },
-    calendar: profile.calendar,
-    isLeapMonth: profile.isLeapMonth,
-    ...(profile.hour !== null && profile.minute !== null ? { time: { hour: profile.hour, minute: profile.minute } } : {}),
-    place: { lat: profile.lat, lng: profile.lng, label: profile.placeLabel, timeZone: profile.timeZone },
-    gender: profile.gender,
-  }, { dayBoundaryRule: profile.dayBoundaryRule }));
-}
-
 export async function POST(request: Request): Promise<NextResponse> {
   if (!isAIReportingEnabled()) return json(503, { error: "ai_narrative_disabled" });
   if (!/^application\/json(?:\s*;|$)/iu.test(request.headers.get("content-type") ?? "")) {
@@ -68,7 +56,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const [entitlementId, profile] = await Promise.all([getOwnActiveEntitlementId(), getOwnProfile()]);
     if (!entitlementId) return json(403, { error: "entitlement_required" });
     if (!profile) return json(409, { error: "profile_required" });
-    const forecast = createForecast(profile);
+    const forecast = forecastFromProfile(profile);
     const facts = buildYearForecastFacts(forecast);
     const narrative = await enqueueYearForecastNarrative({
       userId: user.id,

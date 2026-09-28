@@ -4,14 +4,13 @@ import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { isLocale, localePath, type Locale } from "@/i18n/locale";
-import { computeSaju } from "@engine/saju";
-import { buildYearForecast } from "@engine/saju/yearForecast";
 import { BillingAccessError, hasOwnEntitlement, markOwnEntitlementViewed } from "@/server/billing/service";
 import { isMemberAuthConfigured } from "@/server/auth";
 import { getSignedInMember } from "@/server/auth/session";
 import { MemberAccessError, getOwnProfile } from "@/server/member/dal";
 import type { MemberProfile } from "@/server/member/profileSchema";
 import { isAIReportingEnabled, isYearForecastExpertReviewApproved } from "@/server/ai/settings";
+import { forecastFromProfile } from "@/server/premium/forecastFromProfile";
 import { NarrativeChapters } from "@/components/premium/NarrativeChapters";
 
 export const dynamic = "force-dynamic";
@@ -25,14 +24,7 @@ function reportRoute(locale: Locale, path: string): string {
 }
 
 function createForecast(profile: MemberProfile) {
-  return buildYearForecast(computeSaju({
-    date: { year: profile.year, month: profile.month, day: profile.day },
-    calendar: profile.calendar,
-    isLeapMonth: profile.isLeapMonth,
-    ...(profile.hour !== null && profile.minute !== null ? { time: { hour: profile.hour, minute: profile.minute } } : {}),
-    place: { lat: profile.lat, lng: profile.lng, label: profile.placeLabel, timeZone: profile.timeZone },
-    gender: profile.gender,
-  }, { dayBoundaryRule: profile.dayBoundaryRule }), 2027, {
+  return forecastFromProfile(profile, {
     expertReviewStatus: isYearForecastExpertReviewApproved() ? "approved" : "pending",
   });
 }

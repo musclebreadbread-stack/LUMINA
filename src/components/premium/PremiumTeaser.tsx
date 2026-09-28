@@ -3,11 +3,11 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { assetPath } from "@/lib/assets";
 import { premiumSaleCopyKeys } from "@/lib/premiumSaleCopy";
-import { getActiveSaju2027Sale } from "@/server/billing/service";
+import { getSaju2027SaleState } from "@/server/billing/service";
 
 export async function PremiumTeaser() {
-  const [t, sale] = await Promise.all([getTranslations("yearlyReport"), getActiveSaju2027Sale()]);
-  const keys = premiumSaleCopyKeys(sale);
+  const [t, saleState] = await Promise.all([getTranslations("yearlyReport"), getSaju2027SaleState()]);
+  const keys = premiumSaleCopyKeys(saleState);
 
   return (
     <aside

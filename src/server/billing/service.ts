@@ -153,6 +153,11 @@ export interface ActiveSaju2027Sale {
   readonly nameEn: string;
 }
 
+export type Saju2027SaleState =
+  | Readonly<{ status: "hidden" }>
+  | Readonly<{ status: "preview"; sale: ActiveSaju2027Sale }>
+  | Readonly<{ status: "live"; sale: ActiveSaju2027Sale }>;
+
 export interface BillingOrderSummary {
   readonly id: string;
   readonly productKey: string;
@@ -1197,8 +1202,8 @@ export function getBillingClientKey(): string | null {
   return billingCheckoutReady() ? process.env.TOSS_CLIENT_KEY?.trim() ?? null : null;
 }
 
-export async function getActiveSaju2027Sale(): Promise<ActiveSaju2027Sale | null> {
-  if (!billingCheckoutReady()) return null;
+async function fetchSaju2027Pricing(): Promise<ActiveSaju2027Sale | null> {
+  if (!billingStorageReady()) return null;
   try {
     return await withBillingTransaction(async (client) => {
       const result = await client.query<{ amount: number; currency: string; name_ko: string; name_en: string }>(
@@ -1218,4 +1223,29 @@ export async function getActiveSaju2027Sale(): Promise<ActiveSaju2027Sale | null
   } catch {
     return null;
   }
+}
+
+function requestedSaju2027SaleState(): "hidden" | "preview" | "live" {
+  const value = process.env.SAJU_2027_SALE_STATE?.trim();
+  return value === "preview" || value === "live" ? value : "hidden";
+}
+
+/**
+ * Three-stage rollout (Track C5) so the product page can satisfy a payment
+ * provider's merchant review — price, business info, and refund policy
+ * visible, checkout disabled — before checkout infrastructure (live keys,
+ * approved legal documents) is actually ready. Controlled by
+ * SAJU_2027_SALE_STATE=preview|live; any other value, including unset, is
+ * "hidden". A requested "live" state still downgrades to "preview"
+ * automatically whenever billingCheckoutReady() isn't actually satisfied, so
+ * a misconfigured environment can never show a checkout button that cannot
+ * complete a real payment.
+ */
+export async function getSaju2027SaleState(): Promise<Saju2027SaleState> {
+  const requested = requestedSaju2027SaleState();
+  if (requested === "hidden") return { status: "hidden" };
+  const sale = await fetchSaju2027Pricing();
+  if (!sale) return { status: "hidden" };
+  if (requested === "live" && billingCheckoutReady()) return { status: "live", sale };
+  return { status: "preview", sale };
 }

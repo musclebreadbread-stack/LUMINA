@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { premiumSaleCopyKeys } from "@/lib/premiumSaleCopy";
-import { getActiveSaju2027Sale } from "@/server/billing/service";
+import { getSaju2027SaleState } from "@/server/billing/service";
 
 /**
  * astro/all/today/compatibility용 경량 판매 접점 — PremiumTeaser와 같은 카피 선택
@@ -9,8 +9,8 @@ import { getActiveSaju2027Sale } from "@/server/billing/service";
  * PremiumTeaser보다 더 가볍다.
  */
 export async function PremiumSaleBanner() {
-  const [t, sale] = await Promise.all([getTranslations("yearlyReport"), getActiveSaju2027Sale()]);
-  const keys = premiumSaleCopyKeys(sale);
+  const [t, saleState] = await Promise.all([getTranslations("yearlyReport"), getSaju2027SaleState()]);
+  const keys = premiumSaleCopyKeys(saleState);
 
   return (
     <aside

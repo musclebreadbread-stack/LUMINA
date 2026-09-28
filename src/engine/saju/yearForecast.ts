@@ -20,6 +20,7 @@ import {
   type SolarTermInstant,
 } from "./solarTerms";
 import { tenGodOf, tenGodOfBranch } from "./tenGods";
+import { buildYearForecastChapters } from "./yearForecastChapters";
 import { buildYearForecastExplanations } from "./yearForecastExplanations";
 
 export type YearForecastEvidenceRef =
@@ -42,10 +43,27 @@ export type NonEmptyYearForecastEvidenceRefs = readonly [
 ];
 
 export interface YearForecastBlock extends Omit<ExplanationBlock, "evidenceRefs" | "method" | "tier"> {
-  readonly kind: "annual" | "month" | "natal-relations" | "luck-overlap" | "birth-context";
+  readonly kind:
+    | "annual"
+    | "month"
+    | "natal-relations"
+    | "luck-overlap"
+    | "birth-context"
+    | "work"
+    | "relationships"
+    | "wellbeing"
+    | "growth";
   readonly evidenceRefs: NonEmptyYearForecastEvidenceRefs;
   readonly method: LocalizedText;
   readonly tier: "cultural";
+  /**
+   * Ids matching the AIFact.id convention used by buildYearForecastFacts()
+   * (src/server/ai/facts.ts) for the same computed data — e.g. "work.stem-god".
+   * Purely a cross-reference for tracing which computed fact a paragraph
+   * summarizes; this engine module never imports the server-only facts module,
+   * so the naming is kept in sync by a parity test rather than a runtime import.
+   */
+  readonly factIds?: readonly string[];
 }
 
 export interface AnnualForecast {
@@ -306,14 +324,17 @@ export function buildYearForecast(
     evidenceRefs: Object.freeze(["birth-time-precision", "day-boundary-rule"] as const),
   });
 
-  const blocks = buildYearForecastExplanations({
-    year,
-    annual,
-    months,
-    natalBranchRelations: relations,
-    luckOverlap: overlap,
-    birthContext,
-  });
+  const blocks = Object.freeze([
+    ...buildYearForecastExplanations({
+      year,
+      annual,
+      months,
+      natalBranchRelations: relations,
+      luckOverlap: overlap,
+      birthContext,
+    }),
+    ...buildYearForecastChapters({ year, result, annual, months, natalBranchRelations: relations }),
+  ]);
 
   return Object.freeze({
     version: 1,

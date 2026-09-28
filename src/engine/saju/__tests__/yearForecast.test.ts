@@ -222,7 +222,9 @@ describe("2027 신년운세 계산 코어", () => {
 
   it("모든 서술 블록은 구조 검증을 통과하고 typed evidenceRefs와 출처를 가진다", () => {
     const { forecast } = forecastFor(BASE_BIRTH);
-    expect(forecast.blocks).toHaveLength(16);
+    // 16 = 5 existing kinds (annual/12 months/natal-relations/luck-overlap/birth-context) +
+    // 8 domain-chapter blocks added by Track B1 (work/relationships/wellbeing/growth × 2 each).
+    expect(forecast.blocks).toHaveLength(24);
 
     for (const block of forecast.blocks) {
       assertExplanationBlock(block);

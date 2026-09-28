@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getOwnDirectEntitlementOrderId, getOwnOrderProfileIds } from "@/server/billing/service";
+import { getOwnDirectEntitlementOrderId, getOwnOrder, getOwnOrderProfileIds } from "@/server/billing/service";
 import type { ProductKey } from "@/server/billing/catalog";
 import { getOwnProfile, getOwnProfileById } from "@/server/member/dal";
 import type { MemberProfile } from "@/server/member/profileSchema";
@@ -27,4 +27,23 @@ export async function getOwnBoundProfile(productKey: ProductKey): Promise<Member
     }
   }
   return getOwnProfile();
+}
+
+/**
+ * The order id to route through the "open report" consent gate before showing
+ * this product's report — the point where reading actually begins, and where
+ * the digital-content withdrawal right (전자상거래법) ends. Returns null when no
+ * gate is needed: either the relevant order was already opened, or access
+ * comes from a LUMINA+ subscription rather than a direct purchase, which has
+ * no order-specific withdrawal window to protect. Marking a render-triggered
+ * page load (link previews, prefetch, crawlers) as "opened" would burn that
+ * right without the buyer ever actually reading anything, so the mark itself
+ * only happens from the explicit POST in /api/billing/orders/[id]/open.
+ */
+export async function getOwnPendingReportOpenOrderId(productKey: ProductKey): Promise<string | null> {
+  const orderId = await getOwnDirectEntitlementOrderId(productKey);
+  if (!orderId) return null;
+  const order = await getOwnOrder(orderId).catch(() => null);
+  if (!order || order.viewedAt !== null) return null;
+  return orderId;
 }

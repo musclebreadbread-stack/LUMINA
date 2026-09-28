@@ -277,22 +277,39 @@ export async function createPendingOrder(input: CreateOrderInput): Promise<Creat
 
 export async function getOwnOrder(orderId: string): Promise<Readonly<{
   id: string;
+  productKey: string;
   amount: number;
   currency: string;
   status: string;
+  viewedAt: string | null;
 }>> {
   const member = await requireBillingMember();
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(orderId)) {
     throw new BillingInputError("order_not_found");
   }
   return withMemberTransaction(member.id, async (client) => {
-    const result = await client.query<{ id: string; amount: number; currency: string; status: string }>(
-      `select id::text, amount, currency, status from billing.orders where id = $1 and user_id = $2 limit 1`,
+    const result = await client.query<{
+      id: string;
+      product_key: string;
+      amount: number;
+      currency: string;
+      status: string;
+      viewed_at: string | null;
+    }>(
+      `select id::text, product_key, amount, currency, status, viewed_at::text
+         from billing.orders where id = $1 and user_id = $2 limit 1`,
       [orderId, member.id],
     );
-    const order = result.rows[0];
-    if (!order) throw new BillingInputError("order_not_found");
-    return order;
+    const row = result.rows[0];
+    if (!row) throw new BillingInputError("order_not_found");
+    return {
+      id: row.id,
+      productKey: row.product_key,
+      amount: row.amount,
+      currency: row.currency,
+      status: row.status,
+      viewedAt: row.viewed_at,
+    };
   });
 }
 

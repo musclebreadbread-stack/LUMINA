@@ -3,13 +3,14 @@ import { isLocale, type Locale } from "@/i18n/locale";
 import { readBoundedJson } from "@/server/http/readBoundedJson";
 import { getSignedInMember } from "@/server/auth/session";
 import { hasRequiredMemberConsents } from "@/server/member/consents";
-import { MemberAccessError, getOwnProfile } from "@/server/member/dal";
+import { MemberAccessError } from "@/server/member/dal";
 import { getOwnActiveEntitlementId } from "@/server/billing/service";
 import { enqueueYearForecastNarrative, getOwnYearForecastNarrative, AIQuotaError } from "@/server/ai/service";
 import { buildYearForecastFacts } from "@/server/ai/facts";
 import { isAIReportingEnabled } from "@/server/ai/settings";
 import { processYearForecastNarrative } from "@/server/ai/worker";
 import { forecastFromProfile } from "@/server/premium/forecastFromProfile";
+import { getOwnBoundProfile } from "@/server/premium/reportContext";
 import { captureServerError } from "@/server/observability/captureServerError";
 
 export const runtime = "nodejs";
@@ -53,7 +54,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!user) return json(401, { error: "authentication_required" });
 
   try {
-    const [entitlementId, profile] = await Promise.all([getOwnActiveEntitlementId("saju-2027"), getOwnProfile()]);
+    const [entitlementId, profile] = await Promise.all([getOwnActiveEntitlementId("saju-2027"), getOwnBoundProfile("saju-2027")]);
     if (!entitlementId) return json(403, { error: "entitlement_required" });
     if (!profile) return json(409, { error: "profile_required" });
     const forecast = forecastFromProfile(profile);

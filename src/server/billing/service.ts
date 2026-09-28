@@ -7,6 +7,8 @@ import type { Locale } from "@/i18n/locale";
 import { getSignedInMember } from "@/server/auth/session";
 import { hasRequiredMemberConsents } from "@/server/member/consents";
 import { withMemberTransaction } from "@/server/member/database";
+import { snapshotOwnProfile } from "@/server/member/profileSnapshot";
+import type { MemberProfile } from "@/server/member/profileSchema";
 import { isOneTimeProductKey, PRODUCT_CATALOG, type OneTimeProductKey, type ProductKey } from "./catalog";
 import { decryptBillingValue, encryptBillingValue, encryptPaymentKey, paymentKeyDigest } from "./crypto";
 import { isSelfServiceRefundEligible } from "./refundPolicy";
@@ -87,6 +89,20 @@ function billingHmacKey(): string {
   return key;
 }
 
+/**
+ * A non-reversible marker of a snapshotted birth profile, stored alongside
+ * billing.order_profiles.profile_id — it survives even after that column is
+ * nulled out (snapshot deleted, e.g. on account deletion), since orders are
+ * retained for 5 years but member data is not.
+ */
+function profileFingerprint(profile: MemberProfile): Buffer {
+  const canonical = JSON.stringify([
+    profile.year, profile.month, profile.day, profile.calendar, profile.isLeapMonth,
+    profile.hour, profile.minute, profile.dayBoundaryRule,
+  ]);
+  return createHmac("sha256", billingHmacKey()).update(canonical, "utf8").digest();
+}
+
 function requiredDocumentVersion(name: string): string {
   const value = process.env[name]?.trim();
   if (!value || value.length > 100 || /[\r\n]/u.test(value)) throw new BillingAccessError("billing_unavailable");
@@ -158,6 +174,10 @@ const EU_COUNTRIES = new Set([
 export async function createPendingOrder(input: CreateOrderInput): Promise<CreatedOrder> {
   const member = await requireBillingMember(true);
   if (!isOneTimeProductKey(input.productKey)) throw new BillingInputError("product_unavailable");
+  if (PRODUCT_CATALOG[input.productKey].requiredProfiles !== 1) {
+    // No checkout UI collects more than one profile yet; catch a catalog/code mismatch early.
+    throw new Error(`createPendingOrder does not support multi-profile products (${input.productKey})`);
+  }
   if (!input.acceptedPurchaseTerms || !input.acceptedWithdrawalNotice) throw new BillingInputError("payment_state_invalid");
   const requiresEuWaiver = input.countryCode !== null && EU_COUNTRIES.has(input.countryCode);
   if (requiresEuWaiver && !input.acceptedEuWithdrawalWaiver) {
@@ -172,11 +192,9 @@ export async function createPendingOrder(input: CreateOrderInput): Promise<Creat
     : null;
 
   const order = await withMemberTransaction(member.id, async (client) => {
-    const profileResult = await client.query<{ id: string }>(
-      `select id::text from member.profiles where user_id = $1 and source_key = 'local-default' limit 1`,
-      [member.id],
-    );
-    if (!profileResult.rows[0]) throw new BillingInputError("profile_required");
+    const orderId = randomUUID();
+    const snapshot = await snapshotOwnProfile(client, member.id, `order:${orderId}`);
+    if (!snapshot) throw new BillingInputError("profile_required");
 
     const productResult = await client.query<{
       id: string;
@@ -199,7 +217,6 @@ export async function createPendingOrder(input: CreateOrderInput): Promise<Creat
     const price = productResult.rows[0];
     if (!price || price.currency !== "KRW") throw new BillingInputError("product_unavailable");
 
-    const orderId = randomUUID();
     const orderName = input.locale !== "ko" ? price.name_en : price.name_ko;
     const receiptEmail = encryptBillingValue(member.email, "receipt-email", orderId);
     const orderResult = await client.query<{ id: string }>(
@@ -213,6 +230,12 @@ export async function createPendingOrder(input: CreateOrderInput): Promise<Creat
     );
     const created = orderResult.rows[0];
     if (!created) throw new Error("Pending order was not created");
+
+    await client.query(
+      `insert into billing.order_profiles (order_id, slot, profile_id, profile_fingerprint)
+       values ($1, 1, $2, $3)`,
+      [orderId, snapshot.id, profileFingerprint(snapshot.profile)],
+    );
 
     const consents = [
       ["purchase_terms", termsVersion],
@@ -830,6 +853,45 @@ export async function getOwnActiveEntitlementId(productKey: ProductKey): Promise
     );
     if (result.rows[0]?.id) return result.rows[0].id;
     return activePlusEntitlementId(client, member.id, productKey);
+  });
+}
+
+/**
+ * Like getOwnActiveEntitlementId, but only the direct-purchase path — never the
+ * LUMINA+ subscription fallback. A subscription-granted entitlement's order_id
+ * points at the subscription's own billing invoice, not a purchase of this
+ * product, so it has no bound profile (see getOwnBoundProfile in
+ * src/server/premium/reportContext.ts, which is the actual reason this exists).
+ */
+export async function getOwnDirectEntitlementOrderId(productKey: ProductKey): Promise<string | null> {
+  const member = await requireBillingMember();
+  return withMemberTransaction(member.id, async (client) => {
+    const result = await client.query<{ order_id: string }>(
+      `select e.order_id::text
+         from billing.entitlements e
+         join billing.orders o on o.id = e.order_id
+        where e.user_id = $1 and e.product_key = $2 and e.status = 'active'
+          and o.status = 'paid' and (e.expires_at is null or e.expires_at > now())
+        order by e.granted_at desc limit 1`,
+      [member.id, productKey],
+    );
+    return result.rows[0]?.order_id ?? null;
+  });
+}
+
+/** The profile snapshot ids bound to one of the caller's own orders, in slot order. */
+export async function getOwnOrderProfileIds(orderId: string): Promise<readonly string[]> {
+  const member = await requireBillingMember();
+  return withMemberTransaction(member.id, async (client) => {
+    const result = await client.query<{ profile_id: string | null }>(
+      `select op.profile_id::text
+         from billing.order_profiles op
+         join billing.orders o on o.id = op.order_id
+        where op.order_id = $1 and o.user_id = $2
+        order by op.slot asc`,
+      [orderId, member.id],
+    );
+    return result.rows.map((row) => row.profile_id).filter((id): id is string => id !== null);
   });
 }
 

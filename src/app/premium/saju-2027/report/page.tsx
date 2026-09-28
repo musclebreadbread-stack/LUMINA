@@ -7,10 +7,11 @@ import { isLocale, localePath, type Locale } from "@/i18n/locale";
 import { BillingAccessError, hasOwnEntitlement, markOwnEntitlementViewed } from "@/server/billing/service";
 import { isMemberAuthConfigured } from "@/server/auth";
 import { getSignedInMember } from "@/server/auth/session";
-import { MemberAccessError, getOwnProfile } from "@/server/member/dal";
+import { MemberAccessError } from "@/server/member/dal";
 import type { MemberProfile } from "@/server/member/profileSchema";
 import { isAIReportingEnabled, isYearForecastExpertReviewApproved } from "@/server/ai/settings";
 import { forecastFromProfile } from "@/server/premium/forecastFromProfile";
+import { getOwnBoundProfile } from "@/server/premium/reportContext";
 import { NarrativeChapters } from "@/components/premium/NarrativeChapters";
 
 export const dynamic = "force-dynamic";
@@ -47,7 +48,7 @@ export default async function Saju2027ReportPage() {
 
   let profile: MemberProfile | null;
   try {
-    profile = await getOwnProfile();
+    profile = await getOwnBoundProfile("saju-2027");
   } catch (error) {
     if (profileRequiredError(error)) redirect(reportRoute(locale, "/account/sign-in"));
     redirect(reportRoute(locale, "/account"));

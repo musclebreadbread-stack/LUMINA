@@ -21,6 +21,8 @@
     "db:neon:verify-rls": "node scripts/neon-verify-rls.mjs",
     "db:neon:configure-jobs-role": "node scripts/neon-configure-jobs-role.mjs",
     "db:neon:configure-ai-role": "node scripts/neon-configure-ai-role.mjs",
+    "db:neon:configure-billing-role": "node scripts/neon-configure-billing-role.mjs",
+    "db:neon:billing-product-admin": "node scripts/billing-product-admin.mjs",
     "db:neon:configure-member-auth-roles": "node scripts/neon-configure-member-auth-roles.mjs",
     "railway:analytics-rollup": "node scripts/railway-analytics-rollup.mjs",
     "railway:daily-jobs": "node scripts/railway-daily-jobs.mjs",

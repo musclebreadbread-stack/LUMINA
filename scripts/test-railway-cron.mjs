@@ -157,9 +157,10 @@ test("collects every failure in a run instead of stopping at the first one", asy
 
 test("10-minute jobs remain disabled unless every required product and legal gate is true", () => {
   const baseline = createRailway10MinTasks({});
-  assert.deepEqual(baseline.map((task) => task.enabled), [false, false, false]);
+  assert.deepEqual(baseline.map((task) => task.enabled), [false, false, false, false]);
   assert.deepEqual(baseline.map((task) => task.disabledBy), [
     ["BILLING_RECEIPTS_ENABLED", "BILLING_LEGAL_DOCUMENTS_APPROVED"],
+    ["BILLING_RECONCILE_ENABLED", "BILLING_LEGAL_DOCUMENTS_APPROVED"],
     [
       "FEATURE_AI_NARRATIVE",
       "AI_NARRATIVE_LEGAL_APPROVED",
@@ -173,6 +174,7 @@ test("10-minute jobs remain disabled unless every required product and legal gat
 
   const fullyApproved = createRailway10MinTasks({
     BILLING_RECEIPTS_ENABLED: "true",
+    BILLING_RECONCILE_ENABLED: "true",
     BILLING_LEGAL_DOCUMENTS_APPROVED: "true",
     FEATURE_AI_NARRATIVE: "true",
     AI_NARRATIVE_LEGAL_APPROVED: "true",
@@ -184,11 +186,12 @@ test("10-minute jobs remain disabled unless every required product and legal gat
     SUBSCRIPTION_LEGAL_DOCUMENTS_APPROVED: "true",
     TOSS_BILLING_APPROVED: "true",
   });
-  assert.deepEqual(fullyApproved.map((task) => task.enabled), [true, true, true]);
-  assert.deepEqual(fullyApproved.map((task) => task.disabledBy), [[], [], []]);
+  assert.deepEqual(fullyApproved.map((task) => task.enabled), [true, true, true, true]);
+  assert.deepEqual(fullyApproved.map((task) => task.disabledBy), [[], [], [], []]);
 
   const allEnabledEnvironment = {
     BILLING_RECEIPTS_ENABLED: "true",
+    BILLING_RECONCILE_ENABLED: "true",
     BILLING_LEGAL_DOCUMENTS_APPROVED: "true",
     FEATURE_AI_NARRATIVE: "true",
     AI_NARRATIVE_LEGAL_APPROVED: "true",
@@ -204,6 +207,7 @@ test("10-minute jobs remain disabled unless every required product and legal gat
   const gates = [
     ["BILLING_RECEIPTS_ENABLED", "billing_receipts"],
     ["BILLING_LEGAL_DOCUMENTS_APPROVED", "billing_receipts"],
+    ["BILLING_RECONCILE_ENABLED", "billing_reconcile"],
     ["FEATURE_AI_NARRATIVE", "ai_sweeper"],
     ["AI_NARRATIVE_LEGAL_APPROVED", "ai_sweeper"],
     ["AI_GOLDEN_SET_APPROVED", "ai_sweeper"],
@@ -246,28 +250,10 @@ test("cron skip summaries expose gate names without logging environment values",
   });
 });
 
-test("daily analytics always runs while billing reconciliation keeps its approval gate", () => {
-  const baseline = createRailwayDailyTasks({});
-  assert.deepEqual(baseline.map((task) => task.enabled), [true, false]);
-  assert.deepEqual(
-    createRailwayDailyTasks({
-      BILLING_RECONCILE_ENABLED: "true",
-      BILLING_LEGAL_DOCUMENTS_APPROVED: "true",
-    }).map((task) => task.enabled),
-    [true, true],
-  );
-  assert.deepEqual(createRailwayDailyTasks({}).map((task) => task.disabledBy ?? []), [[], [
-    "BILLING_RECONCILE_ENABLED",
-    "BILLING_LEGAL_DOCUMENTS_APPROVED",
-  ]]);
-  for (const missingGate of ["BILLING_RECONCILE_ENABLED", "BILLING_LEGAL_DOCUMENTS_APPROVED"]) {
-    const environment = {
-      BILLING_RECONCILE_ENABLED: "true",
-      BILLING_LEGAL_DOCUMENTS_APPROVED: "true",
-    };
-    delete environment[missingGate];
-    assert.equal(createRailwayDailyTasks(environment)[1]?.enabled, false, `${missingGate} is required`);
-  }
+test("daily analytics always runs (billing reconciliation moved to the 10-minute schedule)", () => {
+  assert.deepEqual(createRailwayDailyTasks({}).map((task) => task.name), ["analytics_rollup"]);
+  assert.deepEqual(createRailwayDailyTasks({}).map((task) => task.enabled), [true]);
+  assert.deepEqual(createRailwayDailyTasks({}).map((task) => task.disabledBy ?? []), [[]]);
 });
 
 test("internal request rejects non-production, invalid secrets, unsafe origins, and unapproved routes before fetch", async () => {

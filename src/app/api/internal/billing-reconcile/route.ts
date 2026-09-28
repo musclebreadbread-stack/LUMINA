@@ -4,11 +4,13 @@ import { timingSafeEqual } from "node:crypto";
 import {
   applyTossPaymentEvent,
   cancelExpiredUnpaidOrder,
+  listStuckRefundingOrders,
   listTossReconcileOrders,
   paymentEventHash,
 } from "@/server/billing/service";
 import { TossPaymentError } from "@/server/billing/toss";
 import { getPaymentProvider } from "@/server/billing/paymentProvider";
+import { reconcileStuckRefund } from "@/server/billing/reconcileRefunds";
 import { billingJobsAllowed } from "@/server/billing/environment";
 import { captureServerError } from "@/server/observability/captureServerError";
 
@@ -77,13 +79,27 @@ async function reconcile(request: Request): Promise<NextResponse> {
       }));
     }
 
+    const stuckRefunds = await listStuckRefundingOrders(20);
+    let refundsChecked = 0;
+    let refundsRecovered = 0;
+    const refundBatches: typeof stuckRefunds[] = [];
+    for (let index = 0; index < stuckRefunds.length; index += 4) refundBatches.push(stuckRefunds.slice(index, index + 4));
+    for (const batch of refundBatches) {
+      await Promise.all(batch.map(async (order) => {
+        refundsChecked += 1;
+        const outcome = await reconcileStuckRefund(order.id, provider);
+        if (outcome === "recovered") refundsRecovered += 1;
+        if (outcome === "provider_error") providerFailures += 1;
+      }));
+    }
+
     if (providerFailures > 0) {
-      return NextResponse.json({ error: "billing_reconcile_incomplete", checked, providerFailures }, {
+      return NextResponse.json({ error: "billing_reconcile_incomplete", checked, providerFailures, refundsChecked, refundsRecovered }, {
         status: 503,
         headers: { "Cache-Control": "no-store" },
       });
     }
-    return NextResponse.json({ ok: true, checked, applied, duplicates, cancelled }, {
+    return NextResponse.json({ ok: true, checked, applied, duplicates, cancelled, refundsChecked, refundsRecovered }, {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (error) {

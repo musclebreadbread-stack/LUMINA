@@ -78,7 +78,13 @@ export default async function AdminBillingPage() {
                   <td className="py-4 pr-4">{order.productName}</td>
                   <td className="py-4 pr-4">{new Intl.NumberFormat(intlLocale(locale), { style: "currency", currency: order.currency }).format(order.amount)}</td>
                   <td className="py-4 pr-4">{order.status}{order.viewedAt ? <span className="mt-1 block text-hobun-faint">{locale !== "ko" ? "Viewed" : "열람"}</span> : null}</td>
-                  <td className="py-4">{order.status === "paid" ? <AdminRefundForm orderId={order.id} locale={locale} /> : "—"}</td>
+                  <td className="py-4">
+                    {order.status === "paid" ? (
+                      <AdminRefundForm orderId={order.id} locale={locale} />
+                    ) : order.status === "refunding" ? (
+                      <AdminRefundForm orderId={order.id} locale={locale} isRetry />
+                    ) : "—"}
+                  </td>
                 </tr>
               ))}
             </tbody>

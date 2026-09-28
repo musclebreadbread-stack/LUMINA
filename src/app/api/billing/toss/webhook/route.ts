@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { NextResponse } from "next/server";
-import { applyTossPaymentEvent } from "@/server/billing/service";
+import { applyDashboardCancellation, applyTossPaymentEvent } from "@/server/billing/service";
 import { getPaymentProvider } from "@/server/billing/paymentProvider";
 import { readBoundedJson } from "@/server/http/readBoundedJson";
 import { captureServerError } from "@/server/observability/captureServerError";
@@ -36,6 +36,21 @@ export async function POST(request: Request): Promise<NextResponse> {
     const provider = await getPaymentProvider();
     const payment = await provider.getPaymentByOrder(parsed.data.data.orderId);
     if (payment.orderId !== parsed.data.data.orderId) return json(200, { ok: true });
+    if (payment.status === "CANCELED") {
+      // Toss is the settlement authority here too: this branch is what makes a
+      // cancellation made directly in the Toss dashboard (bypassing this app
+      // entirely) actually revoke the order's entitlement. applyDashboardCancellation
+      // no-ops if the order isn't still 'paid' — including when this app already
+      // finalized the same cancellation itself (order.status is 'refunded' by then),
+      // so this is safe to run for every CANCELED webhook regardless of who
+      // initiated it.
+      await applyDashboardCancellation({
+        orderId: payment.orderId,
+        amount: payment.totalAmount,
+        providerRefundId: payment.lastTransactionKey ?? null,
+      });
+      return json(200, { ok: true });
+    }
     await applyTossPaymentEvent({
       eventId: transmissionId,
       eventType: parsed.data.eventType,

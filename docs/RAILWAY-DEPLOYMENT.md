@@ -21,10 +21,10 @@
 
 ## 분석 cron
 
-- `cron-daily`는 `node scripts/railway-daily-jobs.mjs`로 분석 롤업을 실행하고, `BILLING_RECONCILE_ENABLED=true`와 법무 승인 플래그가 함께 켜진 경우에만 결제 대사를 호출합니다.
+- `cron-daily`는 `node scripts/railway-daily-jobs.mjs`로 분석 롤업만 실행합니다.
 - UTC 17:00 스케줄은 한국 시간 매일 02:00에 최근 3일 롤업을 다시 수집합니다.
 - `INTERNAL_WEB_ORIGIN`에는 웹 서비스의 HTTPS origin 또는 Railway private-network origin을 설정합니다. 호출 스크립트는 production 환경, 내부 origin 형식, 최소 32자 비밀값을 확인하고 응답 본문이나 토큰을 로그에 남기지 않습니다.
-- `cron-10min`은 `node scripts/railway-10min-jobs.mjs`를 실행합니다. 영수증 발송은 `BILLING_RECEIPTS_ENABLED`와 법무 승인, AI sweeper는 기능·법무·데이터 출처·콘텐츠 라이선스·전문가·골든셋 승인 플래그, 구독 worker는 Toss 정기결제 계약·법무 승인·기능 플래그가 모두 켜진 경우에만 호출됩니다. 모든 플래그는 기본 `false`입니다.
+- `cron-10min`은 `node scripts/railway-10min-jobs.mjs`를 실행합니다. 영수증 발송은 `BILLING_RECEIPTS_ENABLED`와 법무 승인, **결제 대사(reconcile)는 `BILLING_RECONCILE_ENABLED`와 법무 승인**(토스 타임아웃으로 `refunding`에 고착된 환불을 최대 몇 분 안에 재시도하기 위해 일간이 아닌 10분 주기로 옮김), AI sweeper는 기능·법무·데이터 출처·콘텐츠 라이선스·전문가·골든셋 승인 플래그, 구독 worker는 Toss 정기결제 계약·법무 승인·기능 플래그가 모두 켜진 경우에만 호출됩니다. 모든 플래그는 기본 `false`입니다.
 - cron 실행 로그는 `railway logs --service cron-10min --environment production --since 10m --json`처럼 JSON 모드로 확인합니다. Railway는 앱의 JSON 로그를 `component`, `event`, `schedule` 같은 최상위 필드로 펼치므로 `message` 안에 JSON 문자열이 있다고 가정하지 않습니다. `component=railway-cron` 행의 `run_completed` 또는 `run_failed`를 실행 결과로 보고, `run_started`의 활성·건너뜀 수와 함께 대조합니다. 인스턴스 `EXITED`만으로 성공 여부를 판단하지 않습니다.
 
 ## RLS 확인

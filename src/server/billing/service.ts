@@ -517,6 +517,51 @@ export async function applyTossPaymentEvent(input: Readonly<{
   });
 }
 
+/**
+ * The DB-side tail shared by every path that finalizes a cancelled order: mark the
+ * payment cancelled, the order refunded, the entitlement revoked, and (for a
+ * subscription invoice) cascade into the subscription itself. Callers differ only
+ * in how the billing.refunds row and audit event get written, since one path
+ * updates an existing app-initiated reservation and the other inserts a new
+ * provider-initiated one — everything after that is identical.
+ */
+async function finalizeCancelledOrder(
+  client: PoolClient,
+  orderId: string,
+  paymentId: string,
+  subscriptionInvoiceId: string | null,
+): Promise<void> {
+  await client.query(`update billing.payments set status = 'cancelled', updated_at = now() where id = $1`, [paymentId]);
+  await client.query(`update billing.orders set status = 'refunded', updated_at = now() where id = $1`, [orderId]);
+  await client.query(`update billing.entitlements set status = 'revoked', revoked_at = now() where order_id = $1`, [orderId]);
+  if (!subscriptionInvoiceId) return;
+  const subscription = await client.query<{ id: string }>(
+    `update billing.subscriptions
+        set status = 'cancelled', cancel_at_period_end = false,
+            cancelled_at = coalesce(cancelled_at, now()), cancellation_requested_at = now(), updated_at = now()
+      where id = (select subscription_id from billing.subscription_invoices where id = $1)
+      returning id::text`,
+    [subscriptionInvoiceId],
+  );
+  await client.query(
+    `update billing.subscription_invoices set status = 'void', updated_at = now()
+      where id = $1 or subscription_id = (select subscription_id from billing.subscription_invoices where id = $1)
+        and status = 'queued'`,
+    [subscriptionInvoiceId],
+  );
+  await client.query(
+    `update billing.subscription_payments set status = 'cancelled' where invoice_id = $1`,
+    [subscriptionInvoiceId],
+  );
+  if (subscription.rows[0]) {
+    await client.query(
+      `insert into billing.subscription_notices (subscription_id, invoice_id, notice_type, send_after)
+       values ($1, $2, 'subscription_ended', now()) on conflict do nothing`,
+      [subscription.rows[0].id, subscriptionInvoiceId],
+    );
+  }
+}
+
 export async function applyTossCancellation(input: Readonly<{
   orderId: string;
   refundId: string;
@@ -525,12 +570,10 @@ export async function applyTossCancellation(input: Readonly<{
   await withBillingTransaction(async (client: PoolClient) => {
     const result = await client.query<{
       id: string;
-      user_id: string | null;
-      user_ref_hmac: Buffer;
       status: string;
       subscription_invoice_id: string | null;
     }>(
-      `select o.id::text, o.user_id, o.user_ref_hmac, o.status, o.subscription_invoice_id::text
+      `select o.id::text, o.status, o.subscription_invoice_id::text
          from billing.orders o where o.id = $1 for update`,
       [input.orderId],
     );
@@ -548,41 +591,54 @@ export async function applyTossCancellation(input: Readonly<{
     );
     const recordedRefund = refund.rows[0];
     if (!recordedRefund) throw new BillingInputError("payment_state_invalid");
-    await client.query(`update billing.payments set status = 'cancelled', updated_at = now() where id = $1`, [paymentId]);
-    await client.query(`update billing.orders set status = 'refunded', updated_at = now() where id = $1`, [order.id]);
-    await client.query(`update billing.entitlements set status = 'revoked', revoked_at = now() where order_id = $1`, [order.id]);
-    if (order.subscription_invoice_id) {
-      const subscription = await client.query<{ id: string }>(
-        `update billing.subscriptions
-            set status = 'cancelled', cancel_at_period_end = false,
-                cancelled_at = coalesce(cancelled_at, now()), cancellation_requested_at = now(), updated_at = now()
-          where id = (select subscription_id from billing.subscription_invoices where id = $1)
-          returning id::text`,
-        [order.subscription_invoice_id],
-      );
-      await client.query(
-        `update billing.subscription_invoices set status = 'void', updated_at = now()
-          where id = $1 or subscription_id = (select subscription_id from billing.subscription_invoices where id = $1)
-            and status = 'queued'`,
-        [order.subscription_invoice_id],
-      );
-      await client.query(
-        `update billing.subscription_payments set status = 'cancelled' where invoice_id = $1`,
-        [order.subscription_invoice_id],
-      );
-      if (subscription.rows[0]) {
-        await client.query(
-          `insert into billing.subscription_notices (subscription_id, invoice_id, notice_type, send_after)
-           values ($1, $2, 'subscription_ended', now()) on conflict do nothing`,
-          [subscription.rows[0].id, order.subscription_invoice_id],
-        );
-      }
-    }
+    await finalizeCancelledOrder(client, order.id, paymentId, order.subscription_invoice_id);
     await client.query(
       `insert into billing.audit_events (actor_user_id, actor_ref_hmac, action, entity_type, entity_id, reason_code)
        values ($1, $2, 'refund.succeeded', 'order', $3, $4)`,
       [recordedRefund.actor_user_id, recordedRefund.actor_ref_hmac, order.id, recordedRefund.reason_code],
     );
+  });
+}
+
+/**
+ * Reflects a cancellation that happened outside this app entirely — an operator
+ * cancelling the payment from Toss's own dashboard, rather than through
+ * reserveOwnRefund/reserveAdminRefund. There is no pre-existing billing.refunds
+ * reservation to finalize (nothing in this app initiated it), so this inserts one
+ * directly in 'succeeded' status for the ledger, then runs the same finalize tail.
+ * A no-op (returns "ignored") unless the order is still 'paid': if it's already
+ * 'refunding'/'refunded', an app-initiated cancellation got there first (or this
+ * event is a redundant retry), and that path owns finalizing it.
+ */
+export async function applyDashboardCancellation(input: Readonly<{
+  orderId: string;
+  amount: number;
+  providerRefundId: string | null;
+}>): Promise<"applied" | "ignored"> {
+  return withBillingTransaction(async (client: PoolClient) => {
+    const result = await client.query<{ id: string; status: string; subscription_invoice_id: string | null }>(
+      `select o.id::text, o.status, o.subscription_invoice_id::text
+         from billing.orders o where o.id = $1 for update`,
+      [input.orderId],
+    );
+    const order = result.rows[0];
+    if (!order || order.status !== "paid") return "ignored";
+    const payment = await client.query<{ id: string }>(`select id::text from billing.payments where order_id = $1 for update`, [order.id]);
+    const paymentId = payment.rows[0]?.id;
+    if (!paymentId) return "ignored";
+
+    await client.query(
+      `insert into billing.refunds (payment_id, amount, reason_code, status, provider_refund_id, processed_at)
+       values ($1, $2, 'provider_dashboard_cancellation', 'succeeded', $3, now())`,
+      [paymentId, input.amount, input.providerRefundId],
+    );
+    await finalizeCancelledOrder(client, order.id, paymentId, order.subscription_invoice_id);
+    await client.query(
+      `insert into billing.audit_events (actor_user_id, actor_ref_hmac, action, entity_type, entity_id, reason_code)
+       values (null, null, 'refund.provider_initiated', 'order', $1, 'provider_dashboard_cancellation')`,
+      [order.id],
+    );
+    return "applied";
   });
 }
 
@@ -807,6 +863,66 @@ export async function cancelExpiredUnpaidOrder(orderId: string): Promise<boolean
       [orderId],
     );
     return (result.rowCount ?? 0) > 0;
+  });
+}
+
+// A cancellation that times out (service.ts's TossPaymentError 503 path) leaves the
+// refund reservation 'pending' and the order 'refunding' forever unless something
+// retries it — reserveOwnRefund/reserveAdminRefund only run when a person visits
+// the refund UI again. This age floor (comfortably above the 10s provider timeout)
+// keeps reconcile from racing an attempt that's still genuinely in flight.
+const STUCK_REFUND_MIN_AGE_MINUTES = 5;
+
+export async function listStuckRefundingOrders(limit = 20): Promise<readonly Readonly<{ id: string }>[]> {
+  const boundedLimit = Math.max(1, Math.min(50, Math.floor(limit)));
+  return withBillingTransaction(async (client) => {
+    const result = await client.query<{ id: string }>(
+      `select o.id::text
+         from billing.orders o
+         join billing.payments p on p.order_id = o.id
+         join billing.refunds r on r.payment_id = p.id and r.status = 'pending'
+        where o.provider = 'toss' and o.status = 'refunding'
+          and r.created_at <= now() - ($1::int * interval '1 minute')
+        order by r.created_at asc
+        limit $2`,
+      [STUCK_REFUND_MIN_AGE_MINUTES, boundedLimit],
+    );
+    return result.rows;
+  });
+}
+
+export interface StuckRefundReservation {
+  readonly refundId: string;
+  readonly reasonCode: string;
+  readonly paymentKey: string;
+}
+
+/** Read-only lookup for the reconcile job — mirrors reserveRefund's "already refunding" branch without needing an actor. */
+export async function getStuckRefundReservation(orderId: string): Promise<StuckRefundReservation | null> {
+  return withBillingTransaction(async (client) => {
+    const result = await client.query<{
+      refund_id: string;
+      reason_code: string;
+      encrypted_key: string;
+      key_version: number;
+    }>(
+      `select r.id::text as refund_id, r.reason_code,
+              p.provider_payment_key_ciphertext as encrypted_key, p.key_version
+         from billing.orders o
+         join billing.payments p on p.order_id = o.id
+         join billing.refunds r on r.payment_id = p.id and r.status = 'pending'
+        where o.id = $1 and o.status = 'refunding'
+        order by r.created_at desc
+        limit 1`,
+      [orderId],
+    );
+    const row = result.rows[0];
+    if (!row) return null;
+    return {
+      refundId: row.refund_id,
+      reasonCode: row.reason_code,
+      paymentKey: decryptBillingValue(row.encrypted_key, "payment-key", orderId, row.key_version),
+    };
   });
 }
 

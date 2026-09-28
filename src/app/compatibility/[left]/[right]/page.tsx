@@ -5,6 +5,8 @@ import { getLocale, getTranslations } from "next-intl/server";
 import type { Locale } from "@/i18n/locale";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
+import { NextLens } from "@/components/report/NextLens";
+import { PremiumSaleBanner } from "@/components/premium/PremiumSaleBanner";
 import { ShareBar } from "@/components/report/ShareBar";
 import { Disclaimer, Section } from "@/components/ui/Chrome";
 import { EvidenceStatusBadge } from "@/components/ui/EvidenceStatusBadge";
@@ -296,6 +298,8 @@ export default async function CompatibilityResultPage({
         </Section>
 
         <AdSlot slot="compatibility-mid" label={tCommon("adLabel")} />
+        <PremiumSaleBanner />
+        <NextLens analysisKey="compatibility" id="section-next-lens" />
         <footer className="space-y-8 border-t border-ink-700 pt-8">
           <ShareBar title={t("shareTitle")} restartHref="/compatibility" restartLabel={t("restart")} allowLinkShare={false} />
           <Disclaimer tier="cultural" />

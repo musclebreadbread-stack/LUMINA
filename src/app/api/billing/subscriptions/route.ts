@@ -4,6 +4,7 @@ import {
   SubscriptionAccessError,
   SubscriptionInputError,
 } from "@/server/billing/subscriptions";
+import { SUBSCRIPTION_PRODUCT_KEYS } from "@/server/billing/catalog";
 import { readBoundedJson } from "@/server/http/readBoundedJson";
 import { LOCALES } from "@/i18n/locale";
 
@@ -11,7 +12,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const requestSchema = z.object({
-  productKey: z.enum(["lumina-plus-monthly", "lumina-plus-yearly"]),
+  productKey: z.enum(SUBSCRIPTION_PRODUCT_KEYS),
   locale: z.enum(LOCALES),
   acceptedSubscriptionTerms: z.literal(true),
   acceptedAutomaticRenewal: z.literal(true),

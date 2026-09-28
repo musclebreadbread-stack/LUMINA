@@ -7,12 +7,16 @@ import type { Locale } from "@/i18n/locale";
 import { getSignedInMember } from "@/server/auth/session";
 import { hasRequiredMemberConsents } from "@/server/member/consents";
 import { withMemberTransaction } from "@/server/member/database";
+import { isOneTimeProductKey, PRODUCT_CATALOG, type OneTimeProductKey, type ProductKey } from "./catalog";
 import { decryptBillingValue, encryptBillingValue, encryptPaymentKey, paymentKeyDigest } from "./crypto";
 import { isSelfServiceRefundEligible } from "./refundPolicy";
 import type { TossPayment } from "./toss";
 import { withBillingTransaction } from "./workerDatabase";
 
-const PRODUCT_KEY = "saju-2027";
+// getActiveSaju2027Sale() below is inherently single-product by name and design.
+// Typed against the catalog's OneTimeProductKey union, so removing "saju-2027"
+// from the catalog would fail this line at compile time.
+const PRODUCT_KEY: OneTimeProductKey = "saju-2027";
 
 export class BillingAccessError extends Error {
   constructor(readonly reason: "authentication_required" | "consent_required" | "billing_unavailable") {
@@ -90,6 +94,7 @@ function requiredDocumentVersion(name: string): string {
 }
 
 export interface CreateOrderInput {
+  readonly productKey: OneTimeProductKey;
   readonly locale: Locale;
   readonly acceptedPurchaseTerms: true;
   readonly acceptedWithdrawalNotice: true;
@@ -152,6 +157,7 @@ const EU_COUNTRIES = new Set([
 
 export async function createPendingOrder(input: CreateOrderInput): Promise<CreatedOrder> {
   const member = await requireBillingMember(true);
+  if (!isOneTimeProductKey(input.productKey)) throw new BillingInputError("product_unavailable");
   if (!input.acceptedPurchaseTerms || !input.acceptedWithdrawalNotice) throw new BillingInputError("payment_state_invalid");
   const requiresEuWaiver = input.countryCode !== null && EU_COUNTRIES.has(input.countryCode);
   if (requiresEuWaiver && !input.acceptedEuWithdrawalWaiver) {
@@ -188,7 +194,7 @@ export async function createPendingOrder(input: CreateOrderInput): Promise<Creat
           and pr.valid_from <= now() and (pr.valid_until is null or pr.valid_until > now())
         order by pr.valid_from desc
         limit 1`,
-      [PRODUCT_KEY],
+      [input.productKey],
     );
     const price = productResult.rows[0];
     if (!price || price.currency !== "KRW") throw new BillingInputError("product_unavailable");
@@ -751,9 +757,36 @@ export async function failReservedRefund(input: Readonly<{ refundId: string; ord
   });
 }
 
-export async function markOwnEntitlementViewed(productKey = PRODUCT_KEY): Promise<boolean> {
+/**
+ * The active entitlement id granted by an active LUMINA+ subscription, per the
+ * catalog's includedInPlus list — replaces three copies of the same hardcoded
+ * ('lumina-plus-monthly', 'lumina-plus-yearly') check that only ever ran for the
+ * one flagship product.
+ */
+async function activePlusEntitlementId(
+  client: PoolClient,
+  userId: string,
+  productKey: ProductKey,
+): Promise<string | null> {
+  const includedInPlus = PRODUCT_CATALOG[productKey].includedInPlus;
+  if (includedInPlus.length === 0) return null;
+  const subscription = await client.query<{ id: string }>(
+    `select e.id::text
+       from billing.subscriptions s
+       join billing.entitlements e on e.user_id = s.user_id
+      where s.user_id = $1 and s.product_key = any($2::text[])
+        and s.status in ('active', 'past_due') and s.current_period_end > now()
+        and e.product_key = s.product_key and e.status = 'active'
+        and (e.expires_at is null or e.expires_at > now())
+      order by e.granted_at desc limit 1`,
+    [userId, includedInPlus],
+  );
+  return subscription.rows[0]?.id ?? null;
+}
+
+export async function markOwnEntitlementViewed(productKey: ProductKey): Promise<boolean> {
   const member = await requireBillingMember();
-  const viewed = await withBillingTransaction(async (client) => {
+  return withBillingTransaction(async (client) => {
     const result = await client.query<{ order_id: string }>(
       `update billing.orders o set viewed_at = coalesce(o.viewed_at, now()), updated_at = now()
         where o.user_id = $1 and o.product_key = $2 and o.status = 'paid'
@@ -762,24 +795,11 @@ export async function markOwnEntitlementViewed(productKey = PRODUCT_KEY): Promis
       [member.id, productKey],
     );
     if (result.rowCount !== null && result.rowCount > 0) return true;
-    if (productKey !== PRODUCT_KEY) return false;
-    const subscription = await client.query<{ id: string }>(
-      `select e.id::text
-         from billing.subscriptions s
-         join billing.entitlements e on e.user_id = s.user_id
-        where s.user_id = $1 and s.product_key in ('lumina-plus-monthly', 'lumina-plus-yearly')
-          and s.status in ('active', 'past_due') and s.current_period_end > now()
-          and e.product_key = s.product_key and e.status = 'active'
-          and (e.expires_at is null or e.expires_at > now())
-        limit 1`,
-      [member.id],
-    );
-    return Boolean(subscription.rows[0]);
+    return Boolean(await activePlusEntitlementId(client, member.id, productKey));
   });
-  return viewed;
 }
 
-export async function hasOwnEntitlement(productKey = PRODUCT_KEY): Promise<boolean> {
+export async function hasOwnEntitlement(productKey: ProductKey): Promise<boolean> {
   const member = await requireBillingMember();
   return withMemberTransaction(member.id, async (client) => {
     const result = await client.query<{ id: string }>(
@@ -792,23 +812,11 @@ export async function hasOwnEntitlement(productKey = PRODUCT_KEY): Promise<boole
       [member.id, productKey],
     );
     if (result.rows[0]) return true;
-    if (productKey !== PRODUCT_KEY) return false;
-    const subscription = await client.query<{ id: string }>(
-      `select e.id::text
-         from billing.subscriptions s
-         join billing.entitlements e on e.user_id = s.user_id
-        where s.user_id = $1 and s.product_key in ('lumina-plus-monthly', 'lumina-plus-yearly')
-          and s.status in ('active', 'past_due') and s.current_period_end > now()
-          and e.product_key = s.product_key and e.status = 'active'
-          and (e.expires_at is null or e.expires_at > now())
-        limit 1`,
-      [member.id],
-    );
-    return Boolean(subscription.rows[0]);
+    return Boolean(await activePlusEntitlementId(client, member.id, productKey));
   });
 }
 
-export async function getOwnActiveEntitlementId(productKey = PRODUCT_KEY): Promise<string | null> {
+export async function getOwnActiveEntitlementId(productKey: ProductKey): Promise<string | null> {
   const member = await requireBillingMember();
   return withMemberTransaction(member.id, async (client) => {
     const result = await client.query<{ id: string }>(
@@ -821,19 +829,7 @@ export async function getOwnActiveEntitlementId(productKey = PRODUCT_KEY): Promi
       [member.id, productKey],
     );
     if (result.rows[0]?.id) return result.rows[0].id;
-    if (productKey !== PRODUCT_KEY) return null;
-    const subscription = await client.query<{ id: string }>(
-      `select e.id::text
-         from billing.subscriptions s
-         join billing.entitlements e on e.user_id = s.user_id
-        where s.user_id = $1 and s.product_key in ('lumina-plus-monthly', 'lumina-plus-yearly')
-          and s.status in ('active', 'past_due') and s.current_period_end > now()
-          and e.product_key = s.product_key and e.status = 'active'
-          and (e.expires_at is null or e.expires_at > now())
-        order by e.granted_at desc limit 1`,
-      [member.id],
-    );
-    return subscription.rows[0]?.id ?? null;
+    return activePlusEntitlementId(client, member.id, productKey);
   });
 }
 

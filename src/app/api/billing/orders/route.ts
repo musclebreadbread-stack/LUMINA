@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { BillingAccessError, BillingInputError, createPendingOrder } from "@/server/billing/service";
+import { ONE_TIME_PRODUCT_KEYS } from "@/server/billing/catalog";
 import { readBoundedJson } from "@/server/http/readBoundedJson";
 import { captureServerError } from "@/server/observability/captureServerError";
 import { LOCALES } from "@/i18n/locale";
@@ -8,7 +9,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const orderSchema = z.object({
-  productKey: z.literal("saju-2027"),
+  productKey: z.enum(ONE_TIME_PRODUCT_KEYS),
   locale: z.enum(LOCALES),
   acceptedPurchaseTerms: z.literal(true),
   acceptedWithdrawalNotice: z.literal(true),

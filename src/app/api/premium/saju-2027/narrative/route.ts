@@ -53,7 +53,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!user) return json(401, { error: "authentication_required" });
 
   try {
-    const [entitlementId, profile] = await Promise.all([getOwnActiveEntitlementId(), getOwnProfile()]);
+    const [entitlementId, profile] = await Promise.all([getOwnActiveEntitlementId("saju-2027"), getOwnProfile()]);
     if (!entitlementId) return json(403, { error: "entitlement_required" });
     if (!profile) return json(409, { error: "profile_required" });
     const forecast = forecastFromProfile(profile);

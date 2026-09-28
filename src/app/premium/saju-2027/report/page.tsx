@@ -56,14 +56,14 @@ export default async function Saju2027ReportPage() {
 
   let entitled = false;
   try {
-    entitled = await hasOwnEntitlement();
+    entitled = await hasOwnEntitlement("saju-2027");
   } catch (error) {
     if (billingUnavailableError(error)) redirect(basePath);
     redirect(basePath);
   }
   if (!entitled) redirect(basePath);
 
-  const viewed = await markOwnEntitlementViewed();
+  const viewed = await markOwnEntitlementViewed("saju-2027");
   if (!viewed) redirect(basePath);
   const forecast = createForecast(profile);
   const textLocale = locale !== "ko" ? "en" : "ko";

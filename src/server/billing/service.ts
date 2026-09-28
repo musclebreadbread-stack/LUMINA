@@ -8,6 +8,7 @@ import { getSignedInMember } from "@/server/auth/session";
 import { hasRequiredMemberConsents } from "@/server/member/consents";
 import { withMemberTransaction } from "@/server/member/database";
 import { decryptBillingValue, encryptBillingValue, encryptPaymentKey, paymentKeyDigest } from "./crypto";
+import { isSelfServiceRefundEligible } from "./refundPolicy";
 import type { TossPayment } from "./toss";
 import { withBillingTransaction } from "./workerDatabase";
 
@@ -616,9 +617,11 @@ async function reserveRefund(input: Readonly<{
       payment_id: string;
       encrypted_key: string;
       key_version: number;
+      subscription_invoice_id: string | null;
     }>(
       `select o.id::text, o.user_id, o.user_ref_hmac, o.status, o.paid_at, o.viewed_at, o.amount,
-              p.id::text as payment_id, p.provider_payment_key_ciphertext as encrypted_key, p.key_version
+              p.id::text as payment_id, p.provider_payment_key_ciphertext as encrypted_key, p.key_version,
+              o.subscription_invoice_id::text
          from billing.orders o
          join billing.payments p on p.order_id = o.id
         where o.id = $1 and ($2::text is null or o.user_id = $2)
@@ -629,11 +632,13 @@ async function reserveRefund(input: Readonly<{
     if (!order || order.user_id === null || order.status !== "paid" && order.status !== "refunding") {
       throw new BillingInputError("refund_unavailable");
     }
-    if (input.enforceSelfServicePolicy) {
-      if (order.status !== "paid" || order.viewed_at !== null || !order.paid_at
-        || Date.now() - order.paid_at.getTime() > 7 * 24 * 60 * 60 * 1000) {
-        throw new BillingInputError("refund_unavailable");
-      }
+    if (input.enforceSelfServicePolicy && !isSelfServiceRefundEligible({
+      status: order.status,
+      viewedAt: order.viewed_at,
+      paidAt: order.paid_at,
+      subscriptionInvoiceId: order.subscription_invoice_id,
+    }, new Date())) {
+      throw new BillingInputError("refund_unavailable");
     }
 
     let refundId: string;

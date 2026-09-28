@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { BillingAccessError, BillingInputError, createPendingOrder } from "@/server/billing/service";
 import { readBoundedJson } from "@/server/http/readBoundedJson";
+import { captureServerError } from "@/server/observability/captureServerError";
 import { LOCALES } from "@/i18n/locale";
 
 export const runtime = "nodejs";
@@ -51,6 +52,10 @@ export async function POST(request: Request): Promise<Response> {
       return response(status, error.reason);
     }
     if (error instanceof BillingInputError) return response(400, error.reason);
+    // An unexpected failure here (e.g. a missing database grant) otherwise fails
+    // silently as a generic 503 — nobody finds out until a person notices orders
+    // aren't being created.
+    await captureServerError(error, "billing-order");
     return response(503, "billing_unavailable");
   }
 }

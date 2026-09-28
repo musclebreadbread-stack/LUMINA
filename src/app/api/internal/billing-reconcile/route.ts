@@ -9,6 +9,7 @@ import {
 } from "@/server/billing/service";
 import { TossPaymentError } from "@/server/billing/toss";
 import { getPaymentProvider } from "@/server/billing/paymentProvider";
+import { captureServerError } from "@/server/observability/captureServerError";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -85,7 +86,8 @@ async function reconcile(request: Request): Promise<NextResponse> {
     return NextResponse.json({ ok: true, checked, applied, duplicates, cancelled }, {
       headers: { "Cache-Control": "no-store" },
     });
-  } catch {
+  } catch (error) {
+    await captureServerError(error, "internal-cron");
     return NextResponse.json({ error: "billing_reconcile_failed" }, { status: 500, headers: { "Cache-Control": "no-store" } });
   }
 }

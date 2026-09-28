@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { isAIReportingEnabled } from "@/server/ai/settings";
 import { sweepYearForecastNarratives } from "@/server/ai/worker";
+import { captureServerError } from "@/server/observability/captureServerError";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,7 +28,8 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     const result = await sweepYearForecastNarratives(2);
     return NextResponse.json({ ok: true, selected: result.selected }, { headers: { "Cache-Control": "no-store" } });
-  } catch {
+  } catch (error) {
+    await captureServerError(error, "internal-cron");
     return NextResponse.json({ error: "ai_sweeper_failed" }, { status: 500, headers: { "Cache-Control": "no-store" } });
   }
 }

@@ -7,6 +7,7 @@ import {
   queueSubscriptionRenewals,
 } from "@/server/billing/subscriptions";
 import { dispatchSubscriptionNotices } from "@/server/billing/subscriptionNotices";
+import { captureServerError } from "@/server/observability/captureServerError";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,7 +53,8 @@ export async function POST(request: Request): Promise<Response> {
       billingKeysDeleted,
       notices,
     }, { headers: { "Cache-Control": "no-store" } });
-  } catch {
+  } catch (error) {
+    await captureServerError(error, "internal-cron");
     return Response.json({ error: "subscription_worker_failed" }, {
       status: 503,
       headers: { "Cache-Control": "no-store" },

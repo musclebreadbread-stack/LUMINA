@@ -29,8 +29,15 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   try {
     const result = await dispatchReceiptEmails(5);
-    if (result.failed > 0) {
-      return NextResponse.json({ error: "receipt_dispatch_incomplete", ...result }, {
+    // A non-2xx response here makes the 10-minute cron runner mark this whole task
+    // failed. Previously that happened on ANY failed receipt, even 1 of 5 — which,
+    // combined with the cron runner stopping at the first failed task, could block
+    // the AI sweeper and subscription charging behind a single bad email address.
+    // Only report failure when nothing got through at all; a partial failure still
+    // reports `failed` in the body for monitoring, but returns 200 so the run
+    // continues and this batch's remaining jobs are retried next cycle.
+    if (result.claimed > 0 && result.sent === 0) {
+      return NextResponse.json({ error: "receipt_dispatch_failed", ...result }, {
         status: 503,
         headers: { "Cache-Control": "no-store" },
       });

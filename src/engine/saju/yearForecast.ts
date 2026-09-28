@@ -134,8 +134,14 @@ export interface YearForecast {
   readonly luckOverlap: LuckOverlap;
   readonly birthContext: BirthContext;
   readonly blocks: readonly YearForecastBlock[];
-  /** This local calculation core has not passed the planned expert-signoff gate. */
-  readonly expertReviewStatus: "pending";
+  /**
+   * Whether this calculation core has passed the planned expert-signoff gate.
+   * `buildYearForecast` never reads this from the environment itself (engine
+   * functions stay pure); the caller resolves the real status — in practice,
+   * `isYearForecastExpertReviewApproved()` (src/server/ai/settings.ts) — and
+   * passes it in.
+   */
+  readonly expertReviewStatus: "pending" | "approved";
 }
 
 const ANNUAL_EVIDENCE = Object.freeze([
@@ -249,7 +255,11 @@ function luckOverlap(result: SajuResult, year: number): LuckOverlap {
  * `result` must come from the existing birth-input calculation so its time, rule,
  * natal-pillar and luck-period limits stay visible in the output.
  */
-export function buildYearForecast(result: SajuResult, year = 2027): YearForecast {
+export function buildYearForecast(
+  result: SajuResult,
+  year = 2027,
+  options?: Readonly<{ expertReviewStatus?: "pending" | "approved" }>,
+): YearForecast {
   if (year !== 2027) throw new RangeError(`only the 2027 forecast is supported, got ${year}`);
 
   const yearlyLuck: YearlyLuck = computeYearlyLuck(result.pillars, year);
@@ -314,6 +324,6 @@ export function buildYearForecast(result: SajuResult, year = 2027): YearForecast
     luckOverlap: overlap,
     birthContext,
     blocks,
-    expertReviewStatus: "pending",
+    expertReviewStatus: options?.expertReviewStatus ?? "pending",
   });
 }

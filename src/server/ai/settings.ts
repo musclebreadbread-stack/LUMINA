@@ -48,3 +48,14 @@ export function getAISettings(): AISettings | null {
 export function isAIReportingEnabled(): boolean {
   return getAISettings() !== null;
 }
+
+/**
+ * Whether a human has signed off on the deterministic 2027 forecast's calculation
+ * core. This is a narrower, earlier approval than `isAIReportingEnabled()`: the
+ * saju content itself can be reviewed and approved before the AI narrative
+ * pipeline's other gates (golden set, source licensing, OpenRouter keys, ...) are
+ * ready, and the report page shows this status regardless of whether AI is on.
+ */
+export function isYearForecastExpertReviewApproved(): boolean {
+  return process.env.YEAR_FORECAST_EXPERT_REVIEW_APPROVED === "true";
+}

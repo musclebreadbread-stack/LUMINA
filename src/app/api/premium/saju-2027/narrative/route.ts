@@ -11,6 +11,7 @@ import { enqueueYearForecastNarrative, getOwnYearForecastNarrative, AIQuotaError
 import { buildYearForecastFacts } from "@/server/ai/facts";
 import { isAIReportingEnabled } from "@/server/ai/settings";
 import { processYearForecastNarrative } from "@/server/ai/worker";
+import { captureServerError } from "@/server/observability/captureServerError";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -57,7 +58,8 @@ export async function POST(request: Request): Promise<NextResponse> {
   let user;
   try {
     user = await getMember();
-  } catch {
+  } catch (error) {
+    await captureServerError(error, "ai-narrative");
     return json(503, { error: "member_unavailable" });
   }
   if (!user) return json(401, { error: "authentication_required" });
@@ -75,12 +77,18 @@ export async function POST(request: Request): Promise<NextResponse> {
       facts,
     });
     if (narrative.status === "queued") {
-      after(async () => { await processYearForecastNarrative(narrative.id).catch(() => undefined); });
+      after(async () => {
+        await processYearForecastNarrative(narrative.id).catch((error: unknown) => captureServerError(error, "ai-narrative"));
+      });
     }
     return NextResponse.json(narrative, { status: narrative.status === "queued" ? 202 : 200, headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     if (error instanceof AIQuotaError) return json(429, { error: error.reason });
-    if (error instanceof MemberAccessError) return json(503, { error: "member_unavailable" });
+    if (error instanceof MemberAccessError) {
+      await captureServerError(error, "ai-narrative");
+      return json(503, { error: "member_unavailable" });
+    }
+    await captureServerError(error, "ai-narrative");
     return json(503, { error: "narrative_request_unavailable" });
   }
 }
@@ -94,7 +102,8 @@ export async function GET(request: Request): Promise<NextResponse> {
   let user;
   try {
     user = await getMember();
-  } catch {
+  } catch (error) {
+    await captureServerError(error, "ai-narrative");
     return json(503, { error: "member_unavailable" });
   }
   if (!user) return json(401, { error: "authentication_required" });
@@ -102,7 +111,8 @@ export async function GET(request: Request): Promise<NextResponse> {
     const result = await getOwnYearForecastNarrative(user.id, id);
     if (!result) return json(404, { error: "narrative_not_found" });
     return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
-  } catch {
+  } catch (error) {
+    await captureServerError(error, "ai-narrative");
     return json(503, { error: "narrative_status_unavailable" });
   }
 }

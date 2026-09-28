@@ -11,7 +11,7 @@ import { isMemberAuthConfigured } from "@/server/auth";
 import { getSignedInMember } from "@/server/auth/session";
 import { MemberAccessError, getOwnProfile } from "@/server/member/dal";
 import type { MemberProfile } from "@/server/member/profileSchema";
-import { isAIReportingEnabled } from "@/server/ai/settings";
+import { isAIReportingEnabled, isYearForecastExpertReviewApproved } from "@/server/ai/settings";
 import { NarrativeChapters } from "@/components/premium/NarrativeChapters";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +32,9 @@ function createForecast(profile: MemberProfile) {
     ...(profile.hour !== null && profile.minute !== null ? { time: { hour: profile.hour, minute: profile.minute } } : {}),
     place: { lat: profile.lat, lng: profile.lng, label: profile.placeLabel, timeZone: profile.timeZone },
     gender: profile.gender,
-  }, { dayBoundaryRule: profile.dayBoundaryRule }));
+  }, { dayBoundaryRule: profile.dayBoundaryRule }), 2027, {
+    expertReviewStatus: isYearForecastExpertReviewApproved() ? "approved" : "pending",
+  });
 }
 
 function profileRequiredError(error: unknown): boolean {
@@ -111,7 +113,9 @@ export default async function Saju2027ReportPage() {
       </div>
       {isAIReportingEnabled() ? <NarrativeChapters locale={textLocale} /> : null}
       <p className="mt-7 text-xs leading-6 text-hobun-faint">
-        {locale !== "ko" ? "Expert review status: pending." : "전문가 검수 상태: 대기 중."}
+        {forecast.expertReviewStatus === "approved"
+          ? (locale !== "ko" ? "Expert review status: approved." : "전문가 검수 상태: 승인됨.")
+          : (locale !== "ko" ? "Expert review status: pending." : "전문가 검수 상태: 대기 중.")}
       </p>
     </main>
   );

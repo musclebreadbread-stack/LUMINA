@@ -9,6 +9,7 @@ const PRIVATE_SHARE_LOCALES = ["ko", "en", "ja", "zh-Hant", "es"];
 const SERVICE_CHECKS = [
   { method: "GET", path: "/", status: 200, contentType: "text/html", body: "text", securityHeaders: true },
   { method: "GET", path: "/api/health", status: 200, contentType: "application/json", body: "health" },
+  { method: "GET", path: "/api/health/ready", status: 200, contentType: "application/json", body: "health" },
   { method: "GET", path: "/api/auth/get-session", status: 200, contentType: "application/json", body: "json" },
   { method: "POST", path: "/api/auth/sign-up/email", status: 403, contentType: "application/json", body: "sign-up-blocked", requestBody: "{}" },
   { method: "POST", path: "/api/auth/sign-in/social", status: 403, contentType: "application/json", body: "social-sign-in-blocked", requestBody: "{}" },

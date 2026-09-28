@@ -80,7 +80,7 @@ test("checks only the expected routes and passes on healthy responses", async ()
         headers: { "content-type": "text/html; charset=utf-8", ...REQUIRED_SECURITY_HEADERS },
       });
     }
-    if (url.pathname === "/api/health") {
+    if (url.pathname === "/api/health" || url.pathname === "/api/health/ready") {
       return Response.json({ ok: true });
     }
     if (url.pathname === "/api/auth/get-session") {
@@ -94,7 +94,7 @@ test("checks only the expected routes and passes on healthy responses", async ()
 
   const results = await runSmoke("https://example.com", mockFetch);
 
-  assert.equal(results.length, 18);
+  assert.equal(results.length, 19);
   assert.ok(results.every((result) => result.passed));
   assert.equal(results.find((result) => result.path === "/")?.securityHeadersValid, true);
   assert.ok(requests.some((request) => request.path === "/audio/bgm/digital-observatory.mp3" && request.method === "HEAD"));
@@ -136,7 +136,9 @@ test("expects the Umami proxy to stay disabled in staging", async () => {
     if (url.pathname === "/api/umami/script.js") {
       return new Response(null, { status: 503, headers: { "cache-control": "no-store" } });
     }
-    if (url.pathname === "/api/health") return Response.json({ ok: true });
+    if (url.pathname === "/api/health" || url.pathname === "/api/health/ready") {
+      return Response.json({ ok: true });
+    }
     if (url.pathname === "/api/internal/analytics-rollup") {
       return Response.json({ error: "unauthorized" }, { status: 401 });
     }
@@ -151,7 +153,7 @@ test("expects the Umami proxy to stay disabled in staging", async () => {
 
   const results = await runSmoke("https://example.com", mockFetch, "staging");
 
-  assert.equal(results.length, 18);
+  assert.equal(results.length, 19);
   assert.ok(results.every((result) => result.passed));
   assert.equal(results.find((result) => result.path === "/api/umami/script.js")?.status, 503);
 });

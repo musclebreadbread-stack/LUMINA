@@ -109,7 +109,10 @@ export function CheckoutButton({ locale }: CheckoutButtonProps) {
           {locale !== "ko" ? "Refund policy" : "환불 안내"}
         </Link>
         {error === "authentication_required" ? (
-        <Link href={localePath("/account/sign-in", locale)} className="text-xs text-hobun underline underline-offset-4">
+        <Link
+          href={`${localePath("/account/sign-in", locale)}?returnTo=${encodeURIComponent(localePath("/premium/saju-2027", locale))}`}
+          className="text-xs text-hobun underline underline-offset-4"
+        >
             {locale !== "ko" ? "Sign in" : "로그인"}
           </Link>
         ) : null}

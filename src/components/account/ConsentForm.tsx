@@ -37,7 +37,7 @@ function routeForLocale(locale: Locale, path: string): string {
   return localePath(path, locale);
 }
 
-export function ConsentForm({ locale }: { locale: Locale }) {
+export function ConsentForm({ locale, returnTo }: { locale: Locale; returnTo?: string | null }) {
   const copy = COPY[locale === "ko" ? "ko" : "en"];
   const router = useRouter();
   const [terms, setTerms] = useState(false);
@@ -66,7 +66,7 @@ export function ConsentForm({ locale }: { locale: Locale }) {
         setError(copy.error);
         return;
       }
-      router.replace(routeForLocale(locale, "/account"));
+      router.replace(returnTo ?? routeForLocale(locale, "/account"));
       router.refresh();
     } catch {
       setError(copy.error);

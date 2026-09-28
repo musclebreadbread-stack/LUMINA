@@ -72,15 +72,16 @@ export default async function Saju2027ReportPage() {
   const localeValue = await getLocale();
   const locale = isLocale(localeValue) ? localeValue : "ko";
   const basePath = reportRoute(locale, "/premium/saju-2027");
-  if (!isMemberAuthConfigured()) redirect(reportRoute(locale, "/account/sign-in"));
+  const signInPath = `${reportRoute(locale, "/account/sign-in")}?returnTo=${encodeURIComponent(reportRoute(locale, "/premium/saju-2027/report"))}`;
+  if (!isMemberAuthConfigured()) redirect(signInPath);
   const session = await getSignedInMember();
-  if (!session) redirect(reportRoute(locale, "/account/sign-in"));
+  if (!session) redirect(signInPath);
 
   let profile: MemberProfile | null;
   try {
     profile = await getOwnBoundProfile("saju-2027");
   } catch (error) {
-    if (profileRequiredError(error)) redirect(reportRoute(locale, "/account/sign-in"));
+    if (profileRequiredError(error)) redirect(signInPath);
     redirect(reportRoute(locale, "/account"));
   }
   if (!profile) redirect(reportRoute(locale, "/account"));

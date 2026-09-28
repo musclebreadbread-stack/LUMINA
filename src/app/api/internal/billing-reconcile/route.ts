@@ -9,6 +9,7 @@ import {
 } from "@/server/billing/service";
 import { TossPaymentError } from "@/server/billing/toss";
 import { getPaymentProvider } from "@/server/billing/paymentProvider";
+import { billingJobsAllowed } from "@/server/billing/environment";
 import { captureServerError } from "@/server/observability/captureServerError";
 
 export const runtime = "nodejs";
@@ -33,11 +34,10 @@ async function reconcile(request: Request): Promise<NextResponse> {
   if (!isAuthorizedCron(request)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401, headers: { "Cache-Control": "no-store" } });
   }
-  if (process.env.APP_ENV !== "production"
+  if (!billingJobsAllowed()
     || process.env.BILLING_RECONCILE_ENABLED !== "true"
     || process.env.BILLING_LEGAL_DOCUMENTS_APPROVED !== "true"
-    || !process.env.BILLING_DATABASE_URL
-    || !process.env.TOSS_SECRET_KEY) {
+    || !process.env.BILLING_DATABASE_URL) {
     return disabledResponse();
   }
 

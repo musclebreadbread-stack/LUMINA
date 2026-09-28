@@ -2,6 +2,7 @@ import "server-only";
 
 import { Resend } from "resend";
 import { intlLocale, localePath, type Locale } from "@/i18n/locale";
+import { billingJobsAllowed, isBillingEmailRecipientAllowed } from "./environment";
 import { decryptSubscriptionEmail } from "./subscriptions";
 import { withBillingTransaction } from "./workerDatabase";
 
@@ -119,7 +120,7 @@ function escapeHtml(value: string): string {
 }
 
 export async function dispatchSubscriptionNotices(limit = 10): Promise<Readonly<{ claimed: number; sent: number; failed: number }>> {
-  if (process.env.APP_ENV !== "production"
+  if (!billingJobsAllowed()
     || process.env.SUBSCRIPTION_ENABLED !== "true"
     || process.env.SUBSCRIPTION_LEGAL_DOCUMENTS_APPROVED !== "true"
     || process.env.TOSS_BILLING_APPROVED !== "true") {
@@ -138,6 +139,11 @@ export async function dispatchSubscriptionNotices(limit = 10): Promise<Readonly<
   for (const job of jobs) {
     try {
       const recipient = await decryptSubscriptionEmail(job.ciphertext, job.subscriptionId, job.keyVersion);
+      if (!isBillingEmailRecipientAllowed(recipient)) {
+        await markNoticeFailed(job.id, job.attemptCount, "staging_recipient_blocked");
+        failed += 1;
+        continue;
+      }
       const content = messageFor(job);
       const detailDate = job.noticeType === "renewal_reminder"
         ? job.periodStart

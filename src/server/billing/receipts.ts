@@ -1,6 +1,7 @@
 import "server-only";
 
 import { Resend } from "resend";
+import { billingJobsAllowed, isBillingEmailRecipientAllowed } from "./environment";
 import {
   claimReceiptEmailJobs,
   getReceiptRecipient,
@@ -67,7 +68,7 @@ function safeErrorCode(name: string | undefined): string {
 
 async function sendReceipt(resend: Resend, from: string, replyTo: string | null, job: ReceiptEmailJob): Promise<boolean> {
   const recipient = getReceiptRecipient(job);
-  if (!recipient) {
+  if (!recipient || !isBillingEmailRecipientAllowed(recipient)) {
     await markReceiptEmailUndeliverable(job.orderId, job.attemptCount);
     return false;
   }
@@ -89,7 +90,7 @@ async function sendReceipt(resend: Resend, from: string, replyTo: string | null,
 }
 
 export async function dispatchReceiptEmails(limit = 5): Promise<ReceiptDispatchResult> {
-  if (process.env.APP_ENV !== "production"
+  if (!billingJobsAllowed()
     || process.env.BILLING_RECEIPTS_ENABLED !== "true"
     || process.env.BILLING_LEGAL_DOCUMENTS_APPROVED !== "true") {
     throw new Error("receipt_dispatch_disabled");

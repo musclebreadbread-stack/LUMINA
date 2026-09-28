@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import { billingJobsAllowed } from "@/server/billing/environment";
 import { dispatchReceiptEmails } from "@/server/billing/receipts";
 
 export const runtime = "nodejs";
@@ -20,7 +21,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!isAuthorizedCron(request)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401, headers: { "Cache-Control": "no-store" } });
   }
-  if (process.env.APP_ENV !== "production"
+  if (!billingJobsAllowed()
     || process.env.BILLING_RECEIPTS_ENABLED !== "true"
     || process.env.BILLING_LEGAL_DOCUMENTS_APPROVED !== "true"
     || !process.env.BILLING_DATABASE_URL) {

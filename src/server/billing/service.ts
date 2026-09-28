@@ -176,6 +176,16 @@ const EU_COUNTRIES = new Set([
   "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
 ]);
 
+/**
+ * Shared with the client (Track C2) so CheckoutButton can show the EU
+ * withdrawal-waiver checkbox only to visitors it actually applies to, instead
+ * of every visitor. Must stay the single source of truth for "is this an EU
+ * country" — createPendingOrder's own requiresEuWaiver check below uses it too.
+ */
+export function isEuCountryCode(code: string | null): boolean {
+  return code !== null && EU_COUNTRIES.has(code);
+}
+
 export async function createPendingOrder(input: CreateOrderInput): Promise<CreatedOrder> {
   const member = await requireBillingMember(true);
   if (!isOneTimeProductKey(input.productKey)) throw new BillingInputError("product_unavailable");
@@ -184,7 +194,7 @@ export async function createPendingOrder(input: CreateOrderInput): Promise<Creat
     throw new Error(`createPendingOrder does not support multi-profile products (${input.productKey})`);
   }
   if (!input.acceptedPurchaseTerms || !input.acceptedWithdrawalNotice) throw new BillingInputError("payment_state_invalid");
-  const requiresEuWaiver = input.countryCode !== null && EU_COUNTRIES.has(input.countryCode);
+  const requiresEuWaiver = isEuCountryCode(input.countryCode);
   if (requiresEuWaiver && !input.acceptedEuWithdrawalWaiver) {
     throw new BillingInputError("payment_state_invalid");
   }

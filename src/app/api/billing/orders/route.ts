@@ -3,6 +3,8 @@ import { BillingAccessError, BillingInputError, createPendingOrder } from "@/ser
 import { ONE_TIME_PRODUCT_KEYS } from "@/server/billing/catalog";
 import { readBoundedJson } from "@/server/http/readBoundedJson";
 import { captureServerError } from "@/server/observability/captureServerError";
+import { claimOwnLocalData } from "@/server/member/dal";
+import { memberProfileSchema } from "@/server/member/profileSchema";
 import { LOCALES } from "@/i18n/locale";
 
 export const runtime = "nodejs";
@@ -14,6 +16,10 @@ const orderSchema = z.object({
   acceptedPurchaseTerms: z.literal(true),
   acceptedWithdrawalNotice: z.literal(true),
   acceptedEuWithdrawalWaiver: z.boolean(),
+  // Track C2: lets checkout succeed for a member who has a birth profile in
+  // their browser (from the free analysis) but never explicitly saved one to
+  // their account. Only ever used as a one-time fallback — see the retry below.
+  profileSnapshot: memberProfileSchema.optional(),
 }).strict();
 
 function response(status: number, error: string): Response {
@@ -41,11 +47,31 @@ export async function POST(request: Request): Promise<Response> {
   const parsed = orderSchema.safeParse(body.value);
   if (!parsed.success) return response(400, "invalid_request");
   const country = request.headers.get("cf-ipcountry")?.trim().toUpperCase();
+  const orderInput = {
+    productKey: parsed.data.productKey,
+    locale: parsed.data.locale,
+    acceptedPurchaseTerms: parsed.data.acceptedPurchaseTerms,
+    acceptedWithdrawalNotice: parsed.data.acceptedWithdrawalNotice,
+    acceptedEuWithdrawalWaiver: parsed.data.acceptedEuWithdrawalWaiver,
+    countryCode: country && /^[A-Z]{2}$/u.test(country) ? country : null,
+  };
   try {
-    const order = await createPendingOrder({
-      ...parsed.data,
-      countryCode: country && /^[A-Z]{2}$/u.test(country) ? country : null,
-    });
+    let order;
+    try {
+      order = await createPendingOrder(orderInput);
+    } catch (error) {
+      // Track C2: a member with no saved profile yet, but who sent one from
+      // their browser's free-analysis data, gets exactly one automatic retry
+      // after that data is claimed as their account profile — this never
+      // overwrites an existing saved profile, since createPendingOrder only
+      // fails this way when none exists.
+      if (error instanceof BillingInputError && error.reason === "profile_required" && parsed.data.profileSnapshot) {
+        await claimOwnLocalData(parsed.data.profileSnapshot, []);
+        order = await createPendingOrder(orderInput);
+      } else {
+        throw error;
+      }
+    }
     return Response.json(order, { headers: { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" } });
   } catch (error) {
     if (error instanceof BillingAccessError) {

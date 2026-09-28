@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { getLocale, getTranslations } from "next-intl/server";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
@@ -14,7 +15,7 @@ import {
   PremiumReportFreeAnalysisLink,
   PremiumReportViewTracker,
 } from "@/components/premium/PremiumReportAnalytics";
-import { getSaju2027SaleState, type ActiveSaju2027Sale } from "@/server/billing/service";
+import { getSaju2027SaleState, isEuCountryCode, type ActiveSaju2027Sale } from "@/server/billing/service";
 
 export const dynamic = "force-dynamic";
 
@@ -70,8 +71,11 @@ function PriceDisplay({ sale, locale }: { readonly sale: ActiveSaju2027Sale; rea
 export default async function YearlySaju2027Page({ searchParams }: YearlySaju2027PageProps) {
   const locale = (await getLocale()) as Locale;
   const t = await getTranslations("yearlyReport");
-  const [saleState, query] = await Promise.all([getSaju2027SaleState(), searchParams]);
+  const [saleState, query, requestHeaders] = await Promise.all([getSaju2027SaleState(), searchParams, headers()]);
   const purchaseState = Array.isArray(query.purchase) ? query.purchase[0] : query.purchase;
+  const rawCountry = requestHeaders.get("cf-ipcountry")?.trim().toUpperCase();
+  const countryCode = rawCountry && /^[A-Z]{2}$/u.test(rawCountry) ? rawCountry : null;
+  const isEuCountry = isEuCountryCode(countryCode);
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -160,7 +164,7 @@ export default async function YearlySaju2027Page({ searchParams }: YearlySaju202
             <section aria-labelledby="yearly-report-purchase" className="mt-6 border border-hobun/30 bg-ink-950/45 p-5 sm:p-7">
               <PriceDisplay sale={saleState.sale} locale={locale} />
               {saleState.status === "live" ? (
-                <CheckoutButton locale={locale} />
+                <CheckoutButton locale={locale} isEuCountry={isEuCountry} />
               ) : (
                 <p className="mt-3 text-sm leading-relaxed text-hobun-dim">{t("previewNotice")}</p>
               )}

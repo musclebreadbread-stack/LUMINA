@@ -69,3 +69,12 @@ Railway의 프로젝트 구성은 현재 IaC(TypeScript) 방식으로 관리할 
 - `https://lumina.jack.ai.kr` 비변경 smoke 18/18 통과: 홈페이지·health·auth session, 회원 API의 닫힌 상태(403), 내부 롤업 비인증 차단(401), BGM audio/mpeg, Umami 프록시, ko/en/ja/zh-Hant/es 비공개 공유 경로의 응답·캐시·referrer 헤더. 분석 이벤트는 보내지 않았다. 배포 후 15분 Railway HTTP 5xx는 0건이었다.
 - Vercel CLI의 `lumina-cognitive` 읽기 전용 재조회 결과 `project_not_found`였다. Vercel 프로젝트는 앞서 삭제 완료했고, 이번 저장소 정리에서 `vercel.json`, 환경 동기화·분석 fallback/import 코드 및 로컬 `.vercel` 링크를 제거했다.
 - DB 마이그레이션, Railway 환경 변수, 기능 플래그는 변경하지 않았다. Sentry DSN 미설정과 결제 비활성은 의도된 현재 상태다.
+
+## 2026-09-29 수익화 실행 계획 운영 DB 마이그레이션
+
+- 대상은 Neon `LUMINA-cognitive` 프로젝트의 `production` 브랜치(기본 브랜치)다. 적용 전 원장(`ops.schema_migrations`) 14개 항목의 체크섬이 저장소 마이그레이션 파일의 sha256과 모두 일치함을 확인했고, 대기 중인 마이그레이션은 아래 3개뿐이었다. 접속 역할은 `neondb_owner`, `billing.orders`는 0행이었다.
+- 롤백 기준으로 적용 직전에 Neon 스냅샷 `pre-migration-20261006-08-monetization`(`snap-calm-truth-azitmgoq`, 2026-09-29T01:16:04Z)을 만들었다.
+- `20261006000000_billing_orders_receipt_locale_grant.sql`, `20261007000000_billing_order_profiles.sql`, `20261008000000_billing_order_attribution.sql`을 순서대로 적용했다. 각각 단일 트랜잭션으로 어드바이저리 락(`db:neon:migrate`와 같은 키) → 본문(바깥 BEGIN/COMMIT 제거) → 원장 기록을 실행했다. 이 환경에는 `.env.production.admin.local`이 없어 `db:neon:migrate --apply` 대신 Neon MCP로 같은 절차를 수행했다.
+- 검증: 원장 17행과 새 3행 체크섬 일치, 새 테이블 2개의 RLS 활성·강제, 정책 5개, 컬럼·테이블 권한의 허용/차단(`lumina_member_app`의 `receipt_locale` insert 허용, `order_attribution` select·`created_at` insert 차단 등)을 카탈로그 조회로 확인했다. 기존 데이터는 변경하지 않았고 새 테이블 2개와 컬럼 grant 1개만 추가했다.
+- 주의: 이 3개 파일은 PR #5 머지 전까지 `master`에 없다. 그 사이 `master` 체크아웃에서 `db:neon:migrate`를 실행하면 "Migration ledger contains an unknown file"로 중단되므로, 머지 후 또는 이 브랜치에서 실행한다.
+- 코드 배포(`web`, `cron-10min`, `cron-daily`)는 아직 하지 않았다. Railway 운영 웹은 `31a9323` 그대로다.

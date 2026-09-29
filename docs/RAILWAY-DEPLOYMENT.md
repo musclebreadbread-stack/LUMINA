@@ -93,3 +93,19 @@ Railway의 프로젝트 구성은 현재 IaC(TypeScript) 방식으로 관리할 
 - 검증: `web` 시작 로그에서 production preflight 통과와 Next 서버 준비를 확인했다. `railway-smoke`는 `lumina.jack.ai.kr`에서 19/19 통과했고 분석 이벤트는 보내지 않았다. `GET /pricing`은 200(2회)이었다. 배포 후 web 로그의 error 등급 행은 0건이었다.
 - `cron-10min`은 새 이미지에서 02:10 UTC 예약 실행이 `run_started`로 시작됐다. 결제 영수증·대사, AI 서술 등은 기능 플래그가 꺼져 있어 `skippedTasks`로 기록됐다. 실행 완료(`run_completed`)와 다음 `cron-daily` 17:00 UTC 롤업은 아직 관찰 전이다. cron 스케줄 문자열은 이번에 다시 읽지 못했으므로(CLI 조회에 표시되지 않음) 이전 기록(`*/10 * * * *`, `0 17 * * *`)을 그대로 따른다.
 - 이번 작업에서 DB 마이그레이션, Railway 환경 변수, 기능 플래그는 변경하지 않았다.
+
+## 2026-09-29 결과 미출력 수정 운영 배포 (PR #6)
+
+- 배포 대상은 `master` 머지 커밋 `03bb6a9`(PR #6)다. 배포 전 작업 트리가 `origin/master`와 동일함을 확인했고, production preflight가 통과했다(9개 성장 게이트, Sentry 미설정·결제 비활성 경고 2건은 의도된 상태).
+- `railway up --ci`로 `web` → `cron-10min` → `cron-daily` 순서로 배포했고 모두 `SUCCESS`다. 이전 배포 3건은 `REMOVED`가 됐다.
+
+| 서비스 | 새 배포 ID | 생성(UTC) |
+| --- | --- | --- |
+| `web` | `fe68a5f6-9986-47f0-8743-bf94fa465ce5` | 07:01 |
+| `cron-10min` | `9a05031a-e76f-4eb1-a43c-5d112b98d390` | 07:06 |
+| `cron-daily` | `ddbe9ee8-3196-4bc4-9dc7-ad0af3b0d8fb` | 07:08 |
+
+- 검증: `web` 시작 로그에서 preflight 통과와 Next 서버 준비를 확인했고 `/api/health`는 200이다. `railway-smoke`는 `lumina.jack.ai.kr`에서 19/19 통과했으며 분석 이벤트는 보내지 않았다. `/pricing`, `/en/pricing`, `/en/compatibility`, `/cognitive`, `/es/cognitive`는 모두 200이다.
+- 수정 동작의 운영 확인: (1) 궁합 세션 쿠키 발급 응답에 `Path=/compatibility`와 `/en`·`/ja`·`/zh-Hant`·`/es` 접두사 경로의 `Set-Cookie` 5개가 들어 있다. 합성 프로필로 쿠키만 발급했고 서버에는 아무것도 저장하지 않는다. (2) 그 쿠키를 보낸 `/en/compatibility/current/current`는 본문 `<h1>`이 "Two charts, several ways to meet"로 렌더링되고, 쿠키가 없으면 본문 제목이 없다. (3) 타로(`/tarot/single/...`) og:image는 158,488바이트, 별자리(`/horoscope/zodiac/aries`) og:image는 383,216바이트로 삽화가 실린 크기다.
+- 확인하지 못한 것: 인지 검사 20문항을 운영에서 끝까지 풀어 추정 결과 화면을 보는 것은 운영 DB에 응답을 쓰게 되므로 하지 않았다. 해당 화면은 단위·컴포넌트 테스트와 로컬 e2e로만 확인했다. 배포 후 담당자가 한 번 직접 완료해 보는 것이 좋다. `cron-10min`의 새 이미지 예약 실행과 다음 `cron-daily` 17:00 UTC 롤업은 아직 관찰 전이다.
+- 이번 작업에서 DB 마이그레이션, Railway 환경 변수, 기능 플래그는 변경하지 않았다.

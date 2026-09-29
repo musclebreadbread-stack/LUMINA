@@ -19,6 +19,7 @@ const PUBLIC_PATHS = [
   "/tarot",
   "/compatibility",
   "/premium/saju-2027",
+  "/pricing",
   "/saju/2027",
   "/characters",
   "/references",

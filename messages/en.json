@@ -105,7 +105,16 @@
     "termsView": "View Terms of Service",
     "about": "About",
     "contact": "Contact",
-    "breadcrumb": "Breadcrumb"
+    "breadcrumb": "Breadcrumb",
+    "pricing": "Pricing",
+    "refund": "Refund policy",
+    "footerLabel": "Site links",
+    "account": "Account",
+    "accountSignIn": "Sign in",
+    "accountMyPage": "My account · purchases",
+    "accountSubscriptions": "Manage subscription",
+    "accountChecking": "Checking…",
+    "accountUnavailable": "We couldn't check your account status. Please try again later."
   },
   "localeSwitch": {
     "ko": "한국어",

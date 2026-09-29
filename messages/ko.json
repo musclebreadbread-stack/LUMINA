@@ -105,7 +105,16 @@
     "termsView": "이용약관 보기",
     "about": "소개",
     "contact": "문의",
-    "breadcrumb": "현재 위치"
+    "breadcrumb": "현재 위치",
+    "pricing": "요금 안내",
+    "refund": "환불 안내",
+    "footerLabel": "사이트 안내 링크",
+    "account": "계정",
+    "accountSignIn": "로그인",
+    "accountMyPage": "내 계정 · 구매 내역",
+    "accountSubscriptions": "구독 관리",
+    "accountChecking": "확인 중…",
+    "accountUnavailable": "계정 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요."
   },
   "localeSwitch": {
     "ko": "한국어",

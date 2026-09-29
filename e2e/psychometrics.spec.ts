@@ -48,7 +48,7 @@ test.describe('IPIP-50 psychometrics survey (Korean, default locale)', () => {
   }) => {
     // Next.js dev mode compiles this route on first request, so allow extra
     // time beyond the default for the initial load.
-    test.setTimeout(60_000);
+    test.setTimeout(120_000);
     await page.goto('/psychometrics', { timeout: 60_000 });
     await dismissConsentBanner(page);
 
@@ -112,7 +112,7 @@ test.describe('IPIP-50 psychometrics survey (English locale)', () => {
   test('answers all 50 items in English and renders an English result', async ({ page, context }) => {
     // Next.js dev mode compiles this route (and the result route below) on
     // first request, so allow extra time beyond the default.
-    test.setTimeout(60_000);
+    test.setTimeout(120_000);
     await setLocaleCookie(context, 'en');
     await page.goto('/psychometrics', { timeout: 60_000 });
     await dismissConsentBanner(page);
@@ -144,7 +144,7 @@ test.describe('IPIP-50 psychometrics survey (English locale)', () => {
   });
 
   test('shares a /s/bigfive/<code> link that renders in a brand-new browser context', async ({ page, context, browser }) => {
-    test.setTimeout(60_000);
+    test.setTimeout(120_000);
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     await setLocaleCookie(context, 'en');
     await page.goto('/psychometrics', { timeout: 60_000 });

@@ -13,7 +13,7 @@ import { itemById } from "@engine/cognitive/items";
 
 const STORAGE_KEY = "lumina.cognitive.draft.v1";
 const listeners = new Set<() => void>();
-let cachedRaw: string | null = null;
+let cachedRaw: string | null | undefined;
 
 /**
  * 한 문항에 기록할 수 있는 시간의 상한(15분).
@@ -126,7 +126,7 @@ export function saveCognitiveDraft(draft: CognitiveDraft): void {
       STORAGE_KEY,
       JSON.stringify({ responses: draft.responses, elapsedMsByItem: draft.elapsedMsByItem }),
     );
-    cachedRaw = null;
+    cachedRaw = undefined;
   } catch {
     // 저장소 용량이나 시크릿 모드 실패가 검사를 끊어서는 안 된다.
   }
@@ -137,7 +137,7 @@ export function clearCognitiveDraft(): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(STORAGE_KEY);
-    cachedRaw = null;
+    cachedRaw = undefined;
   } catch {
     // 최선 노력일 뿐이며, 이미 완료된 결과는 그대로 쓸 수 있다.
   }

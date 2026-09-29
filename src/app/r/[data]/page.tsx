@@ -592,7 +592,6 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
 
       <Reveal>
         <footer className="space-y-8 border-t border-ink-700 pt-8">
-          <ShareBar title={`${birthLabel} ${t("resultTitleSuffix")} · LUMINA`} allowLinkShare={false} />
           <ShareBar
             title={`${birthLabel} ${t("resultTitleSuffix")} · LUMINA`}
             imageCard={{ kind: "saju", code: sajuShareCode }}

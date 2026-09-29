@@ -38,6 +38,13 @@ describe("EstimatedResult", () => {
     expect(markup).toContain("not a clinical diagnosis");
   });
 
+  it("labels the percentile as theoretical, not a rank within a real population", () => {
+    const en = renderToStaticMarkup(<EstimatedResult score={SCORE} locale="en" imageAlt="Cognitive result illustration" />);
+    expect(en).toContain("Percentile 70 on the theoretical distribution (not a rank in a real population)");
+    const ko = renderToStaticMarkup(<EstimatedResult score={SCORE} locale="ko" imageAlt="인지능력 결과 삽화" />);
+    expect(ko).toContain("이론 분포 기준 백분위 70 (실제 집단 안의 순위가 아님)");
+  });
+
   it("classifies an exceptionally high score into the top band", () => {
     const highScore = { ...SCORE, fullScaleIq: 148, confidenceInterval95: [135, 160] as const };
     const markup = renderToStaticMarkup(<EstimatedResult score={highScore} locale="ko" imageAlt="인지능력 결과 삽화" />);

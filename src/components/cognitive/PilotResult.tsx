@@ -4,6 +4,7 @@ import type { Locale } from "@/i18n/locale";
 import type { ScoredRun } from "@engine/cognitive-standardized/types";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { COGNITIVE_OVERVIEW_IMAGE } from "@/lib/psychometricsAssets";
+import { EstimatedResult } from "./EstimatedResult";
 import { StandardizedResult } from "./StandardizedResult";
 import { ResultSceneLayer } from "@/components/scene3d/ResultSceneLayer";
 
@@ -13,11 +14,17 @@ interface PilotResultProps {
   readonly imageAlt: string;
 }
 
-/** 승인된 규준이 있을 때만 표준화 점수를 표시하고, 그 전에는 참여 기록만 표시한다. */
+/**
+ * 승인된 규준이 있으면 표준화 점수를, 없으면 이론 분포 기반 추정치(EstimatedResult, 라벨·신뢰구간·한계 고지 포함)를 표시한다.
+ * 완료되지 않았거나 점수를 계산할 수 없는 실행만 참여 기록 화면으로 남는다.
+ */
 export function PilotResult({ result, locale, imageAlt }: PilotResultProps) {
   const korean = locale === "ko";
   if (result.status === "standardized_scored") {
     return <StandardizedResult score={result.score} locale={locale} imageAlt={imageAlt} />;
+  }
+  if (result.status === "estimated_scored") {
+    return <EstimatedResult score={result.score} locale={locale} imageAlt={imageAlt} />;
   }
   return (
     <section className="space-y-5 border border-ink-700 p-6" aria-labelledby="pilot-result-title">

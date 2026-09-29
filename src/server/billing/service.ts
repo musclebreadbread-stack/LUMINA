@@ -3,6 +3,7 @@ import "server-only";
 import { createHash, createHmac, randomUUID } from "node:crypto";
 import type { PoolClient } from "pg";
 import { serverFeatureFlags } from "@/lib/flags";
+import type { AttributionPayload } from "@/lib/attributionPayload";
 import type { Locale } from "@/i18n/locale";
 import { getSignedInMember } from "@/server/auth/session";
 import { hasRequiredMemberConsents } from "@/server/member/consents";
@@ -11,6 +12,7 @@ import { snapshotOwnProfile } from "@/server/member/profileSnapshot";
 import type { MemberProfile } from "@/server/member/profileSchema";
 import { isOneTimeProductKey, PRODUCT_CATALOG, type OneTimeProductKey, type ProductKey } from "./catalog";
 import { decryptBillingValue, encryptBillingValue, encryptPaymentKey, paymentKeyDigest } from "./crypto";
+import { recordOrderAttribution } from "./orderAttribution";
 import { isSelfServiceRefundEligible } from "./refundPolicy";
 import type { TossPayment } from "./toss";
 import { withBillingTransaction } from "./workerDatabase";
@@ -116,6 +118,8 @@ export interface CreateOrderInput {
   readonly acceptedWithdrawalNotice: true;
   readonly acceptedEuWithdrawalWaiver: boolean;
   readonly countryCode: string | null;
+  /** Already sanitized by the caller (Track D7); stored best-effort, never blocks the order. */
+  readonly attribution?: AttributionPayload | null;
 }
 
 export interface ReconcileOrder {
@@ -251,6 +255,7 @@ export async function createPendingOrder(input: CreateOrderInput): Promise<Creat
        values ($1, 1, $2, $3)`,
       [orderId, snapshot.id, profileFingerprint(snapshot.profile)],
     );
+    await recordOrderAttribution(client, orderId, input.attribution);
 
     const consents = [
       ["purchase_terms", termsVersion],
@@ -506,6 +511,55 @@ export async function getBillingKpiSummary(): Promise<BillingKpiSummary | null> 
     aiCostSharePercent,
     aiEstimatedRequests30d,
   };
+}
+
+export interface BillingChannelRow {
+  readonly source: string;
+  readonly landingPath: string;
+  readonly paidOrders: number;
+  readonly grossKrw: number;
+  readonly refundedOrders: number;
+}
+
+/**
+ * Track D7: last-30-days paid KRW orders grouped by the first-touch channel they
+ * came from. "(none)" means no UTM tag (organic or direct); "(unattributed)" means
+ * no attribution was recorded at all (the buyer never accepted analytics, or the
+ * order predates this table). Gross amount, not net — refunds are only counted.
+ */
+export async function getBillingChannelSummary(): Promise<readonly BillingChannelRow[] | null> {
+  if (!billingStorageReady()) return null;
+  return withBillingTransaction(async (client) => {
+    const result = await client.query<{
+      source: string;
+      landing_path: string;
+      paid_orders: number;
+      gross_krw: string;
+      refunded_orders: number;
+    }>(
+      `select coalesce(a.utm_source, '(none)') as source,
+              coalesce(a.landing_path, '(unattributed)') as landing_path,
+              count(*)::int as paid_orders,
+              coalesce(sum(o.amount), 0)::text as gross_krw,
+              count(*) filter (where o.status in ('refunded', 'partially_refunded'))::int as refunded_orders
+         from billing.orders o
+         left join billing.order_attribution a on a.order_id = o.id
+        where o.currency = 'KRW'
+          and o.paid_at >= now() - interval '30 days'
+          and o.paid_at <= now()
+          and o.status in ('paid', 'refunding', 'refunded', 'partially_refunded')
+        group by 1, 2
+        order by sum(o.amount) desc, count(*) desc
+        limit 40`,
+    );
+    return result.rows.map((row) => ({
+      source: row.source,
+      landingPath: row.landing_path,
+      paidOrders: Math.max(0, row.paid_orders),
+      grossKrw: Math.max(0, Number(row.gross_krw) || 0),
+      refundedOrders: Math.max(0, row.refunded_orders),
+    }));
+  });
 }
 
 export type AppliedPaymentEvent = "applied" | "duplicate" | "ignored";

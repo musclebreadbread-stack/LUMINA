@@ -4,7 +4,7 @@ import { getLocale } from "next-intl/server";
 import { intlLocale, isLocale } from "@/i18n/locale";
 import { AdminRefundForm } from "@/components/admin/billing/AdminRefundForm";
 import { getAdminAccess } from "@/server/admin/authorization";
-import { getBillingKpiSummary, listBillingAdminOrders } from "@/server/billing/service";
+import { getBillingChannelSummary, getBillingKpiSummary, listBillingAdminOrders } from "@/server/billing/service";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Billing operations | LUMINA", robots: { index: false, follow: false } };
@@ -15,9 +15,10 @@ export default async function AdminBillingPage() {
   if (access.role !== "owner") redirect("/admin/analytics");
   const localeValue = await getLocale();
   const locale = isLocale(localeValue) ? localeValue : "ko";
-  const [orders, kpis] = await Promise.all([
+  const [orders, kpis, channels] = await Promise.all([
     listBillingAdminOrders().catch(() => null),
     getBillingKpiSummary().catch(() => null),
+    getBillingChannelSummary().catch(() => null),
   ]);
   return (
     <main className="mx-auto w-full max-w-7xl px-5 py-10 sm:px-8">
@@ -53,6 +54,45 @@ export default async function AdminBillingPage() {
                 " · 추정 AI 요청: " + (kpis.aiEstimatedRequests30d ?? "—") + "건"}
           </p>
         </div>
+      ) : null}
+      {channels !== null ? (
+        <section className="mt-8" aria-label={locale !== "ko" ? "Revenue by channel" : "채널별 매출"}>
+          <h2 className="text-sm font-medium text-hobun">{locale !== "ko" ? "Revenue by channel · 30 days" : "채널별 매출 · 최근 30일"}</h2>
+          <p className="mt-1 text-[11px] leading-5 text-hobun-faint">
+            {locale !== "ko"
+              ? "First-touch channel of paid KRW orders, gross of refunds. \"(none)\" = no UTM tag (organic or direct); \"(unattributed)\" = no attribution recorded (analytics not accepted, or an order from before this report)."
+              : "결제된 KRW 주문의 첫 유입 채널(환불 차감 전 총액)입니다. \"(none)\" = UTM 태그 없음(오가닉·직접 유입), \"(unattributed)\" = 유입 정보 없음(분석 동의 미수락 또는 이 집계 이전 주문)."}
+          </p>
+          {channels.length === 0 ? (
+            <p className="mt-3 text-xs text-hobun-dim">{locale !== "ko" ? "No paid orders in the last 30 days." : "최근 30일 결제 주문이 없습니다."}</p>
+          ) : (
+            <div className="mt-3 overflow-x-auto">
+              <table className="w-full border-collapse text-left text-xs">
+                <caption className="sr-only">{locale !== "ko" ? "Paid orders by first-touch channel" : "첫 유입 채널별 결제 주문"}</caption>
+                <thead>
+                  <tr className="border-y border-ink-700 text-hobun-faint">
+                    <th scope="col" className="py-3 pr-4">{locale !== "ko" ? "Source" : "유입원"}</th>
+                    <th scope="col" className="py-3 pr-4">{locale !== "ko" ? "Landing page" : "랜딩 페이지"}</th>
+                    <th scope="col" className="py-3 pr-4">{locale !== "ko" ? "Paid orders" : "결제 건수"}</th>
+                    <th scope="col" className="py-3 pr-4">{locale !== "ko" ? "Gross" : "총 결제액"}</th>
+                    <th scope="col" className="py-3">{locale !== "ko" ? "Refunded" : "환불 건수"}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {channels.map((row) => (
+                    <tr key={`${row.source}|${row.landingPath}`} className="border-b border-ink-800 text-hobun-dim">
+                      <td className="py-3 pr-4 font-mono">{row.source}</td>
+                      <td className="py-3 pr-4 font-mono">{row.landingPath}</td>
+                      <td className="py-3 pr-4">{row.paidOrders}</td>
+                      <td className="py-3 pr-4">{new Intl.NumberFormat(intlLocale(locale), { style: "currency", currency: "KRW", maximumFractionDigits: 0 }).format(row.grossKrw)}</td>
+                      <td className="py-3">{row.refundedOrders}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       ) : null}
       {orders === null ? (
         <p className="mt-8 text-sm text-hobun-dim">{locale !== "ko" ? "Billing data is unavailable." : "결제 데이터를 불러올 수 없습니다."}</p>

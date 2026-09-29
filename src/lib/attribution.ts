@@ -5,9 +5,13 @@
  * 방문이 대부분일 것이므로, source/medium/campaign보다 landingPath(어느 페이지로
  * 들어왔는지)가 더 자주·더 값지게 채워지는 신호다.
  *
- * 지금은 세션스토리지에만 남긴다 — 결제 흐름(CheckoutButton, /api/billing/orders)에
- * 실어 보내는 배선과 서버 저장(billing.order_attribution)은 별도 후속 작업이다.
+ * 캡처 자체는 세션스토리지에만 남으므로 동의와 무관하게 항상 실행된다. 서버로
+ * 나가는 것은 getCheckoutAttribution()뿐이고, 그건 분석 동의를 "수락"한 방문자에게만,
+ * 정제를 거친 값으로만 결제 요청에 실린다(billing.order_attribution, Track D7).
  */
+
+import { loadConsent } from "./consent";
+import { sanitizeAttribution, type AttributionPayload } from "./attributionPayload";
 
 export interface StoredAttribution {
   readonly source: string | null;
@@ -47,4 +51,16 @@ export function getStoredAttribution(): StoredAttribution | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * 결제 요청에 실을 유입 경로. 저장된 값이 있어도 분석 동의를 명시적으로 수락하지
+ * 않았다면(거부 또는 미선택) 아무것도 내보내지 않는다 — 이 값은 주문 기록에 붙어
+ * 서버 DB에 남기 때문이다. 서버도 같은 정제 함수로 다시 거른다.
+ */
+export function getCheckoutAttribution(): AttributionPayload | null {
+  if (loadConsent() !== "accepted") return null;
+  const stored = getStoredAttribution();
+  if (!stored) return null;
+  return sanitizeAttribution(stored);
 }

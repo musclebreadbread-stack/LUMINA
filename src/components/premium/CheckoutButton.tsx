@@ -5,6 +5,7 @@ import Link from "next/link";
 import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import { z } from "zod";
 import { localePath, type Locale } from "@/i18n/locale";
+import { getCheckoutAttribution } from "@/lib/attribution";
 import { getProfileSnapshot } from "@/lib/profile";
 import { trackPremiumReportEvent } from "@/lib/premiumReportAnalytics";
 
@@ -46,6 +47,7 @@ export function CheckoutButton({ locale, isEuCountry }: CheckoutButtonProps) {
       // one — the server only uses this to bootstrap a saved profile if the account has
       // none yet, so this never overwrites a profile the member already saved (Track C2).
       const localProfile = getProfileSnapshot();
+      const attribution = getCheckoutAttribution();
       const response = await fetch("/api/billing/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -56,6 +58,7 @@ export function CheckoutButton({ locale, isEuCountry }: CheckoutButtonProps) {
           acceptedWithdrawalNotice: true,
           acceptedEuWithdrawalWaiver: euWaiver,
           ...(localProfile ? { profileSnapshot: localProfile } : {}),
+          ...(attribution ? { attribution } : {}),
         }),
       });
       const value: unknown = await response.json().catch(() => null);

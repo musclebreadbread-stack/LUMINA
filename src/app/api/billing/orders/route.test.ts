@@ -134,6 +134,43 @@ describe("POST /api/billing/orders", () => {
     expect(createPendingOrderMock).toHaveBeenCalledTimes(2);
   });
 
+  it("re-sanitizes attribution on the server instead of trusting the client's values", async () => {
+    createPendingOrderMock.mockResolvedValue(CREATED_ORDER);
+    const response = await POST(orderRequest({
+      ...VALID_BODY,
+      attribution: {
+        source: "Naver",
+        medium: "person@example.com",
+        campaign: null,
+        landingPath: "/r/N4IgdghgtgpiBcIAuACAMgSwEZgDQBcB7ATwFsAaAQQ",
+      },
+    }));
+    expect(response.status).toBe(200);
+    expect(createPendingOrderMock).toHaveBeenCalledWith(expect.objectContaining({
+      attribution: { source: "naver", medium: null, campaign: null, landingPath: "/r/[data]" },
+    }));
+  });
+
+  it("passes no attribution when the client sent none", async () => {
+    createPendingOrderMock.mockResolvedValue(CREATED_ORDER);
+    await POST(orderRequest(VALID_BODY));
+    expect(createPendingOrderMock).toHaveBeenCalledWith(expect.objectContaining({ attribution: null }));
+  });
+
+  it("rejects an attribution block with unexpected fields or a wrong shape", async () => {
+    const extraField = await POST(orderRequest({
+      ...VALID_BODY,
+      attribution: { source: null, medium: null, campaign: null, landingPath: "/", email: "a@b.c" },
+    }));
+    expect(extraField.status).toBe(400);
+    const wrongType = await POST(orderRequest({
+      ...VALID_BODY,
+      attribution: { source: 5, medium: null, campaign: null, landingPath: "/" },
+    }));
+    expect(wrongType.status).toBe(400);
+    expect(createPendingOrderMock).not.toHaveBeenCalled();
+  });
+
   it("maps an authentication error to 401 without attempting a profile fallback", async () => {
     createPendingOrderMock.mockRejectedValue(new BillingAccessError("authentication_required"));
     const response = await POST(orderRequest({ ...VALID_BODY, profileSnapshot: VALID_PROFILE }));

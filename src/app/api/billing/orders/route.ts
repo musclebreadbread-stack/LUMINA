@@ -6,6 +6,7 @@ import { captureServerError } from "@/server/observability/captureServerError";
 import { claimOwnLocalData } from "@/server/member/dal";
 import { memberProfileSchema } from "@/server/member/profileSchema";
 import { LOCALES } from "@/i18n/locale";
+import { sanitizeAttribution } from "@/lib/attributionPayload";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,6 +21,14 @@ const orderSchema = z.object({
   // their browser (from the free analysis) but never explicitly saved one to
   // their account. Only ever used as a one-time fallback — see the retry below.
   profileSnapshot: memberProfileSchema.optional(),
+  // Track D7: first-touch channel. The values here are only bounded, not trusted —
+  // sanitizeAttribution() below re-normalizes every field before anything is stored.
+  attribution: z.object({
+    source: z.string().max(200).nullable(),
+    medium: z.string().max(200).nullable(),
+    campaign: z.string().max(200).nullable(),
+    landingPath: z.string().max(512),
+  }).strict().optional(),
 }).strict();
 
 function response(status: number, error: string): Response {
@@ -42,7 +51,9 @@ export async function POST(request: Request): Promise<Response> {
   if (!/^application\/json(?:\s*;|$)/iu.test(request.headers.get("content-type") ?? "")) {
     return response(415, "json_required");
   }
-  const body = await readBoundedJson(request, 2_048);
+  // A saved birth profile (place labels up to 100 chars each, multi-byte in Korean) plus
+  // the optional attribution block can exceed the earlier 2 KiB ceiling.
+  const body = await readBoundedJson(request, 4_096);
   if (!body.ok) return response(body.status, body.status === 413 ? "request_too_large" : "invalid_request");
   const parsed = orderSchema.safeParse(body.value);
   if (!parsed.success) return response(400, "invalid_request");
@@ -54,6 +65,7 @@ export async function POST(request: Request): Promise<Response> {
     acceptedWithdrawalNotice: parsed.data.acceptedWithdrawalNotice,
     acceptedEuWithdrawalWaiver: parsed.data.acceptedEuWithdrawalWaiver,
     countryCode: country && /^[A-Z]{2}$/u.test(country) ? country : null,
+    attribution: parsed.data.attribution ? sanitizeAttribution(parsed.data.attribution) : null,
   };
   try {
     let order;

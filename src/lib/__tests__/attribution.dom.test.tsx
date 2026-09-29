@@ -1,5 +1,50 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
-import { captureFirstTouchAttribution, getStoredAttribution } from "../attribution";
+import { captureFirstTouchAttribution, getCheckoutAttribution, getStoredAttribution } from "../attribution";
+import { saveConsent } from "../consent";
+
+describe("결제 요청에 싣는 유입 경로 (Track D7)", () => {
+  beforeEach(() => {
+    window.sessionStorage.clear();
+    window.localStorage.clear();
+  });
+
+  function captureSample(): void {
+    captureFirstTouchAttribution({ search: "?utm_source=Naver&utm_medium=organic", pathname: "/saju/2027/dragon" });
+  }
+
+  it("분석 동의를 수락한 방문자에게만 정제된 값을 돌려준다", () => {
+    captureSample();
+    saveConsent("accepted");
+    expect(getCheckoutAttribution()).toEqual({
+      source: "naver",
+      medium: "organic",
+      campaign: null,
+      landingPath: "/saju/2027/dragon",
+    });
+  });
+
+  it("동의를 거부했다면 저장된 값이 있어도 아무것도 내보내지 않는다", () => {
+    captureSample();
+    saveConsent("rejected");
+    expect(getCheckoutAttribution()).toBeNull();
+  });
+
+  it("동의를 아직 선택하지 않았다면 아무것도 내보내지 않는다", () => {
+    captureSample();
+    expect(getCheckoutAttribution()).toBeNull();
+  });
+
+  it("수락했더라도 저장된 유입 경로가 없으면 null이다", () => {
+    saveConsent("accepted");
+    expect(getCheckoutAttribution()).toBeNull();
+  });
+
+  it("생년월일이 실린 결과 페이지 경로는 그대로 나가지 않고 자리표시자로 바뀐다", () => {
+    captureFirstTouchAttribution({ search: "", pathname: "/r/N4IgdghgtgpiBcIAuACAMgSwEZgDQBcB7ATwFsAaAQQ" });
+    saveConsent("accepted");
+    expect(getCheckoutAttribution()?.landingPath).toBe("/r/[data]");
+  });
+});
 
 describe("첫 터치 귀속 캡처", () => {
   beforeEach(() => window.sessionStorage.clear());

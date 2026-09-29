@@ -15,7 +15,7 @@ import { scanInsertsByRole } from "./lib/insertColumnScanner";
 // actual server source, so it fails again if either regresses.
 
 const MIGRATIONS_DIR = fileURLToPath(new URL("../../../neon/migrations/", import.meta.url));
-const SERVER_SRC_DIR = fileURLToPath(new URL("../../", import.meta.url)); // src/server
+const SERVER_SRC_DIR = fileURLToPath(new URL("../../", import.meta.url)); // src/ (the scan covers app routes too)
 
 function readMigrationsInApplyOrder(): string[] {
   return readdirSync(MIGRATIONS_DIR)
@@ -71,6 +71,27 @@ describe("database grants match the insert statements the server actually runs",
       }
     }
     expect(rolesSeen).toEqual(new Set(["lumina_member_app", "lumina_billing_worker", "lumina_ai_worker"]));
+  });
+});
+
+describe("inserts issued through a client handed in by the caller", () => {
+  // The scanner attributes an insert to a role by finding the with*Transaction(...) call that
+  // textually encloses it. recordOrderAttribution() receives its client as a parameter, so its
+  // insert has no enclosing helper in its own file and would otherwise go unchecked — the exact
+  // gap that let the receipt_locale grant bug ship. It always runs inside createPendingOrder's
+  // withMemberTransaction, so it is checked here as if wrapped by that helper.
+  it("covers billing.order_attribution with lumina_member_app's grants", () => {
+    const model = buildGrantModel(readMigrationsInApplyOrder());
+    const helperSource = readFileSync(`${SERVER_SRC_DIR}server/billing/orderAttribution.ts`, "utf8");
+    const inserts = scanInsertsByRole(`withMemberTransaction(async (client) => { ${helperSource} })`);
+
+    expect(inserts).toHaveLength(1);
+    const [insert] = inserts;
+    expect(insert?.table).toBe("billing.order_attribution");
+    expect(canInsertColumns(model, "lumina_member_app", insert?.table ?? "", insert?.columns ?? [])).toEqual({
+      allowed: true,
+      missingColumns: [],
+    });
   });
 });
 

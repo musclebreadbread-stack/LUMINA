@@ -215,7 +215,8 @@ function SceneContent({ palette, frameStep, onContextLost, placement = "center" 
           dpr={[1, PLATFORM_SCENE_BUDGET.maxDevicePixelRatio]}
           camera={{ position: [0, 0, 5.2], fov: 34, near: 0.1, far: 24 }}
           gl={{ antialias: false, alpha: true, powerPreference: "low-power" }}
-          style={{ position: "absolute", inset: 0 }}
+          // R3F 래퍼는 인라인으로 pointer-events:auto를 켜므로, 장식용 레이어가 아래 링크·버튼 클릭을 가로채지 않게 명시한다.
+          style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
         >
           <ContextGuard onContextLost={onContextLost} />
           <ambientLight intensity={0.55} color={palette.tertiary} />

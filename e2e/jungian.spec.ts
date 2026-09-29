@@ -64,7 +64,7 @@ test.describe('MBTI Type Analysis', () => {
   });
 
   test('reuses the IPIP-50 flow and renders six Korean axes', async ({ page, context }) => {
-    test.setTimeout(60_000);
+    test.setTimeout(120_000);
     await setLocaleCookie(context, 'ko');
     await page.goto('/psychometrics?to=types', { timeout: 60_000 });
     await dismissConsentBanner(page);
@@ -101,7 +101,7 @@ test.describe('MBTI Type Analysis', () => {
   });
 
   test('keeps the same response code between Big Five and MBTI result links', async ({ page, context }) => {
-    test.setTimeout(60_000);
+    test.setTimeout(120_000);
     await setLocaleCookie(context, 'en');
     await page.goto('/psychometrics?to=types', { timeout: 60_000 });
     await dismissConsentBanner(page);
@@ -132,7 +132,7 @@ test.describe('MBTI Type Analysis', () => {
   });
 
   test('shares a /s/jungian/<code> link that renders in a brand-new browser context', async ({ page, context, browser }) => {
-    test.setTimeout(60_000);
+    test.setTimeout(120_000);
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     await setLocaleCookie(context, 'en');
     await page.goto('/psychometrics?to=types', { timeout: 60_000 });

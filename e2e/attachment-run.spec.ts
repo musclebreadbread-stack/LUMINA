@@ -24,7 +24,7 @@ async function answerAllNeutral(page: Page): Promise<void> {
 }
 
 test("attachment results use an opaque browser session run", async ({ page, context }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(120_000);
   await setLocaleCookie(context, "ko");
   await page.goto("/attachment");
   await dismissConsentBanner(page);
@@ -44,7 +44,7 @@ test("blocks submission inline — no native alert — until every item is answe
   page,
   context,
 }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(120_000);
   await setLocaleCookie(context, "ko");
 
   // 네이티브 alert()이 다시 들어오면 이 핸들러가 잡아 테스트를 실패시킨다.
@@ -87,7 +87,7 @@ test("shares a /s/attachment/<code> link that survives a fresh browser context, 
   context,
   browser,
 }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(120_000);
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await setLocaleCookie(context, "ko");
   await page.goto("/attachment");

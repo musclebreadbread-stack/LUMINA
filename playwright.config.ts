@@ -8,6 +8,8 @@ export default defineConfig({
   // 돌리면 통과한다) — 워커 수를 제한하고 콜드 컴파일 여유를 넉넉히 준다.
   workers: 4,
   timeout: 45_000,
+  // 2코어 CI에서는 배경 3D 장면이 CPU를 나눠 쓰므로 클릭 뒤 화면 전환이 기본 5초를 넘기기도 한다.
+  expect: { timeout: 10_000 },
   retries: 1,
   reporter: [['list'], ['json', { outputFile: 'playwright-report/results.json' }]],
   use: {

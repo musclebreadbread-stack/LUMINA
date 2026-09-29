@@ -78,3 +78,18 @@ Railway의 프로젝트 구성은 현재 IaC(TypeScript) 방식으로 관리할 
 - 검증: 원장 17행과 새 3행 체크섬 일치, 새 테이블 2개의 RLS 활성·강제, 정책 5개, 컬럼·테이블 권한의 허용/차단(`lumina_member_app`의 `receipt_locale` insert 허용, `order_attribution` select·`created_at` insert 차단 등)을 카탈로그 조회로 확인했다. 기존 데이터는 변경하지 않았고 새 테이블 2개와 컬럼 grant 1개만 추가했다.
 - 주의: 이 3개 파일은 PR #5 머지 전까지 `master`에 없다. 그 사이 `master` 체크아웃에서 `db:neon:migrate`를 실행하면 "Migration ledger contains an unknown file"로 중단되므로, 머지 후 또는 이 브랜치에서 실행한다.
 - 코드 배포(`web`, `cron-10min`, `cron-daily`)는 아직 하지 않았다. Railway 운영 웹은 `31a9323` 그대로다.
+
+## 2026-09-29 수익화 실행 계획 운영 코드 배포
+
+- 배포 대상은 `master` 머지 커밋 `1b1550d`(PR #5)이며, 앞 섹션의 운영 DB 마이그레이션 3개(20261006~08)가 이미 적용된 상태에서 진행했다. 배포 전 `railway run --service web --environment production -- node scripts/railway-preflight.mjs`가 통과했다(9개 성장 게이트, Sentry 미설정·결제 비활성 경고 2건은 의도된 현재 상태).
+- 배포는 `railway up --ci`로 `web` → `cron-10min` → `cron-daily` 순서로 실행했다. 결과는 모두 `SUCCESS`이며 이전 배포 3건은 `REMOVED`가 됐다.
+
+| 서비스 | 새 배포 ID | 생성(UTC) |
+| --- | --- | --- |
+| `web` | `1c16d9cf-63e0-44ce-9e78-ec7cfcb11e9a` | 02:01 |
+| `cron-10min` | `6e55fa63-25ea-47ff-923f-dcaf3254b399` | 02:05 |
+| `cron-daily` | `c5d79ac4-3abc-4d51-826b-30701b1d4238` | 02:07 |
+
+- 검증: `web` 시작 로그에서 production preflight 통과와 Next 서버 준비를 확인했다. `railway-smoke`는 `lumina.jack.ai.kr`에서 19/19 통과했고 분석 이벤트는 보내지 않았다. `GET /pricing`은 200(2회)이었다. 배포 후 web 로그의 error 등급 행은 0건이었다.
+- `cron-10min`은 새 이미지에서 02:10 UTC 예약 실행이 `run_started`로 시작됐다. 결제 영수증·대사, AI 서술 등은 기능 플래그가 꺼져 있어 `skippedTasks`로 기록됐다. 실행 완료(`run_completed`)와 다음 `cron-daily` 17:00 UTC 롤업은 아직 관찰 전이다. cron 스케줄 문자열은 이번에 다시 읽지 못했으므로(CLI 조회에 표시되지 않음) 이전 기록(`*/10 * * * *`, `0 17 * * *`)을 그대로 따른다.
+- 이번 작업에서 DB 마이그레이션, Railway 환경 변수, 기능 플래그는 변경하지 않았다.

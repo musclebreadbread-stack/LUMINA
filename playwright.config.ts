@@ -25,5 +25,13 @@ export default defineConfig({
     url: 'http://localhost:3000',
     reuseExistingServer: true,
     timeout: 60_000,
+    // 개인 결과(사주·궁합) 세션은 사이트 origin과 암호화 키가 없으면 의도적으로 503으로 닫힌다.
+    // CI에는 .env가 없으므로 e2e 서버에만 테스트 전용 값을 준다. 아래 키는 비밀이 아니며
+    // 운영·스테이징 값과 무관하다.
+    env: {
+      NEXT_PUBLIC_SITE_URL: 'http://localhost:3000',
+      APP_ENV: 'development',
+      REPORT_SESSION_ENCRYPTION_KEY: '00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff',
+    },
   },
 });

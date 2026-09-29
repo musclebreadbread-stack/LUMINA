@@ -4,6 +4,7 @@ import { getLocale } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { SignInPanel } from "@/components/account/SignInPanel";
 import { isLocale, localePath } from "@/i18n/locale";
+import { sanitizeReturnTo } from "@/lib/returnTo";
 import { getMemberAuthCaptchaSiteKey, getMemberSocialProviders, isMemberAuthConfigured } from "@/server/auth";
 
 export const metadata: Metadata = {
@@ -11,10 +12,16 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function AccountSignInPage() {
-  const localeValue = await getLocale();
+export default async function AccountSignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const [localeValue, query] = await Promise.all([getLocale(), searchParams]);
   const locale = isLocale(localeValue) ? localeValue : "ko";
   const available = isMemberAuthConfigured();
+  const rawReturnTo = query.returnTo;
+  const returnTo = sanitizeReturnTo(Array.isArray(rawReturnTo) ? rawReturnTo[0] : rawReturnTo);
 
   return (
     <main className="mx-auto w-full max-w-2xl px-5 pb-24 sm:px-8">
@@ -28,6 +35,7 @@ export default async function AccountSignInPage() {
             locale={locale}
             providers={getMemberSocialProviders()}
             captchaSiteKey={getMemberAuthCaptchaSiteKey() ?? ""}
+            returnTo={returnTo}
           />
         ) : (
           <section className="border border-ink-700 bg-ink-900/40 p-5 sm:p-7">

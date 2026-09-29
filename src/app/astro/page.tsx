@@ -4,25 +4,30 @@ import { getTranslations } from "next-intl/server";
 import { BirthForm } from "@/components/BirthForm";
 import { RestoreFromStorage } from "@/components/report/RestoreFromStorage";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
+import { Breadcrumbs } from "@/components/seo/Breadcrumbs";
 import { TierBadge } from "@/components/ui/Chrome";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { AnalysisEntryTracker } from "@/components/analytics/AnalysisTracker";
 import { ASTRO_OVERVIEW_IMAGE } from "@/lib/astroAssets";
+import { buildAlternates } from "@/lib/seoAlternates";
 
 /**
- * "내 결과 다시 보기" 입구 — astro 판.
+ * "내 결과 다시 보기" 입구이자 "/astro"의 색인 대상 랜딩이기도 하다 — astro 판.
  *
  * 결과는 /r/[encoded]/astro 에 있다. saju/page.tsx 와 같은 출생 정보를 쓰므로
  * 저장·인코딩 메커니즘은 그대로 재사용하고, 되돌아갈 주소만 astro 로 갈라진다.
+ *
+ * 색인: BirthForm 위에 정적 설명 콘텐츠가 있어야 얇은 콘텐츠로 보이지 않는다
+ * (docs/SEO-ADSENSE-READINESS.md). 실제 결과 페이지의 noindex 정책은 그대로 둔다.
  */
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("astro");
-  return { title: t("entryTitle"), robots: { index: false } };
+  return { title: t("entryTitle"), alternates: await buildAlternates("/astro") };
 }
 
 export default async function AstroEntryPage() {
-  const t = await getTranslations("astro");
+  const [t, tNav] = await Promise.all([getTranslations("astro"), getTranslations("nav")]);
   return (
     <SceneShell>
       <AnalysisEntryTracker analysis="astro" />
@@ -36,6 +41,7 @@ export default async function AstroEntryPage() {
           <TierBadge tier="cultural" />
         </div>
       </header>
+      <Breadcrumbs label={tNav("breadcrumb")} items={[{ href: "/", label: "LUMINA" }, { label: t("entryTitle") }]} />
       <RestoreFromStorage redirectSuffix="/astro" />
       <section className="border-t border-ink-700 py-12" aria-labelledby="new-astro-heading">
         <div className="grid items-center gap-8 sm:grid-cols-[minmax(0,1fr)_minmax(180px,0.48fr)]">
@@ -57,6 +63,27 @@ export default async function AstroEntryPage() {
         <div className="mt-8">
           <BirthForm resultSuffix="/astro" submitLabel={t("submit")} />
         </div>
+      </section>
+
+      <section className="border-t border-ink-700 py-8">
+        <h2 className="text-lg font-medium text-hobun">{t("publicIntroHeading")}</h2>
+        <p className="mt-4 text-sm leading-relaxed text-hobun-dim">{t("publicIntroBody")}</p>
+      </section>
+
+      <section className="border-t border-ink-700 py-8">
+        <h2 className="text-lg font-medium text-hobun">{t("publicCalcHeading")}</h2>
+        <p className="mt-4 text-sm leading-relaxed text-hobun-dim">{t("publicCalcBody")}</p>
+      </section>
+
+      <section className="border-t border-ink-700 py-8">
+        <h2 className="text-lg font-medium text-hobun">{t("publicEvidenceHeading")}</h2>
+        <p className="mt-4 text-sm leading-relaxed text-hobun-dim">{t("publicEvidenceBody")}</p>
+        <Link
+          href="/methodology"
+          className="mt-4 inline-flex min-h-11 items-center border border-ink-700 px-4 text-sm text-hobun-dim underline underline-offset-4 hover:border-hobun hover:text-hobun"
+        >
+          {t("publicMethodologyCta")}
+        </Link>
       </section>
       </main>
     </SceneShell>

@@ -4,14 +4,14 @@ import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
 import { isLocale, localePath, type Locale } from "@/i18n/locale";
-import { computeSaju } from "@engine/saju";
-import { buildYearForecast } from "@engine/saju/yearForecast";
-import { BillingAccessError, hasOwnEntitlement, markOwnEntitlementViewed } from "@/server/billing/service";
+import { BillingAccessError, hasOwnEntitlement } from "@/server/billing/service";
 import { isMemberAuthConfigured } from "@/server/auth";
 import { getSignedInMember } from "@/server/auth/session";
-import { MemberAccessError, getOwnProfile } from "@/server/member/dal";
+import { MemberAccessError } from "@/server/member/dal";
 import type { MemberProfile } from "@/server/member/profileSchema";
-import { isAIReportingEnabled } from "@/server/ai/settings";
+import { isAIReportingEnabled, isYearForecastExpertReviewApproved } from "@/server/ai/settings";
+import { forecastFromProfile } from "@/server/premium/forecastFromProfile";
+import { getOwnBoundProfile, getOwnPendingReportOpenOrderId } from "@/server/premium/reportContext";
 import { NarrativeChapters } from "@/components/premium/NarrativeChapters";
 
 export const dynamic = "force-dynamic";
@@ -25,14 +25,9 @@ function reportRoute(locale: Locale, path: string): string {
 }
 
 function createForecast(profile: MemberProfile) {
-  return buildYearForecast(computeSaju({
-    date: { year: profile.year, month: profile.month, day: profile.day },
-    calendar: profile.calendar,
-    isLeapMonth: profile.isLeapMonth,
-    ...(profile.hour !== null && profile.minute !== null ? { time: { hour: profile.hour, minute: profile.minute } } : {}),
-    place: { lat: profile.lat, lng: profile.lng, label: profile.placeLabel, timeZone: profile.timeZone },
-    gender: profile.gender,
-  }, { dayBoundaryRule: profile.dayBoundaryRule }));
+  return forecastFromProfile(profile, {
+    expertReviewStatus: isYearForecastExpertReviewApproved() ? "approved" : "pending",
+  });
 }
 
 function profileRequiredError(error: unknown): boolean {
@@ -43,34 +38,68 @@ function billingUnavailableError(error: unknown): boolean {
   return error instanceof BillingAccessError;
 }
 
+function ReportOpenGate({ orderId, locale, basePath }: { orderId: string; locale: Locale; basePath: string }) {
+  return (
+    <main className="mx-auto w-full max-w-2xl px-5 pb-24 sm:px-8">
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-ink-700 py-5">
+        <Link href={basePath} className="font-mono text-xs tracking-[0.28em] text-hobun">LUMINA</Link>
+        <LocaleSwitcher />
+      </header>
+      <section className="py-10">
+        <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-hobun">2027 · SAJU YEAR REPORT</p>
+        <h1 className="mt-4 text-2xl font-medium tracking-tight text-hobun sm:text-4xl">
+          {locale !== "ko" ? "Open your report" : "리포트를 여시겠어요?"}
+        </h1>
+        <p className="mt-4 max-w-xl text-sm leading-7 text-hobun-dim">
+          {locale !== "ko"
+            ? "This report is digital content. Opening it now begins delivery, and the legal right to withdraw this purchase ends immediately — even if the standard withdrawal window has not passed yet."
+            : "이 리포트는 디지털 콘텐츠입니다. 지금 열람하면 콘텐츠 제공이 시작되며, 통상적인 청약철회 기간이 남아 있더라도 이 구매에 대한 청약철회권이 즉시 소멸합니다."}
+        </p>
+        <form action={`/api/billing/orders/${orderId}/open`} method="POST" className="mt-8">
+          <button
+            type="submit"
+            className="inline-flex min-h-11 items-center justify-center border border-hobun bg-hobun px-5 text-sm font-medium text-ink-950 transition-opacity hover:opacity-85"
+          >
+            {locale !== "ko" ? "I understand — open the report" : "확인했습니다 — 리포트 열기"}
+          </button>
+        </form>
+      </section>
+    </main>
+  );
+}
+
 export default async function Saju2027ReportPage() {
   const localeValue = await getLocale();
   const locale = isLocale(localeValue) ? localeValue : "ko";
   const basePath = reportRoute(locale, "/premium/saju-2027");
-  if (!isMemberAuthConfigured()) redirect(reportRoute(locale, "/account/sign-in"));
+  const signInPath = `${reportRoute(locale, "/account/sign-in")}?returnTo=${encodeURIComponent(reportRoute(locale, "/premium/saju-2027/report"))}`;
+  if (!isMemberAuthConfigured()) redirect(signInPath);
   const session = await getSignedInMember();
-  if (!session) redirect(reportRoute(locale, "/account/sign-in"));
+  if (!session) redirect(signInPath);
 
   let profile: MemberProfile | null;
   try {
-    profile = await getOwnProfile();
+    profile = await getOwnBoundProfile("saju-2027");
   } catch (error) {
-    if (profileRequiredError(error)) redirect(reportRoute(locale, "/account/sign-in"));
+    if (profileRequiredError(error)) redirect(signInPath);
     redirect(reportRoute(locale, "/account"));
   }
   if (!profile) redirect(reportRoute(locale, "/account"));
 
   let entitled = false;
   try {
-    entitled = await hasOwnEntitlement();
+    entitled = await hasOwnEntitlement("saju-2027");
   } catch (error) {
     if (billingUnavailableError(error)) redirect(basePath);
     redirect(basePath);
   }
   if (!entitled) redirect(basePath);
 
-  const viewed = await markOwnEntitlementViewed();
-  if (!viewed) redirect(basePath);
+  const pendingOpenOrderId = await getOwnPendingReportOpenOrderId("saju-2027").catch(() => null);
+  if (pendingOpenOrderId) {
+    return <ReportOpenGate orderId={pendingOpenOrderId} locale={locale} basePath={basePath} />;
+  }
+
   const forecast = createForecast(profile);
   const textLocale = locale !== "ko" ? "en" : "ko";
 
@@ -111,7 +140,9 @@ export default async function Saju2027ReportPage() {
       </div>
       {isAIReportingEnabled() ? <NarrativeChapters locale={textLocale} /> : null}
       <p className="mt-7 text-xs leading-6 text-hobun-faint">
-        {locale !== "ko" ? "Expert review status: pending." : "전문가 검수 상태: 대기 중."}
+        {forecast.expertReviewStatus === "approved"
+          ? (locale !== "ko" ? "Expert review status: approved." : "전문가 검수 상태: 승인됨.")
+          : (locale !== "ko" ? "Expert review status: pending." : "전문가 검수 상태: 대기 중.")}
       </p>
     </main>
   );

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import { z } from "zod";
 import { localePath, type Locale } from "@/i18n/locale";
+import { getCheckoutAttribution } from "@/lib/attribution";
+import { getProfileSnapshot } from "@/lib/profile";
 import { trackPremiumReportEvent } from "@/lib/premiumReportAnalytics";
 
 const orderResponseSchema = z.object({
@@ -20,19 +22,20 @@ const orderResponseSchema = z.object({
 
 interface CheckoutButtonProps {
   readonly locale: Locale;
+  /** Server-resolved from the cf-ipcountry header (Track C5's EU_COUNTRIES check) — the EU waiver checkbox only makes sense, and is only required, for a visitor it actually applies to. */
+  readonly isEuCountry: boolean;
 }
 
 type CheckoutError = "authentication_required" | "consent_required" | "payment_state_invalid" | "billing_unavailable" | "profile_required";
 
-export function CheckoutButton({ locale }: CheckoutButtonProps) {
-  const [terms, setTerms] = useState(false);
-  const [withdrawalNotice, setWithdrawalNotice] = useState(false);
+export function CheckoutButton({ locale, isEuCountry }: CheckoutButtonProps) {
+  const [allAgreed, setAllAgreed] = useState(false);
   const [euWaiver, setEuWaiver] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<CheckoutError | null>(null);
 
   async function startCheckout(): Promise<void> {
-    if (!terms || !withdrawalNotice) {
+    if (!allAgreed || (isEuCountry && !euWaiver)) {
       setError("payment_state_invalid");
       return;
     }
@@ -40,6 +43,11 @@ export function CheckoutButton({ locale }: CheckoutButtonProps) {
     setPending(true);
     try {
       trackPremiumReportEvent("premium_report_checkout_start");
+      // Purchase with the profile already entered for the free analysis, when there is
+      // one — the server only uses this to bootstrap a saved profile if the account has
+      // none yet, so this never overwrites a profile the member already saved (Track C2).
+      const localProfile = getProfileSnapshot();
+      const attribution = getCheckoutAttribution();
       const response = await fetch("/api/billing/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -49,6 +57,8 @@ export function CheckoutButton({ locale }: CheckoutButtonProps) {
           acceptedPurchaseTerms: true,
           acceptedWithdrawalNotice: true,
           acceptedEuWithdrawalWaiver: euWaiver,
+          ...(localProfile ? { profileSnapshot: localProfile } : {}),
+          ...(attribution ? { attribution } : {}),
         }),
       });
       const value: unknown = await response.json().catch(() => null);
@@ -81,20 +91,23 @@ export function CheckoutButton({ locale }: CheckoutButtonProps) {
 
   return (
     <div className="mt-5 max-w-xl border border-hobun/30 bg-ink-950/60 p-5">
-      <fieldset className="space-y-3 text-xs leading-relaxed text-hobun-dim" disabled={pending}>
+      <div className="border border-amber-500/40 bg-amber-500/10 p-3 text-xs leading-relaxed text-hobun-dim">
+        {locale !== "ko"
+          ? "This is digital content. Once your report is opened, the legal right to withdraw this purchase ends immediately."
+          : "이 상품은 디지털 콘텐츠입니다. 리포트를 열람하면 이 구매에 대한 청약철회권이 즉시 소멸합니다."}
+      </div>
+      <fieldset className="mt-3 space-y-3 text-xs leading-relaxed text-hobun-dim" disabled={pending}>
         <legend className="sr-only">{locale !== "ko" ? "Purchase notices" : "구매 안내 확인"}</legend>
         <label className="flex gap-3">
-          <input checked={terms} onChange={(event) => setTerms(event.currentTarget.checked)} type="checkbox" className="mt-0.5 accent-hobun" />
-          <span>{locale !== "ko" ? "I agree to the purchase terms." : "구매 약관에 동의합니다."}</span>
+          <input checked={allAgreed} onChange={(event) => setAllAgreed(event.currentTarget.checked)} type="checkbox" className="mt-0.5 accent-hobun" />
+          <span>{locale !== "ko" ? "I agree to the purchase terms and the withdrawal notice above (required)." : "구매 약관과 위 청약철회 안내에 모두 동의합니다. (필수)"}</span>
         </label>
-        <label className="flex gap-3">
-          <input checked={withdrawalNotice} onChange={(event) => setWithdrawalNotice(event.currentTarget.checked)} type="checkbox" className="mt-0.5 accent-hobun" />
-          <span>{locale !== "ko" ? "I understand the digital content and withdrawal notice." : "디지털 콘텐츠 및 청약철회 안내를 확인했습니다."}</span>
-        </label>
-        <label className="flex gap-3">
-          <input checked={euWaiver} onChange={(event) => setEuWaiver(event.currentTarget.checked)} type="checkbox" className="mt-0.5 accent-hobun" />
-          <span>{locale !== "ko" ? "EU consumers: I request immediate digital delivery and acknowledge the applicable withdrawal right may end when delivery begins." : "EU 소비자 해당 시: 즉시 디지털 콘텐츠 제공을 요청하며 제공 개시 후 적용되는 철회권 제한을 확인합니다."}</span>
-        </label>
+        {isEuCountry ? (
+          <label className="flex gap-3">
+            <input checked={euWaiver} onChange={(event) => setEuWaiver(event.currentTarget.checked)} type="checkbox" className="mt-0.5 accent-hobun" />
+            <span>{locale !== "ko" ? "EU consumers: I request immediate digital delivery and acknowledge the applicable withdrawal right may end when delivery begins (required)." : "EU 소비자: 즉시 디지털 콘텐츠 제공을 요청하며 제공 개시 후 적용되는 철회권 제한을 확인합니다. (필수)"}</span>
+          </label>
+        ) : null}
       </fieldset>
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <button
@@ -109,7 +122,10 @@ export function CheckoutButton({ locale }: CheckoutButtonProps) {
           {locale !== "ko" ? "Refund policy" : "환불 안내"}
         </Link>
         {error === "authentication_required" ? (
-        <Link href={localePath("/account/sign-in", locale)} className="text-xs text-hobun underline underline-offset-4">
+        <Link
+          href={`${localePath("/account/sign-in", locale)}?returnTo=${encodeURIComponent(localePath("/premium/saju-2027", locale))}`}
+          className="text-xs text-hobun underline underline-offset-4"
+        >
             {locale !== "ko" ? "Sign in" : "로그인"}
           </Link>
         ) : null}
@@ -128,7 +144,7 @@ export function CheckoutButton({ locale }: CheckoutButtonProps) {
               : error === "payment_state_invalid"
                 ? (locale !== "ko" ? "Review the purchase notice and try again." : "구매 안내를 확인한 뒤 다시 시도해 주세요.")
                 : error === "profile_required"
-                  ? (locale !== "ko" ? "Save your own birth profile before purchasing." : "구매 전에 내 출생 프로필을 계정에 저장해 주세요.")
+                  ? (locale !== "ko" ? "We couldn't find a birth profile to purchase with. Save one to your account first." : "구매에 사용할 출생 프로필을 찾을 수 없습니다. 먼저 계정에 프로필을 저장해 주세요.")
                 : (locale !== "ko" ? "Checkout is unavailable. Please try again later." : "현재 결제를 시작할 수 없습니다. 잠시 후 다시 시도해 주세요.")}
         </p>
       ) : null}

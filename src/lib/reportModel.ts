@@ -63,6 +63,8 @@ export interface PillarColumn {
   readonly mark: string;
   /** 라벨·자리 설명 문구를 고르는 데 쓰는 키 (예: saju.pillarHourLabel) */
   readonly key: "hour" | "day" | "month" | "year";
+  /** 60갑자 순번 0..59. 공유 코드(SajuSummaryV1)가 일주를 되찾는 데 쓴다. */
+  readonly sexagenary: number;
   readonly stem: CharCell;
   readonly branch: CharCell;
   readonly zodiacKo: string;
@@ -291,6 +293,7 @@ function buildPillars(result: SajuResult): PillarColumn[] {
       {
         mark: meta.mark,
         key: meta.key,
+        sexagenary: pillar.sexagenary,
         stem: {
           hanja: stem.hanja,
           ko: stem.ko,

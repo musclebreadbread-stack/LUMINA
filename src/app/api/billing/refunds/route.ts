@@ -9,6 +9,7 @@ import {
   reserveOwnRefund,
 } from "@/server/billing/service";
 import { readBoundedJson } from "@/server/http/readBoundedJson";
+import { captureServerError } from "@/server/observability/captureServerError";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -69,6 +70,7 @@ export async function POST(request: Request): Promise<Response> {
       return response(error.reason === "authentication_required" ? 401 : error.reason === "consent_required" ? 403 : 503, { error: error.reason });
     }
     if (error instanceof BillingInputError) return response(400, { error: error.reason });
+    await captureServerError(error, "billing-refund");
     return response(503, { error: "refund_processing" });
   }
 }

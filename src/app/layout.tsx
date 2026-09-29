@@ -5,13 +5,17 @@ import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import Script from "next/script";
 import { Suspense } from "react";
 import { AnalyticsGate } from "@/components/analytics/AnalyticsGate";
+import { AttributionCapture } from "@/components/analytics/AttributionCapture";
 import { ConsentBanner } from "@/components/ads/ConsentBanner";
 import { BgmControl } from "@/components/audio/BgmControl";
+import { BusinessInfoFooter } from "@/components/commerce/BusinessInfoFooter";
+import { SiteFooterNav } from "@/components/commerce/SiteFooterNav";
 import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
 import { PlatformAtmosphere } from "@/components/scene3d/PlatformAtmosphere";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildAlternates } from "@/lib/seoAlternates";
 import { getSiteUrl } from "@/lib/siteUrl";
+import { isMemberAuthConfigured } from "@/server/auth";
 import { contentLocaleFor, DEFAULT_LOCALE, isLocale, openGraphLocale } from "@/i18n/locale";
 import "./globals.css";
 
@@ -130,11 +134,16 @@ export default async function RootLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <PlatformAtmosphere />
           <div className="lumina-app-shell relative z-10">{children}</div>
+          <SiteFooterNav locale={locale} memberAuthEnabled={isMemberAuthConfigured()} />
+          <BusinessInfoFooter locale={locale} />
+          {/* 오른쪽 아래에 고정된 음악 버튼이 문서 맨 끝의 마지막 링크를 가리지 않게 하는 여백. */}
+          <div aria-hidden="true" className="no-print h-10" />
           <Suspense fallback={null}>
             <BgmControl />
           </Suspense>
           <ConsentBanner />
           <AnalyticsGate />
+          <AttributionCapture />
         </NextIntlClientProvider>
       </body>
     </html>

@@ -4,8 +4,12 @@ import { createHash, createHmac, randomUUID } from "node:crypto";
 import { aiFactsSchema, AI_FACT_SHEET_VERSION, AI_NARRATIVE_PROMPT_VERSION, AI_NARRATIVE_SCHEMA_VERSION, narrativeOutputSchema, type AIFacts, type NarrativeJob, type NarrativeStatus } from "./types";
 import { withAITransaction } from "./database";
 import type { Locale } from "@/i18n/locale";
+import type { OneTimeProductKey } from "@/server/billing/catalog";
 
-const PRODUCT_KEY = "saju-2027";
+// The AI narrative pipeline only exists for this one product today. Typed against
+// the catalog's OneTimeProductKey union, so removing "saju-2027" from the catalog
+// would fail this line at compile time.
+const PRODUCT_KEY: OneTimeProductKey = "saju-2027";
 const USER_GENERATIONS_PER_ENTITLEMENT = 3;
 const USER_GENERATIONS_PER_DAY = 3;
 const USER_GENERATIONS_PER_MONTH = 10;

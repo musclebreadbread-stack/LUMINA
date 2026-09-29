@@ -1,25 +1,22 @@
 import { pathToFileURL } from "node:url";
 import { callRailwayInternalRoute } from "./lib/railwayInternalRequest.mjs";
-import { createRailwayGatedTask, runRailwayCron } from "./lib/railwayCronRun.mjs";
+import { runRailwayCron } from "./lib/railwayCronRun.mjs";
 
-export function createRailwayDailyTasks(environment = process.env) {
+// billing_reconcile used to run here, but a refund stuck on a Toss timeout could sit
+// unrecovered for up to 24 hours on this schedule; it now runs every 10 minutes
+// instead (railway-10min-jobs.mjs) so a stuck refund is retried within minutes.
+export function createRailwayDailyTasks() {
   return [
     {
       name: "analytics_rollup",
       enabled: true,
       run: () => callRailwayInternalRoute("/api/internal/analytics-rollup", "CRON_SECRET", 30_000),
     },
-    createRailwayGatedTask({
-      environment,
-      name: "billing_reconcile",
-      requiredGateVariables: ["BILLING_RECONCILE_ENABLED", "BILLING_LEGAL_DOCUMENTS_APPROVED"],
-      run: () => callRailwayInternalRoute("/api/internal/billing-reconcile", "BILLING_CRON_SECRET", 90_000),
-    }),
   ];
 }
 
-export async function main(environment = process.env) {
-  await runRailwayCron({ schedule: "daily", tasks: createRailwayDailyTasks(environment) });
+export async function main() {
+  await runRailwayCron({ schedule: "daily", tasks: createRailwayDailyTasks() });
 }
 
 const invokedPath = process.argv[1];

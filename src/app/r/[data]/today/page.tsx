@@ -7,6 +7,8 @@ import { computeChart } from "@engine/astro";
 import { branchAt, computeSaju } from "@engine/saju";
 import { EvidenceTable } from "@/components/horoscope/EvidenceTable";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
+import { NextLens } from "@/components/report/NextLens";
+import { PremiumSaleBanner } from "@/components/premium/PremiumSaleBanner";
 import { ShareBar } from "@/components/report/ShareBar";
 import { Disclaimer, Section, TierBadge } from "@/components/ui/Chrome";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
@@ -178,6 +180,8 @@ export default async function PersonalTodayPage({
 
       <AdSlot slot="personal-today-mid" label={tCommon("adLabel")} />
       <ShareBar title={`${signName} · ${tReading("personalizeTitle")}`} restartHref="/horoscope" allowLinkShare={false} />
+      <PremiumSaleBanner />
+      <NextLens analysisKey="horoscope" id="section-next-lens" />
 
       <footer className="border-t border-ink-700 pt-8">
         <Disclaimer tier={reading.tier} />

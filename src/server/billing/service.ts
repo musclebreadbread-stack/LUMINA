@@ -3,15 +3,24 @@ import "server-only";
 import { createHash, createHmac, randomUUID } from "node:crypto";
 import type { PoolClient } from "pg";
 import { serverFeatureFlags } from "@/lib/flags";
+import type { AttributionPayload } from "@/lib/attributionPayload";
 import type { Locale } from "@/i18n/locale";
 import { getSignedInMember } from "@/server/auth/session";
 import { hasRequiredMemberConsents } from "@/server/member/consents";
 import { withMemberTransaction } from "@/server/member/database";
+import { snapshotOwnProfile } from "@/server/member/profileSnapshot";
+import type { MemberProfile } from "@/server/member/profileSchema";
+import { isOneTimeProductKey, PRODUCT_CATALOG, type OneTimeProductKey, type ProductKey } from "./catalog";
 import { decryptBillingValue, encryptBillingValue, encryptPaymentKey, paymentKeyDigest } from "./crypto";
+import { recordOrderAttribution } from "./orderAttribution";
+import { isSelfServiceRefundEligible } from "./refundPolicy";
 import type { TossPayment } from "./toss";
 import { withBillingTransaction } from "./workerDatabase";
 
-const PRODUCT_KEY = "saju-2027";
+// getActiveSaju2027Sale() below is inherently single-product by name and design.
+// Typed against the catalog's OneTimeProductKey union, so removing "saju-2027"
+// from the catalog would fail this line at compile time.
+const PRODUCT_KEY: OneTimeProductKey = "saju-2027";
 
 export class BillingAccessError extends Error {
   constructor(readonly reason: "authentication_required" | "consent_required" | "billing_unavailable") {
@@ -82,6 +91,20 @@ function billingHmacKey(): string {
   return key;
 }
 
+/**
+ * A non-reversible marker of a snapshotted birth profile, stored alongside
+ * billing.order_profiles.profile_id — it survives even after that column is
+ * nulled out (snapshot deleted, e.g. on account deletion), since orders are
+ * retained for 5 years but member data is not.
+ */
+function profileFingerprint(profile: MemberProfile): Buffer {
+  const canonical = JSON.stringify([
+    profile.year, profile.month, profile.day, profile.calendar, profile.isLeapMonth,
+    profile.hour, profile.minute, profile.dayBoundaryRule,
+  ]);
+  return createHmac("sha256", billingHmacKey()).update(canonical, "utf8").digest();
+}
+
 function requiredDocumentVersion(name: string): string {
   const value = process.env[name]?.trim();
   if (!value || value.length > 100 || /[\r\n]/u.test(value)) throw new BillingAccessError("billing_unavailable");
@@ -89,11 +112,14 @@ function requiredDocumentVersion(name: string): string {
 }
 
 export interface CreateOrderInput {
+  readonly productKey: OneTimeProductKey;
   readonly locale: Locale;
   readonly acceptedPurchaseTerms: true;
   readonly acceptedWithdrawalNotice: true;
   readonly acceptedEuWithdrawalWaiver: boolean;
   readonly countryCode: string | null;
+  /** Already sanitized by the caller (Track D7); stored best-effort, never blocks the order. */
+  readonly attribution?: AttributionPayload | null;
 }
 
 export interface ReconcileOrder {
@@ -131,6 +157,11 @@ export interface ActiveSaju2027Sale {
   readonly nameEn: string;
 }
 
+export type Saju2027SaleState =
+  | Readonly<{ status: "hidden" }>
+  | Readonly<{ status: "preview"; sale: ActiveSaju2027Sale }>
+  | Readonly<{ status: "live"; sale: ActiveSaju2027Sale }>;
+
 export interface BillingOrderSummary {
   readonly id: string;
   readonly productKey: string;
@@ -149,10 +180,25 @@ const EU_COUNTRIES = new Set([
   "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
 ]);
 
+/**
+ * Shared with the client (Track C2) so CheckoutButton can show the EU
+ * withdrawal-waiver checkbox only to visitors it actually applies to, instead
+ * of every visitor. Must stay the single source of truth for "is this an EU
+ * country" — createPendingOrder's own requiresEuWaiver check below uses it too.
+ */
+export function isEuCountryCode(code: string | null): boolean {
+  return code !== null && EU_COUNTRIES.has(code);
+}
+
 export async function createPendingOrder(input: CreateOrderInput): Promise<CreatedOrder> {
   const member = await requireBillingMember(true);
+  if (!isOneTimeProductKey(input.productKey)) throw new BillingInputError("product_unavailable");
+  if (PRODUCT_CATALOG[input.productKey].requiredProfiles !== 1) {
+    // No checkout UI collects more than one profile yet; catch a catalog/code mismatch early.
+    throw new Error(`createPendingOrder does not support multi-profile products (${input.productKey})`);
+  }
   if (!input.acceptedPurchaseTerms || !input.acceptedWithdrawalNotice) throw new BillingInputError("payment_state_invalid");
-  const requiresEuWaiver = input.countryCode !== null && EU_COUNTRIES.has(input.countryCode);
+  const requiresEuWaiver = isEuCountryCode(input.countryCode);
   if (requiresEuWaiver && !input.acceptedEuWithdrawalWaiver) {
     throw new BillingInputError("payment_state_invalid");
   }
@@ -165,11 +211,9 @@ export async function createPendingOrder(input: CreateOrderInput): Promise<Creat
     : null;
 
   const order = await withMemberTransaction(member.id, async (client) => {
-    const profileResult = await client.query<{ id: string }>(
-      `select id::text from member.profiles where user_id = $1 and source_key = 'local-default' limit 1`,
-      [member.id],
-    );
-    if (!profileResult.rows[0]) throw new BillingInputError("profile_required");
+    const orderId = randomUUID();
+    const snapshot = await snapshotOwnProfile(client, member.id, `order:${orderId}`);
+    if (!snapshot) throw new BillingInputError("profile_required");
 
     const productResult = await client.query<{
       id: string;
@@ -187,12 +231,11 @@ export async function createPendingOrder(input: CreateOrderInput): Promise<Creat
           and pr.valid_from <= now() and (pr.valid_until is null or pr.valid_until > now())
         order by pr.valid_from desc
         limit 1`,
-      [PRODUCT_KEY],
+      [input.productKey],
     );
     const price = productResult.rows[0];
     if (!price || price.currency !== "KRW") throw new BillingInputError("product_unavailable");
 
-    const orderId = randomUUID();
     const orderName = input.locale !== "ko" ? price.name_en : price.name_ko;
     const receiptEmail = encryptBillingValue(member.email, "receipt-email", orderId);
     const orderResult = await client.query<{ id: string }>(
@@ -206,6 +249,13 @@ export async function createPendingOrder(input: CreateOrderInput): Promise<Creat
     );
     const created = orderResult.rows[0];
     if (!created) throw new Error("Pending order was not created");
+
+    await client.query(
+      `insert into billing.order_profiles (order_id, slot, profile_id, profile_fingerprint)
+       values ($1, 1, $2, $3)`,
+      [orderId, snapshot.id, profileFingerprint(snapshot.profile)],
+    );
+    await recordOrderAttribution(client, orderId, input.attribution);
 
     const consents = [
       ["purchase_terms", termsVersion],
@@ -232,6 +282,8 @@ export async function createPendingOrder(input: CreateOrderInput): Promise<Creat
   }
   const successUrl = new URL("/api/billing/toss/return", siteUrl.origin);
   const failUrl = new URL("/api/billing/toss/fail", siteUrl.origin);
+  successUrl.searchParams.set("locale", input.locale);
+  failUrl.searchParams.set("locale", input.locale);
   const customerKey = createHmac("sha256", billingHmacKey())
     .update(`toss-customer:${member.id}`)
     .digest("base64url");
@@ -247,22 +299,39 @@ export async function createPendingOrder(input: CreateOrderInput): Promise<Creat
 
 export async function getOwnOrder(orderId: string): Promise<Readonly<{
   id: string;
+  productKey: string;
   amount: number;
   currency: string;
   status: string;
+  viewedAt: string | null;
 }>> {
   const member = await requireBillingMember();
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(orderId)) {
     throw new BillingInputError("order_not_found");
   }
   return withMemberTransaction(member.id, async (client) => {
-    const result = await client.query<{ id: string; amount: number; currency: string; status: string }>(
-      `select id::text, amount, currency, status from billing.orders where id = $1 and user_id = $2 limit 1`,
+    const result = await client.query<{
+      id: string;
+      product_key: string;
+      amount: number;
+      currency: string;
+      status: string;
+      viewed_at: string | null;
+    }>(
+      `select id::text, product_key, amount, currency, status, viewed_at::text
+         from billing.orders where id = $1 and user_id = $2 limit 1`,
       [orderId, member.id],
     );
-    const order = result.rows[0];
-    if (!order) throw new BillingInputError("order_not_found");
-    return order;
+    const row = result.rows[0];
+    if (!row) throw new BillingInputError("order_not_found");
+    return {
+      id: row.id,
+      productKey: row.product_key,
+      amount: row.amount,
+      currency: row.currency,
+      status: row.status,
+      viewedAt: row.viewed_at,
+    };
   });
 }
 
@@ -444,6 +513,55 @@ export async function getBillingKpiSummary(): Promise<BillingKpiSummary | null> 
   };
 }
 
+export interface BillingChannelRow {
+  readonly source: string;
+  readonly landingPath: string;
+  readonly paidOrders: number;
+  readonly grossKrw: number;
+  readonly refundedOrders: number;
+}
+
+/**
+ * Track D7: last-30-days paid KRW orders grouped by the first-touch channel they
+ * came from. "(none)" means no UTM tag (organic or direct); "(unattributed)" means
+ * no attribution was recorded at all (the buyer never accepted analytics, or the
+ * order predates this table). Gross amount, not net — refunds are only counted.
+ */
+export async function getBillingChannelSummary(): Promise<readonly BillingChannelRow[] | null> {
+  if (!billingStorageReady()) return null;
+  return withBillingTransaction(async (client) => {
+    const result = await client.query<{
+      source: string;
+      landing_path: string;
+      paid_orders: number;
+      gross_krw: string;
+      refunded_orders: number;
+    }>(
+      `select coalesce(a.utm_source, '(none)') as source,
+              coalesce(a.landing_path, '(unattributed)') as landing_path,
+              count(*)::int as paid_orders,
+              coalesce(sum(o.amount), 0)::text as gross_krw,
+              count(*) filter (where o.status in ('refunded', 'partially_refunded'))::int as refunded_orders
+         from billing.orders o
+         left join billing.order_attribution a on a.order_id = o.id
+        where o.currency = 'KRW'
+          and o.paid_at >= now() - interval '30 days'
+          and o.paid_at <= now()
+          and o.status in ('paid', 'refunding', 'refunded', 'partially_refunded')
+        group by 1, 2
+        order by sum(o.amount) desc, count(*) desc
+        limit 40`,
+    );
+    return result.rows.map((row) => ({
+      source: row.source,
+      landingPath: row.landing_path,
+      paidOrders: Math.max(0, row.paid_orders),
+      grossKrw: Math.max(0, Number(row.gross_krw) || 0),
+      refundedOrders: Math.max(0, row.refunded_orders),
+    }));
+  });
+}
+
 export type AppliedPaymentEvent = "applied" | "duplicate" | "ignored";
 
 export async function applyTossPaymentEvent(input: Readonly<{
@@ -516,6 +634,51 @@ export async function applyTossPaymentEvent(input: Readonly<{
   });
 }
 
+/**
+ * The DB-side tail shared by every path that finalizes a cancelled order: mark the
+ * payment cancelled, the order refunded, the entitlement revoked, and (for a
+ * subscription invoice) cascade into the subscription itself. Callers differ only
+ * in how the billing.refunds row and audit event get written, since one path
+ * updates an existing app-initiated reservation and the other inserts a new
+ * provider-initiated one — everything after that is identical.
+ */
+async function finalizeCancelledOrder(
+  client: PoolClient,
+  orderId: string,
+  paymentId: string,
+  subscriptionInvoiceId: string | null,
+): Promise<void> {
+  await client.query(`update billing.payments set status = 'cancelled', updated_at = now() where id = $1`, [paymentId]);
+  await client.query(`update billing.orders set status = 'refunded', updated_at = now() where id = $1`, [orderId]);
+  await client.query(`update billing.entitlements set status = 'revoked', revoked_at = now() where order_id = $1`, [orderId]);
+  if (!subscriptionInvoiceId) return;
+  const subscription = await client.query<{ id: string }>(
+    `update billing.subscriptions
+        set status = 'cancelled', cancel_at_period_end = false,
+            cancelled_at = coalesce(cancelled_at, now()), cancellation_requested_at = now(), updated_at = now()
+      where id = (select subscription_id from billing.subscription_invoices where id = $1)
+      returning id::text`,
+    [subscriptionInvoiceId],
+  );
+  await client.query(
+    `update billing.subscription_invoices set status = 'void', updated_at = now()
+      where id = $1 or subscription_id = (select subscription_id from billing.subscription_invoices where id = $1)
+        and status = 'queued'`,
+    [subscriptionInvoiceId],
+  );
+  await client.query(
+    `update billing.subscription_payments set status = 'cancelled' where invoice_id = $1`,
+    [subscriptionInvoiceId],
+  );
+  if (subscription.rows[0]) {
+    await client.query(
+      `insert into billing.subscription_notices (subscription_id, invoice_id, notice_type, send_after)
+       values ($1, $2, 'subscription_ended', now()) on conflict do nothing`,
+      [subscription.rows[0].id, subscriptionInvoiceId],
+    );
+  }
+}
+
 export async function applyTossCancellation(input: Readonly<{
   orderId: string;
   refundId: string;
@@ -524,12 +687,10 @@ export async function applyTossCancellation(input: Readonly<{
   await withBillingTransaction(async (client: PoolClient) => {
     const result = await client.query<{
       id: string;
-      user_id: string | null;
-      user_ref_hmac: Buffer;
       status: string;
       subscription_invoice_id: string | null;
     }>(
-      `select o.id::text, o.user_id, o.user_ref_hmac, o.status, o.subscription_invoice_id::text
+      `select o.id::text, o.status, o.subscription_invoice_id::text
          from billing.orders o where o.id = $1 for update`,
       [input.orderId],
     );
@@ -547,41 +708,54 @@ export async function applyTossCancellation(input: Readonly<{
     );
     const recordedRefund = refund.rows[0];
     if (!recordedRefund) throw new BillingInputError("payment_state_invalid");
-    await client.query(`update billing.payments set status = 'cancelled', updated_at = now() where id = $1`, [paymentId]);
-    await client.query(`update billing.orders set status = 'refunded', updated_at = now() where id = $1`, [order.id]);
-    await client.query(`update billing.entitlements set status = 'revoked', revoked_at = now() where order_id = $1`, [order.id]);
-    if (order.subscription_invoice_id) {
-      const subscription = await client.query<{ id: string }>(
-        `update billing.subscriptions
-            set status = 'cancelled', cancel_at_period_end = false,
-                cancelled_at = coalesce(cancelled_at, now()), cancellation_requested_at = now(), updated_at = now()
-          where id = (select subscription_id from billing.subscription_invoices where id = $1)
-          returning id::text`,
-        [order.subscription_invoice_id],
-      );
-      await client.query(
-        `update billing.subscription_invoices set status = 'void', updated_at = now()
-          where id = $1 or subscription_id = (select subscription_id from billing.subscription_invoices where id = $1)
-            and status = 'queued'`,
-        [order.subscription_invoice_id],
-      );
-      await client.query(
-        `update billing.subscription_payments set status = 'cancelled' where invoice_id = $1`,
-        [order.subscription_invoice_id],
-      );
-      if (subscription.rows[0]) {
-        await client.query(
-          `insert into billing.subscription_notices (subscription_id, invoice_id, notice_type, send_after)
-           values ($1, $2, 'subscription_ended', now()) on conflict do nothing`,
-          [subscription.rows[0].id, order.subscription_invoice_id],
-        );
-      }
-    }
+    await finalizeCancelledOrder(client, order.id, paymentId, order.subscription_invoice_id);
     await client.query(
       `insert into billing.audit_events (actor_user_id, actor_ref_hmac, action, entity_type, entity_id, reason_code)
        values ($1, $2, 'refund.succeeded', 'order', $3, $4)`,
       [recordedRefund.actor_user_id, recordedRefund.actor_ref_hmac, order.id, recordedRefund.reason_code],
     );
+  });
+}
+
+/**
+ * Reflects a cancellation that happened outside this app entirely — an operator
+ * cancelling the payment from Toss's own dashboard, rather than through
+ * reserveOwnRefund/reserveAdminRefund. There is no pre-existing billing.refunds
+ * reservation to finalize (nothing in this app initiated it), so this inserts one
+ * directly in 'succeeded' status for the ledger, then runs the same finalize tail.
+ * A no-op (returns "ignored") unless the order is still 'paid': if it's already
+ * 'refunding'/'refunded', an app-initiated cancellation got there first (or this
+ * event is a redundant retry), and that path owns finalizing it.
+ */
+export async function applyDashboardCancellation(input: Readonly<{
+  orderId: string;
+  amount: number;
+  providerRefundId: string | null;
+}>): Promise<"applied" | "ignored"> {
+  return withBillingTransaction(async (client: PoolClient) => {
+    const result = await client.query<{ id: string; status: string; subscription_invoice_id: string | null }>(
+      `select o.id::text, o.status, o.subscription_invoice_id::text
+         from billing.orders o where o.id = $1 for update`,
+      [input.orderId],
+    );
+    const order = result.rows[0];
+    if (!order || order.status !== "paid") return "ignored";
+    const payment = await client.query<{ id: string }>(`select id::text from billing.payments where order_id = $1 for update`, [order.id]);
+    const paymentId = payment.rows[0]?.id;
+    if (!paymentId) return "ignored";
+
+    await client.query(
+      `insert into billing.refunds (payment_id, amount, reason_code, status, provider_refund_id, processed_at)
+       values ($1, $2, 'provider_dashboard_cancellation', 'succeeded', $3, now())`,
+      [paymentId, input.amount, input.providerRefundId],
+    );
+    await finalizeCancelledOrder(client, order.id, paymentId, order.subscription_invoice_id);
+    await client.query(
+      `insert into billing.audit_events (actor_user_id, actor_ref_hmac, action, entity_type, entity_id, reason_code)
+       values (null, null, 'refund.provider_initiated', 'order', $1, 'provider_dashboard_cancellation')`,
+      [order.id],
+    );
+    return "applied";
   });
 }
 
@@ -616,9 +790,11 @@ async function reserveRefund(input: Readonly<{
       payment_id: string;
       encrypted_key: string;
       key_version: number;
+      subscription_invoice_id: string | null;
     }>(
       `select o.id::text, o.user_id, o.user_ref_hmac, o.status, o.paid_at, o.viewed_at, o.amount,
-              p.id::text as payment_id, p.provider_payment_key_ciphertext as encrypted_key, p.key_version
+              p.id::text as payment_id, p.provider_payment_key_ciphertext as encrypted_key, p.key_version,
+              o.subscription_invoice_id::text
          from billing.orders o
          join billing.payments p on p.order_id = o.id
         where o.id = $1 and ($2::text is null or o.user_id = $2)
@@ -629,11 +805,13 @@ async function reserveRefund(input: Readonly<{
     if (!order || order.user_id === null || order.status !== "paid" && order.status !== "refunding") {
       throw new BillingInputError("refund_unavailable");
     }
-    if (input.enforceSelfServicePolicy) {
-      if (order.status !== "paid" || order.viewed_at !== null || !order.paid_at
-        || Date.now() - order.paid_at.getTime() > 7 * 24 * 60 * 60 * 1000) {
-        throw new BillingInputError("refund_unavailable");
-      }
+    if (input.enforceSelfServicePolicy && !isSelfServiceRefundEligible({
+      status: order.status,
+      viewedAt: order.viewed_at,
+      paidAt: order.paid_at,
+      subscriptionInvoiceId: order.subscription_invoice_id,
+    }, new Date())) {
+      throw new BillingInputError("refund_unavailable");
     }
 
     let refundId: string;
@@ -690,9 +868,36 @@ export async function failReservedRefund(input: Readonly<{ refundId: string; ord
   });
 }
 
-export async function markOwnEntitlementViewed(productKey = PRODUCT_KEY): Promise<boolean> {
+/**
+ * The active entitlement id granted by an active LUMINA+ subscription, per the
+ * catalog's includedInPlus list — replaces three copies of the same hardcoded
+ * ('lumina-plus-monthly', 'lumina-plus-yearly') check that only ever ran for the
+ * one flagship product.
+ */
+async function activePlusEntitlementId(
+  client: PoolClient,
+  userId: string,
+  productKey: ProductKey,
+): Promise<string | null> {
+  const includedInPlus = PRODUCT_CATALOG[productKey].includedInPlus;
+  if (includedInPlus.length === 0) return null;
+  const subscription = await client.query<{ id: string }>(
+    `select e.id::text
+       from billing.subscriptions s
+       join billing.entitlements e on e.user_id = s.user_id
+      where s.user_id = $1 and s.product_key = any($2::text[])
+        and s.status in ('active', 'past_due') and s.current_period_end > now()
+        and e.product_key = s.product_key and e.status = 'active'
+        and (e.expires_at is null or e.expires_at > now())
+      order by e.granted_at desc limit 1`,
+    [userId, includedInPlus],
+  );
+  return subscription.rows[0]?.id ?? null;
+}
+
+export async function markOwnEntitlementViewed(productKey: ProductKey): Promise<boolean> {
   const member = await requireBillingMember();
-  const viewed = await withBillingTransaction(async (client) => {
+  return withBillingTransaction(async (client) => {
     const result = await client.query<{ order_id: string }>(
       `update billing.orders o set viewed_at = coalesce(o.viewed_at, now()), updated_at = now()
         where o.user_id = $1 and o.product_key = $2 and o.status = 'paid'
@@ -701,24 +906,11 @@ export async function markOwnEntitlementViewed(productKey = PRODUCT_KEY): Promis
       [member.id, productKey],
     );
     if (result.rowCount !== null && result.rowCount > 0) return true;
-    if (productKey !== PRODUCT_KEY) return false;
-    const subscription = await client.query<{ id: string }>(
-      `select e.id::text
-         from billing.subscriptions s
-         join billing.entitlements e on e.user_id = s.user_id
-        where s.user_id = $1 and s.product_key in ('lumina-plus-monthly', 'lumina-plus-yearly')
-          and s.status in ('active', 'past_due') and s.current_period_end > now()
-          and e.product_key = s.product_key and e.status = 'active'
-          and (e.expires_at is null or e.expires_at > now())
-        limit 1`,
-      [member.id],
-    );
-    return Boolean(subscription.rows[0]);
+    return Boolean(await activePlusEntitlementId(client, member.id, productKey));
   });
-  return viewed;
 }
 
-export async function hasOwnEntitlement(productKey = PRODUCT_KEY): Promise<boolean> {
+export async function hasOwnEntitlement(productKey: ProductKey): Promise<boolean> {
   const member = await requireBillingMember();
   return withMemberTransaction(member.id, async (client) => {
     const result = await client.query<{ id: string }>(
@@ -731,23 +923,11 @@ export async function hasOwnEntitlement(productKey = PRODUCT_KEY): Promise<boole
       [member.id, productKey],
     );
     if (result.rows[0]) return true;
-    if (productKey !== PRODUCT_KEY) return false;
-    const subscription = await client.query<{ id: string }>(
-      `select e.id::text
-         from billing.subscriptions s
-         join billing.entitlements e on e.user_id = s.user_id
-        where s.user_id = $1 and s.product_key in ('lumina-plus-monthly', 'lumina-plus-yearly')
-          and s.status in ('active', 'past_due') and s.current_period_end > now()
-          and e.product_key = s.product_key and e.status = 'active'
-          and (e.expires_at is null or e.expires_at > now())
-        limit 1`,
-      [member.id],
-    );
-    return Boolean(subscription.rows[0]);
+    return Boolean(await activePlusEntitlementId(client, member.id, productKey));
   });
 }
 
-export async function getOwnActiveEntitlementId(productKey = PRODUCT_KEY): Promise<string | null> {
+export async function getOwnActiveEntitlementId(productKey: ProductKey): Promise<string | null> {
   const member = await requireBillingMember();
   return withMemberTransaction(member.id, async (client) => {
     const result = await client.query<{ id: string }>(
@@ -760,19 +940,46 @@ export async function getOwnActiveEntitlementId(productKey = PRODUCT_KEY): Promi
       [member.id, productKey],
     );
     if (result.rows[0]?.id) return result.rows[0].id;
-    if (productKey !== PRODUCT_KEY) return null;
-    const subscription = await client.query<{ id: string }>(
-      `select e.id::text
-         from billing.subscriptions s
-         join billing.entitlements e on e.user_id = s.user_id
-        where s.user_id = $1 and s.product_key in ('lumina-plus-monthly', 'lumina-plus-yearly')
-          and s.status in ('active', 'past_due') and s.current_period_end > now()
-          and e.product_key = s.product_key and e.status = 'active'
-          and (e.expires_at is null or e.expires_at > now())
+    return activePlusEntitlementId(client, member.id, productKey);
+  });
+}
+
+/**
+ * Like getOwnActiveEntitlementId, but only the direct-purchase path — never the
+ * LUMINA+ subscription fallback. A subscription-granted entitlement's order_id
+ * points at the subscription's own billing invoice, not a purchase of this
+ * product, so it has no bound profile (see getOwnBoundProfile in
+ * src/server/premium/reportContext.ts, which is the actual reason this exists).
+ */
+export async function getOwnDirectEntitlementOrderId(productKey: ProductKey): Promise<string | null> {
+  const member = await requireBillingMember();
+  return withMemberTransaction(member.id, async (client) => {
+    const result = await client.query<{ order_id: string }>(
+      `select e.order_id::text
+         from billing.entitlements e
+         join billing.orders o on o.id = e.order_id
+        where e.user_id = $1 and e.product_key = $2 and e.status = 'active'
+          and o.status = 'paid' and (e.expires_at is null or e.expires_at > now())
         order by e.granted_at desc limit 1`,
-      [member.id],
+      [member.id, productKey],
     );
-    return subscription.rows[0]?.id ?? null;
+    return result.rows[0]?.order_id ?? null;
+  });
+}
+
+/** The profile snapshot ids bound to one of the caller's own orders, in slot order. */
+export async function getOwnOrderProfileIds(orderId: string): Promise<readonly string[]> {
+  const member = await requireBillingMember();
+  return withMemberTransaction(member.id, async (client) => {
+    const result = await client.query<{ profile_id: string | null }>(
+      `select op.profile_id::text
+         from billing.order_profiles op
+         join billing.orders o on o.id = op.order_id
+        where op.order_id = $1 and o.user_id = $2
+        order by op.slot asc`,
+      [orderId, member.id],
+    );
+    return result.rows.map((row) => row.profile_id).filter((id): id is string => id !== null);
   });
 }
 
@@ -802,6 +1009,66 @@ export async function cancelExpiredUnpaidOrder(orderId: string): Promise<boolean
       [orderId],
     );
     return (result.rowCount ?? 0) > 0;
+  });
+}
+
+// A cancellation that times out (service.ts's TossPaymentError 503 path) leaves the
+// refund reservation 'pending' and the order 'refunding' forever unless something
+// retries it — reserveOwnRefund/reserveAdminRefund only run when a person visits
+// the refund UI again. This age floor (comfortably above the 10s provider timeout)
+// keeps reconcile from racing an attempt that's still genuinely in flight.
+const STUCK_REFUND_MIN_AGE_MINUTES = 5;
+
+export async function listStuckRefundingOrders(limit = 20): Promise<readonly Readonly<{ id: string }>[]> {
+  const boundedLimit = Math.max(1, Math.min(50, Math.floor(limit)));
+  return withBillingTransaction(async (client) => {
+    const result = await client.query<{ id: string }>(
+      `select o.id::text
+         from billing.orders o
+         join billing.payments p on p.order_id = o.id
+         join billing.refunds r on r.payment_id = p.id and r.status = 'pending'
+        where o.provider = 'toss' and o.status = 'refunding'
+          and r.created_at <= now() - ($1::int * interval '1 minute')
+        order by r.created_at asc
+        limit $2`,
+      [STUCK_REFUND_MIN_AGE_MINUTES, boundedLimit],
+    );
+    return result.rows;
+  });
+}
+
+export interface StuckRefundReservation {
+  readonly refundId: string;
+  readonly reasonCode: string;
+  readonly paymentKey: string;
+}
+
+/** Read-only lookup for the reconcile job — mirrors reserveRefund's "already refunding" branch without needing an actor. */
+export async function getStuckRefundReservation(orderId: string): Promise<StuckRefundReservation | null> {
+  return withBillingTransaction(async (client) => {
+    const result = await client.query<{
+      refund_id: string;
+      reason_code: string;
+      encrypted_key: string;
+      key_version: number;
+    }>(
+      `select r.id::text as refund_id, r.reason_code,
+              p.provider_payment_key_ciphertext as encrypted_key, p.key_version
+         from billing.orders o
+         join billing.payments p on p.order_id = o.id
+         join billing.refunds r on r.payment_id = p.id and r.status = 'pending'
+        where o.id = $1 and o.status = 'refunding'
+        order by r.created_at desc
+        limit 1`,
+      [orderId],
+    );
+    const row = result.rows[0];
+    if (!row) return null;
+    return {
+      refundId: row.refund_id,
+      reasonCode: row.reason_code,
+      paymentKey: decryptBillingValue(row.encrypted_key, "payment-key", orderId, row.key_version),
+    };
   });
 }
 
@@ -999,8 +1266,8 @@ export function getBillingClientKey(): string | null {
   return billingCheckoutReady() ? process.env.TOSS_CLIENT_KEY?.trim() ?? null : null;
 }
 
-export async function getActiveSaju2027Sale(): Promise<ActiveSaju2027Sale | null> {
-  if (!billingCheckoutReady()) return null;
+async function fetchSaju2027Pricing(): Promise<ActiveSaju2027Sale | null> {
+  if (!billingStorageReady()) return null;
   try {
     return await withBillingTransaction(async (client) => {
       const result = await client.query<{ amount: number; currency: string; name_ko: string; name_en: string }>(
@@ -1020,4 +1287,29 @@ export async function getActiveSaju2027Sale(): Promise<ActiveSaju2027Sale | null
   } catch {
     return null;
   }
+}
+
+function requestedSaju2027SaleState(): "hidden" | "preview" | "live" {
+  const value = process.env.SAJU_2027_SALE_STATE?.trim();
+  return value === "preview" || value === "live" ? value : "hidden";
+}
+
+/**
+ * Three-stage rollout (Track C5) so the product page can satisfy a payment
+ * provider's merchant review — price, business info, and refund policy
+ * visible, checkout disabled — before checkout infrastructure (live keys,
+ * approved legal documents) is actually ready. Controlled by
+ * SAJU_2027_SALE_STATE=preview|live; any other value, including unset, is
+ * "hidden". A requested "live" state still downgrades to "preview"
+ * automatically whenever billingCheckoutReady() isn't actually satisfied, so
+ * a misconfigured environment can never show a checkout button that cannot
+ * complete a real payment.
+ */
+export async function getSaju2027SaleState(): Promise<Saju2027SaleState> {
+  const requested = requestedSaju2027SaleState();
+  if (requested === "hidden") return { status: "hidden" };
+  const sale = await fetchSaju2027Pricing();
+  if (!sale) return { status: "hidden" };
+  if (requested === "live" && billingCheckoutReady()) return { status: "live", sale };
+  return { status: "preview", sale };
 }

@@ -26,6 +26,7 @@ import {
   type DarkTriadSummaryV1,
   type EqSummaryV1,
   type JungianSummaryV1,
+  type SajuSummaryV1,
   type ShareSummaryV1,
 } from "../shareCode";
 import {
@@ -131,6 +132,18 @@ const GOLDEN_COGNITIVE: CognitiveSummaryV1 = {
   accuracy0to100: 62.5,
 };
 
+/**
+ * 일주(0..59)·주도 오행·세력 셋뿐이라 세 필드 모두 정수 인덱스고, 양자화 오차가 없다.
+ */
+const GOLDEN_SAJU: SajuSummaryV1 = {
+  kind: "saju",
+  version: 1,
+  locale: "ko",
+  sexagenary: 34,
+  dominantElement: "fire",
+  strength: "strong",
+};
+
 
 describe("shareCode 그리드/골든/거부 매트릭스", () => {
   describe("골든 고정값 — 형식이 조용히 바뀌지 않도록 리터럴로 고정한다", () => {
@@ -167,6 +180,10 @@ describe("shareCode 그리드/골든/거부 매트릭스", () => {
 
     it("cognitive", () => {
       expect(encodeShareCode(GOLDEN_COGNITIVE)).toBe("1ck030204010Af");
+    });
+
+    it("saju", () => {
+      expect(encodeShareCode(GOLDEN_SAJU)).toBe("1sk0Y01008");
     });
 
     it("cognitive: 골든 코드를 디코드하면 영역이 선언된 순서 그대로, 오차 없이 되돌아온다", () => {
@@ -362,6 +379,23 @@ describe("shareCode 그리드/골든/거부 매트릭스", () => {
         expect(decoded.locale).toBe(locale);
       }
     });
+
+    it("saju: 일주 0~59 × 오행 5 × 세력 3의 모든 조합(900가지)이 정확히 복원된다", () => {
+      const elements = ["wood", "fire", "earth", "metal", "water"] as const;
+      const strengths = ["strong", "balanced", "weak"] as const;
+      for (let sexagenary = 0; sexagenary < 60; sexagenary += 1) {
+        for (const dominantElement of elements) {
+          for (const strength of strengths) {
+            const summary: SajuSummaryV1 = { kind: "saju", version: 1, locale: "ko", sexagenary, dominantElement, strength };
+            const decoded = decodeShareCode(encodeShareCode(summary));
+            if (decoded?.kind !== "saju") throw new Error("expected saju");
+            expect(decoded.sexagenary).toBe(sexagenary);
+            expect(decoded.dominantElement).toBe(dominantElement);
+            expect(decoded.strength).toBe(strength);
+          }
+        }
+      }
+    });
   });
 
   describe("거부 매트릭스 — 잘못된 입력은 항상 null, 절대 throw하지 않는다", () => {
@@ -478,19 +512,20 @@ describe("shareCode 그리드/골든/거부 매트릭스", () => {
   });
 
   describe("isShareKind", () => {
-    it("정의된 여섯 종류만 참이다", () => {
+    it("정의된 일곱 종류만 참이다", () => {
       expect(isShareKind("jungian")).toBe(true);
       expect(isShareKind("bigfive")).toBe(true);
       expect(isShareKind("darktriad")).toBe(true);
       expect(isShareKind("attachment")).toBe(true);
       expect(isShareKind("eq")).toBe(true);
       expect(isShareKind("cognitive")).toBe(true);
+      expect(isShareKind("saju")).toBe(true);
       expect(isShareKind("astro")).toBe(false);
       expect(isShareKind("psychometrics")).toBe(false);
       expect(isShareKind("")).toBe(false);
     });
 
-    it("공유 가능한 kind는 정확히 여섯 개다 — 새 kind를 추가하면 이 수부터 갱신하게 만든다", () => {
+    it("공유 가능한 kind는 정확히 일곱 개다 — 새 kind를 추가하면 이 수부터 갱신하게 만든다", () => {
       const universe = [
         "jungian",
         "bigfive",
@@ -506,7 +541,7 @@ describe("shareCode 그리드/골든/거부 매트릭스", () => {
         "horoscope",
         "compatibility",
       ];
-      expect(universe.filter((kind) => isShareKind(kind))).toHaveLength(6);
+      expect(universe.filter((kind) => isShareKind(kind))).toHaveLength(7);
     });
   });
 
@@ -672,7 +707,7 @@ describe("shareCode 그리드/골든/거부 매트릭스", () => {
   });
 
   describe("정적 exhaustiveness", () => {
-    it("ShareSummaryV1의 여섯 종류를 모두 인코드/디코드할 수 있다", () => {
+    it("ShareSummaryV1의 일곱 종류를 모두 인코드/디코드할 수 있다", () => {
       const summaries: readonly ShareSummaryV1[] = [
         GOLDEN_JUNGIAN,
         GOLDEN_BIGFIVE,
@@ -680,6 +715,7 @@ describe("shareCode 그리드/골든/거부 매트릭스", () => {
         GOLDEN_ATTACHMENT,
         GOLDEN_EQ,
         GOLDEN_COGNITIVE,
+        GOLDEN_SAJU,
       ];
       for (const summary of summaries) {
         const decoded = decodeShareCode(encodeShareCode(summary));

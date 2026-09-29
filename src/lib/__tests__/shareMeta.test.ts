@@ -21,12 +21,13 @@ describe("SHARE_KIND_ANALYSIS_KEY", () => {
     expect(SHARE_KIND_ANALYSIS_KEY.bigfive).toBe("psychometrics");
   });
 
-  it("jungian·darktriad·attachment·eq·cognitive는 자기 자신과 같은 이름으로 매핑된다", () => {
+  it("jungian·darktriad·attachment·eq·cognitive·saju는 자기 자신과 같은 이름으로 매핑된다", () => {
     expect(SHARE_KIND_ANALYSIS_KEY.jungian).toBe("jungian");
     expect(SHARE_KIND_ANALYSIS_KEY.darktriad).toBe("darktriad");
     expect(SHARE_KIND_ANALYSIS_KEY.attachment).toBe("attachment");
     expect(SHARE_KIND_ANALYSIS_KEY.eq).toBe("eq");
     expect(SHARE_KIND_ANALYSIS_KEY.cognitive).toBe("cognitive");
+    expect(SHARE_KIND_ANALYSIS_KEY.saju).toBe("saju");
   });
 
   it("모든 ShareKind가 카탈로그에 실제로 있는 분석을 가리킨다", () => {
@@ -37,13 +38,14 @@ describe("SHARE_KIND_ANALYSIS_KEY", () => {
 });
 
 describe("SHARE_KIND_HUB_TITLE_KEY", () => {
-  it("여섯 kind 모두 home 네임스페이스의 허브 제목 키를 가리킨다", () => {
+  it("일곱 kind 모두 home 네임스페이스의 허브 제목 키를 가리킨다", () => {
     expect(SHARE_KIND_HUB_TITLE_KEY.jungian).toBe("hubJungianTitle");
     expect(SHARE_KIND_HUB_TITLE_KEY.bigfive).toBe("hubPsychometricsTitle");
     expect(SHARE_KIND_HUB_TITLE_KEY.darktriad).toBe("hubDarkTriadTitle");
     expect(SHARE_KIND_HUB_TITLE_KEY.attachment).toBe("hubAttachmentTitle");
     expect(SHARE_KIND_HUB_TITLE_KEY.eq).toBe("hubEqTitle");
     expect(SHARE_KIND_HUB_TITLE_KEY.cognitive).toBe("hubCognitiveTitle");
+    expect(SHARE_KIND_HUB_TITLE_KEY.saju).toBe("hubSajuTitle");
   });
 
   it("두 표는 같은 kind 집합을 덮는다 — 한쪽만 추가하면 공유 페이지가 조용히 깨진다", () => {
@@ -62,7 +64,7 @@ describe("SHARE_KIND_HUB_TITLE_KEY", () => {
 });
 
 describe("share.<kind>.footerNotice — OG 카드 꼬리 문구", () => {
-  const KIND_FOOTER_KINDS: readonly string[] = ["jungian", "bigfive", "darktriad", "attachment", "eq", "cognitive"];
+  const KIND_FOOTER_KINDS: readonly string[] = ["jungian", "bigfive", "darktriad", "attachment", "eq", "cognitive", "saju"];
 
   it("모든 ShareKind가 두 로케일 모두에 비어 있지 않은 footerNotice를 갖는다", () => {
     const koShare: Readonly<Record<string, Readonly<Record<string, string>> | string>> = ko.share;

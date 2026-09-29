@@ -9,6 +9,7 @@ import {
   reserveAdminRefund,
 } from "@/server/billing/service";
 import { readBoundedJson } from "@/server/http/readBoundedJson";
+import { captureServerError } from "@/server/observability/captureServerError";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -67,6 +68,7 @@ export async function POST(request: Request): Promise<Response> {
       }
     }
     if (error instanceof BillingInputError) return json(400, error.reason);
+    await captureServerError(error, "billing-refund");
     return json(503, "refund_processing");
   }
 }

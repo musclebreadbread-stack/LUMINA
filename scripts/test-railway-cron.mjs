@@ -87,7 +87,10 @@ test("logs a structured completion summary with enabled and skipped task counts"
   assert.equal(entries[2].durationMs, 8);
 });
 
-test("logs task failure without serializing the thrown error and stops later jobs", async () => {
+test("logs task failure without serializing the thrown error, but keeps running later jobs", async () => {
+  // Regression test: a single failing task (e.g. one bad receipt email) must not
+  // prevent unrelated later tasks (e.g. the AI sweeper, subscription charging)
+  // from being attempted in the same run.
   const entries = [];
   const attempted = [];
   const privateFailureDetail = new Error("sensitive-url-and-token-must-not-be-logged");
@@ -102,19 +105,23 @@ test("logs task failure without serializing the thrown error and stops later job
     ],
     log: (line) => entries.push(JSON.parse(line)),
     now: () => 2_000,
-  }), (error) => error === privateFailureDetail);
+  }), (error) => error instanceof AggregateError && error.errors.includes(privateFailureDetail));
 
-  assert.deepEqual(attempted, ["analytics"]);
+  assert.deepEqual(attempted, ["analytics", "later"]);
   assert.deepEqual(entries.map((entry) => entry.event), [
     "run_started",
     "task_started",
     "task_completed",
     "task_started",
     "task_failed",
+    "task_started",
+    "task_completed",
     "run_failed",
   ]);
-  assert.equal(entries.at(-1).succeededTaskCount, 1);
-  assert.equal(entries.at(-1).notStartedTaskCount, 1);
+  assert.equal(entries.at(-1).succeededTaskCount, 2);
+  assert.equal(entries.at(-1).failedTaskCount, 1);
+  assert.deepEqual(entries.at(-1).failedTasks, ["billing_reconcile"]);
+  assert.equal(entries.at(-1).notStartedTaskCount, 0);
   assert.deepEqual(entries.at(-1).skippedTasks, [{
     name: "disabled_job",
     disabledBy: ["POLICY_APPROVAL_VARIABLE"],
@@ -122,11 +129,38 @@ test("logs task failure without serializing the thrown error and stops later job
   assert.equal(JSON.stringify(entries).includes("sensitive-url-and-token-must-not-be-logged"), false);
 });
 
+test("collects every failure in a run instead of stopping at the first one", async () => {
+  const entries = [];
+  const errorA = new Error("first-task-failure");
+  const errorB = new Error("second-task-failure");
+
+  await assert.rejects(runRailwayCron({
+    schedule: "test",
+    tasks: [
+      { name: "task_a", enabled: true, run: async () => { throw errorA; } },
+      { name: "task_b", enabled: true, run: async () => { throw errorB; } },
+      { name: "task_c", enabled: true, run: async () => {} },
+    ],
+    log: (line) => entries.push(JSON.parse(line)),
+    now: () => 3_000,
+  }), (error) => error instanceof AggregateError
+    && error.errors.length === 2
+    && error.errors.includes(errorA)
+    && error.errors.includes(errorB));
+
+  const summary = entries.at(-1);
+  assert.equal(summary.event, "run_failed");
+  assert.equal(summary.succeededTaskCount, 1);
+  assert.equal(summary.failedTaskCount, 2);
+  assert.deepEqual(summary.failedTasks, ["task_a", "task_b"]);
+});
+
 test("10-minute jobs remain disabled unless every required product and legal gate is true", () => {
   const baseline = createRailway10MinTasks({});
-  assert.deepEqual(baseline.map((task) => task.enabled), [false, false, false]);
+  assert.deepEqual(baseline.map((task) => task.enabled), [false, false, false, false]);
   assert.deepEqual(baseline.map((task) => task.disabledBy), [
     ["BILLING_RECEIPTS_ENABLED", "BILLING_LEGAL_DOCUMENTS_APPROVED"],
+    ["BILLING_RECONCILE_ENABLED", "BILLING_LEGAL_DOCUMENTS_APPROVED"],
     [
       "FEATURE_AI_NARRATIVE",
       "AI_NARRATIVE_LEGAL_APPROVED",
@@ -140,6 +174,7 @@ test("10-minute jobs remain disabled unless every required product and legal gat
 
   const fullyApproved = createRailway10MinTasks({
     BILLING_RECEIPTS_ENABLED: "true",
+    BILLING_RECONCILE_ENABLED: "true",
     BILLING_LEGAL_DOCUMENTS_APPROVED: "true",
     FEATURE_AI_NARRATIVE: "true",
     AI_NARRATIVE_LEGAL_APPROVED: "true",
@@ -151,11 +186,12 @@ test("10-minute jobs remain disabled unless every required product and legal gat
     SUBSCRIPTION_LEGAL_DOCUMENTS_APPROVED: "true",
     TOSS_BILLING_APPROVED: "true",
   });
-  assert.deepEqual(fullyApproved.map((task) => task.enabled), [true, true, true]);
-  assert.deepEqual(fullyApproved.map((task) => task.disabledBy), [[], [], []]);
+  assert.deepEqual(fullyApproved.map((task) => task.enabled), [true, true, true, true]);
+  assert.deepEqual(fullyApproved.map((task) => task.disabledBy), [[], [], [], []]);
 
   const allEnabledEnvironment = {
     BILLING_RECEIPTS_ENABLED: "true",
+    BILLING_RECONCILE_ENABLED: "true",
     BILLING_LEGAL_DOCUMENTS_APPROVED: "true",
     FEATURE_AI_NARRATIVE: "true",
     AI_NARRATIVE_LEGAL_APPROVED: "true",
@@ -171,6 +207,7 @@ test("10-minute jobs remain disabled unless every required product and legal gat
   const gates = [
     ["BILLING_RECEIPTS_ENABLED", "billing_receipts"],
     ["BILLING_LEGAL_DOCUMENTS_APPROVED", "billing_receipts"],
+    ["BILLING_RECONCILE_ENABLED", "billing_reconcile"],
     ["FEATURE_AI_NARRATIVE", "ai_sweeper"],
     ["AI_NARRATIVE_LEGAL_APPROVED", "ai_sweeper"],
     ["AI_GOLDEN_SET_APPROVED", "ai_sweeper"],
@@ -213,28 +250,10 @@ test("cron skip summaries expose gate names without logging environment values",
   });
 });
 
-test("daily analytics always runs while billing reconciliation keeps its approval gate", () => {
-  const baseline = createRailwayDailyTasks({});
-  assert.deepEqual(baseline.map((task) => task.enabled), [true, false]);
-  assert.deepEqual(
-    createRailwayDailyTasks({
-      BILLING_RECONCILE_ENABLED: "true",
-      BILLING_LEGAL_DOCUMENTS_APPROVED: "true",
-    }).map((task) => task.enabled),
-    [true, true],
-  );
-  assert.deepEqual(createRailwayDailyTasks({}).map((task) => task.disabledBy ?? []), [[], [
-    "BILLING_RECONCILE_ENABLED",
-    "BILLING_LEGAL_DOCUMENTS_APPROVED",
-  ]]);
-  for (const missingGate of ["BILLING_RECONCILE_ENABLED", "BILLING_LEGAL_DOCUMENTS_APPROVED"]) {
-    const environment = {
-      BILLING_RECONCILE_ENABLED: "true",
-      BILLING_LEGAL_DOCUMENTS_APPROVED: "true",
-    };
-    delete environment[missingGate];
-    assert.equal(createRailwayDailyTasks(environment)[1]?.enabled, false, `${missingGate} is required`);
-  }
+test("daily analytics always runs (billing reconciliation moved to the 10-minute schedule)", () => {
+  assert.deepEqual(createRailwayDailyTasks({}).map((task) => task.name), ["analytics_rollup"]);
+  assert.deepEqual(createRailwayDailyTasks({}).map((task) => task.enabled), [true]);
+  assert.deepEqual(createRailwayDailyTasks({}).map((task) => task.disabledBy ?? []), [[]]);
 });
 
 test("internal request rejects non-production, invalid secrets, unsafe origins, and unapproved routes before fetch", async () => {

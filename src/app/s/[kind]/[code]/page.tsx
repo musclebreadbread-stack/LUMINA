@@ -15,6 +15,8 @@ import {
 } from "@engine/cognitive/items";
 import { totalNormScoreFor as eqTotalNormScoreFor } from "@engine/eq/norms";
 import { classifyQuadrant } from "@engine/attachment/quadrants";
+import { characterFor } from "@engine/characters";
+import { pillarFromSexagenary, pillarLabel } from "@engine/saju";
 import type { AnalysisKey, ValidationStatus } from "@engine/shared/evidence";
 import type { AmbientTone } from "@/components/ambient/AmbientLayer";
 import { ShareLandingAnalytics } from "@/components/report/ShareLandingAnalytics";
@@ -28,6 +30,8 @@ import { DEFAULT_LOCALE, intlLocale, localePath } from "@/i18n/locale";
 import { analysisDefinition } from "@/lib/analysisCatalog";
 import { AXIS_LABELS } from "@/lib/attachmentModel";
 import { assetPath } from "@/lib/assets";
+import { characterArtworkPath } from "@/lib/characterArtwork";
+import { ELEMENT_STYLE } from "@/lib/elements";
 import {
   attachmentImagePath,
   COGNITIVE_OVERVIEW_IMAGE,
@@ -54,6 +58,7 @@ import {
   type DarkTriadSummaryV1,
   type EqSummaryV1,
   type JungianSummaryV1,
+  type SajuSummaryV1,
   type ShareKind,
   type ShareSummaryV1,
 } from "@/lib/shareCode";
@@ -66,6 +71,7 @@ const SHARE_KIND_SCENE_TONE: Readonly<Record<ShareKind, AmbientTone>> = Object.f
   attachment: "attachment",
   eq: "eq",
   cognitive: "cognitive",
+  saju: "saju",
 });
 
 /**
@@ -154,6 +160,8 @@ export default async function SharePage({ params }: { readonly params: Promise<P
           <EqShareBody summary={summary} />
         ) : summary.kind === "cognitive" ? (
           summary.version === 2 ? <CognitiveEstimateShareBody summary={summary} /> : <CognitiveShareBody summary={summary} />
+        ) : summary.kind === "saju" ? (
+          <SajuShareBody summary={summary} />
         ) : null}
       </main>
     </SceneShell>
@@ -389,6 +397,61 @@ async function AttachmentShareBody({ summary }: { readonly summary: AttachmentSu
           <LikertAxisRow label={anxietyLabel} mean={summary.anxiety} />
           <LikertAxisRow label={avoidanceLabel} mean={summary.avoidance} />
         </div>
+      </section>
+
+      <SummaryOnlyNotice text={tShare("summaryOnlyNotice")} limitation={evidence.evidence.limitations[0] ?? ""} limitationLabel={tShare("limitationLabel")} />
+
+      <ShareCallToAction
+        ctaTitle={tShare("ctaTitle")}
+        ctaBody={tShare("ctaBody")}
+        ctaLabel={tShare("ctaButton", { title: kindTitle })}
+        href={evidence.href}
+        analysisKey={evidence.key}
+      />
+
+      <footer className="mt-10 border-t border-ink-700 pt-8">
+        <Disclaimer tier={evidence.tier} />
+      </footer>
+    </>
+  );
+}
+
+async function SajuShareBody({ summary }: { readonly summary: SajuSummaryV1 }) {
+  const [tShare, tHome, tSaju] = await Promise.all([
+    getTranslations({ locale: summary.locale, namespace: "share" }),
+    getTranslations({ locale: summary.locale, namespace: "home" }),
+    getTranslations({ locale: summary.locale, namespace: "saju" }),
+  ]);
+  const evidence = analysisDefinition(SHARE_KIND_ANALYSIS_KEY.saju);
+  const kindTitle = tHome(SHARE_KIND_HUB_TITLE_KEY.saju);
+  const pillar = pillarFromSexagenary(summary.sexagenary);
+  const pillarHanja = pillarLabel(pillar, "hanja");
+  const elementStyle = ELEMENT_STYLE[summary.dominantElement];
+  const elementName = summary.locale !== "ko" ? elementStyle.en : elementStyle.ko;
+  const character = characterFor(summary.dominantElement, summary.strength);
+  const characterName = summary.locale !== "ko" ? character.nameEn : character.name;
+  const strengthLabel = tSaju(
+    summary.strength === "strong" ? "strengthStrong" : summary.strength === "balanced" ? "strengthBalanced" : "strengthWeak",
+  );
+
+  return (
+    <>
+      <ShareHero
+        kicker={tShare("fallback.heroKicker")}
+        title={tShare("fallback.heroTitle", { title: kindTitle })}
+        body={tShare("fallback.heroBody", { title: kindTitle })}
+        status={evidence.evidence.validationStatus}
+        imageSrc={characterArtworkPath(character.id)}
+        imageAlt={characterName}
+      />
+
+      <section className="border-t border-ink-700 pt-8">
+        <h2 className="text-lg font-medium text-hobun">{tSaju("pillarDayLabel")}</h2>
+        <p className={`mt-2 text-3xl font-semibold ${elementStyle.text}`}>{pillarHanja}</p>
+        <p className="mt-3 text-sm leading-relaxed text-hobun-dim">
+          {tSaju("dominantNote", { element: elementName, hanja: elementStyle.hanja })}
+        </p>
+        <p className="mt-2 text-sm leading-relaxed text-hobun-dim">{strengthLabel}</p>
       </section>
 
       <SummaryOnlyNotice text={tShare("summaryOnlyNotice")} limitation={evidence.evidence.limitations[0] ?? ""} limitationLabel={tShare("limitationLabel")} />

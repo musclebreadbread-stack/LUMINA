@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 import { CHINESE_SIGNS, ZODIAC_SIGNS } from "@engine/horoscope/constants";
+import { STEMS } from "@engine/saju/constants";
+import { ALL_ILJU_PILLARS, iljuSlug } from "@engine/saju/publicGuides";
 import { localizedPath } from "@/lib/seoAlternates";
 import { CONTENT_LOCALES } from "@/i18n/locale";
 import { getSiteUrl } from "@/lib/siteUrl";
@@ -17,6 +19,8 @@ const PUBLIC_PATHS = [
   "/tarot",
   "/compatibility",
   "/premium/saju-2027",
+  "/pricing",
+  "/saju/2027",
   "/characters",
   "/references",
   "/glossary",
@@ -67,6 +71,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...ZODIAC_SIGNS.map((sign) => `/horoscope/zodiac/${sign.key}`),
     ...CHINESE_SIGNS.map((sign) => `/horoscope/chinese/${sign.key}`),
   ].map((pathname) => localizedEntry(pathname, siteUrl));
+  const sajuGuideEntries = [
+    ...CHINESE_SIGNS.map((sign) => `/saju/2027/${sign.key}`),
+    ...STEMS.map((stem) => `/saju/ilgan/${stem.en.toLowerCase()}`),
+    ...ALL_ILJU_PILLARS.map((pillar) => `/saju/ilju/${iljuSlug(pillar)}`),
+  ].map((pathname) => localizedEntry(pathname, siteUrl));
 
-  return [...publicEntries, ...horoscopeEntries];
+  return [...publicEntries, ...horoscopeEntries, ...sajuGuideEntries];
 }

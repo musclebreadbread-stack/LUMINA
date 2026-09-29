@@ -53,6 +53,15 @@ describe("2027 신년운세 계산 코어", () => {
     expect(() => buildYearForecast(saju, 2028)).toThrow(RangeError);
   });
 
+  it("호출자가 전문가 검수 상태를 명시하면 그 값을 그대로 반영한다", () => {
+    // buildYearForecast는 환경변수를 읽지 않는 순수 함수로 남는다. 실제 승인 여부는
+    // 호출자(isYearForecastExpertReviewApproved())가 판단해 넘긴다.
+    const saju = computeSaju(BASE_BIRTH, { applyTrueSolarTime: false });
+    expect(buildYearForecast(saju, 2027, { expertReviewStatus: "approved" }).expertReviewStatus).toBe("approved");
+    expect(buildYearForecast(saju, 2027, { expertReviewStatus: "pending" }).expertReviewStatus).toBe("pending");
+    expect(buildYearForecast(saju, 2027, {}).expertReviewStatus).toBe("pending");
+  });
+
   it("반환한 절기 Date를 변경해도 예보 경계는 유지한다", () => {
     const { forecast } = forecastFor(BASE_BIRTH);
     const expectedStart = forecast.annual.startsAt.getTime();
@@ -213,7 +222,9 @@ describe("2027 신년운세 계산 코어", () => {
 
   it("모든 서술 블록은 구조 검증을 통과하고 typed evidenceRefs와 출처를 가진다", () => {
     const { forecast } = forecastFor(BASE_BIRTH);
-    expect(forecast.blocks).toHaveLength(16);
+    // 16 = 5 existing kinds (annual/12 months/natal-relations/luck-overlap/birth-context) +
+    // 8 domain-chapter blocks added by Track B1 (work/relationships/wellbeing/growth × 2 each).
+    expect(forecast.blocks).toHaveLength(24);
 
     for (const block of forecast.blocks) {
       assertExplanationBlock(block);

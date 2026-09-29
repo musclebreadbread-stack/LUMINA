@@ -19,6 +19,7 @@ const FALLBACK_ART: Readonly<Record<ShareKind, string>> = Object.freeze({
   attachment: "og/attachment/overview.png",
   eq: "og/eq/overview.png",
   cognitive: "og/cognitive/overview.png",
+  saju: "og/saju/overview.png",
 });
 
 export async function buildFallbackOgCard(kind: ShareKind, locale: Locale): Promise<OgCard> {

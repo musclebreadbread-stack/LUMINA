@@ -33,6 +33,7 @@ import {
   type ReportView,
 } from "@/lib/reportModel";
 import { decodeProfile } from "@/lib/share";
+import { encodeShareCode, sajuSummaryFromView } from "@/lib/shareCode";
 import { resolveBirthReportProfile } from "@/server/reportProfileSession";
 import { placeDisplayLabel } from "@/lib/profile";
 import { TWELVE_STAGES, branchAt, stageEvidenceRef } from "@engine/saju";
@@ -203,6 +204,10 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
     strength: view.strength.verdict,
     timeUnknown: view.precision.timeUnknown,
   });
+  // 생년월일이 들어가지 않는 별도 요약 코드 — 일주·주도 오행·세력 셋뿐이라
+  // 아래 첫 번째 ShareBar(allowLinkShare={false})와 달리 링크 공유를 허용해도 안전하다.
+  const sajuShareCode = encodeShareCode(sajuSummaryFromView(view, locale));
+  const sajuShareUrl = `/s/saju/${sajuShareCode}`;
   const chapters: readonly Chapter[] = [
     { id: "section-pillars", label: t("sectionPillars") },
     { id: "section-calc", label: t("sectionCalc") },
@@ -588,6 +593,12 @@ export default async function ReportPage({ params }: { params: Promise<{ data: s
       <Reveal>
         <footer className="space-y-8 border-t border-ink-700 pt-8">
           <ShareBar title={`${birthLabel} ${t("resultTitleSuffix")} · LUMINA`} allowLinkShare={false} />
+          <ShareBar
+            title={`${birthLabel} ${t("resultTitleSuffix")} · LUMINA`}
+            imageCard={{ kind: "saju", code: sajuShareCode }}
+            shareUrl={sajuShareUrl}
+            allowLinkShare
+          />
           <Disclaimer />
         </footer>
       </Reveal>

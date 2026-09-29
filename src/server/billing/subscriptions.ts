@@ -5,12 +5,10 @@ import { serverFeatureFlags } from "@/lib/flags";
 import type { Locale } from "@/i18n/locale";
 import { getSignedInMember } from "@/server/auth/session";
 import { hasRequiredMemberConsents } from "@/server/member/consents";
+import { SUBSCRIPTION_PRODUCT_KEYS, type SubscriptionProductKey } from "./catalog";
 import { decryptBillingValue, encryptBillingValue, paymentKeyDigest } from "./crypto";
 import { getPaymentProvider } from "./paymentProvider";
 import { withBillingTransaction } from "./workerDatabase";
-
-const PLUS_PRODUCTS = ["lumina-plus-monthly", "lumina-plus-yearly"] as const;
-type PlusProduct = (typeof PLUS_PRODUCTS)[number];
 
 export class SubscriptionAccessError extends Error {
   constructor(readonly reason: "authentication_required" | "consent_required" | "subscription_unavailable") {
@@ -121,7 +119,7 @@ export async function getActiveLuminaPlusSale(): Promise<Readonly<{
   try {
     return await withBillingTransaction(async (client) => {
       const result = await client.query<{
-        product_key: PlusProduct;
+        product_key: SubscriptionProductKey;
         amount: number;
         currency: string;
         name_ko: string;
@@ -134,7 +132,7 @@ export async function getActiveLuminaPlusSale(): Promise<Readonly<{
             and p.enabled and p.license_status = 'verified' and pr.enabled and pr.currency = 'KRW'
             and pr.valid_from <= now() and (pr.valid_until is null or pr.valid_until > now())
           order by pr.valid_from desc`,
-        [PLUS_PRODUCTS],
+        [SUBSCRIPTION_PRODUCT_KEYS],
       );
       const byProduct = new Map(result.rows.map((row) => [row.product_key, row] as const));
       const monthly = byProduct.get("lumina-plus-monthly");
@@ -151,7 +149,7 @@ export async function getActiveLuminaPlusSale(): Promise<Readonly<{
 }
 
 export async function createPendingSubscription(input: Readonly<{
-  productKey: PlusProduct;
+  productKey: SubscriptionProductKey;
   locale: Locale;
   acceptedSubscriptionTerms: true;
   acceptedAutomaticRenewal: true;
@@ -175,7 +173,7 @@ export async function createPendingSubscription(input: Readonly<{
     await withBillingTransaction(async (client) => {
       const productResult = await client.query<{
         price_id: string;
-        product_key: PlusProduct;
+        product_key: SubscriptionProductKey;
         product_name: string;
       }>(
         `select pr.id::text as price_id, p.product_key,
@@ -461,7 +459,7 @@ export async function processDueSubscriptionInvoices(limit = 3): Promise<Readonl
         subscription_id: string;
         user_id: string;
         user_ref_hmac: Buffer;
-        product_key: PlusProduct;
+        product_key: SubscriptionProductKey;
         price_id: string;
         order_name: string;
         customer_key: string;

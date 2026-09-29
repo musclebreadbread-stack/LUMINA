@@ -12,6 +12,12 @@ export function createRailway10MinTasks(environment = process.env) {
     }),
     createRailwayGatedTask({
       environment,
+      name: "billing_reconcile",
+      requiredGateVariables: ["BILLING_RECONCILE_ENABLED", "BILLING_LEGAL_DOCUMENTS_APPROVED"],
+      run: () => callRailwayInternalRoute("/api/internal/billing-reconcile", "BILLING_CRON_SECRET", 90_000),
+    }),
+    createRailwayGatedTask({
+      environment,
       name: "ai_sweeper",
       requiredGateVariables: [
         "FEATURE_AI_NARRATIVE",

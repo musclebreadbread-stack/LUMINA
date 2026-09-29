@@ -55,6 +55,14 @@ describe("darktriad draft storage", () => {
     expect(loadDarkTriadDraft()).toEqual({});
   });
 
+  it("returns an empty snapshot after clearing a draft that was already read", () => {
+    saveDarkTriadDraft({ 1: 4 });
+    expect(getDarkTriadDraftSnapshot()).toEqual({ 1: 4 });
+    clearDarkTriadDraft();
+    expect(getDarkTriadDraftSnapshot()).toEqual({});
+    expect(getDarkTriadDraftSnapshot()).toBe(getDarkTriadDraftSnapshot());
+  });
+
   it("serves a frozen, referentially stable server snapshot", () => {
     expect(getDarkTriadDraftServerSnapshot()).toEqual({});
     expect(getDarkTriadDraftServerSnapshot()).toBe(getDarkTriadDraftServerSnapshot());

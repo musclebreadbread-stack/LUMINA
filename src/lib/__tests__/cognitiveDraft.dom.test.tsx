@@ -100,6 +100,13 @@ describe("cognitive draft storage", () => {
     expect(loadCognitiveDraft()).toBe(EMPTY_DRAFT);
   });
 
+  it("returns the empty draft snapshot after clearing a draft that was already read", () => {
+    saveCognitiveDraft({ responses: { [first.id]: 0 }, elapsedMsByItem: {} });
+    expect(getCognitiveDraftSnapshot().responses).toEqual({ [first.id]: 0 });
+    clearCognitiveDraft();
+    expect(getCognitiveDraftSnapshot()).toBe(EMPTY_DRAFT);
+  });
+
   it("serves the frozen empty draft on the server", () => {
     expect(getCognitiveDraftServerSnapshot()).toBe(EMPTY_DRAFT);
     expect(Object.isFrozen(EMPTY_DRAFT)).toBe(true);

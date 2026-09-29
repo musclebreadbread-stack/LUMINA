@@ -55,6 +55,14 @@ describe("eq draft storage", () => {
     expect(loadEqDraft()).toEqual({});
   });
 
+  it("returns an empty snapshot after clearing a draft that was already read", () => {
+    saveEqDraft({ 1: 4 });
+    expect(getEqDraftSnapshot()).toEqual({ 1: 4 });
+    clearEqDraft();
+    expect(getEqDraftSnapshot()).toEqual({});
+    expect(getEqDraftSnapshot()).toBe(getEqDraftSnapshot());
+  });
+
   it("serves a frozen, referentially stable server snapshot", () => {
     expect(getEqDraftServerSnapshot()).toEqual({});
     expect(getEqDraftServerSnapshot()).toBe(getEqDraftServerSnapshot());

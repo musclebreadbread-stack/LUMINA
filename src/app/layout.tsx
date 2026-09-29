@@ -136,6 +136,8 @@ export default async function RootLayout({
           <div className="lumina-app-shell relative z-10">{children}</div>
           <SiteFooterNav locale={locale} memberAuthEnabled={isMemberAuthConfigured()} />
           <BusinessInfoFooter locale={locale} />
+          {/* 오른쪽 아래에 고정된 음악 버튼이 문서 맨 끝의 마지막 링크를 가리지 않게 하는 여백. */}
+          <div aria-hidden="true" className="no-print h-10" />
           <Suspense fallback={null}>
             <BgmControl />
           </Suspense>

@@ -9,9 +9,12 @@ import { ShareSavedResults } from "@/components/account/ShareSavedResults";
 import { DeleteAccountForm } from "@/components/account/DeleteAccountForm";
 import { SelfRefundButton } from "@/components/account/SelfRefundButton";
 import { CancelSubscriptionButton } from "@/components/account/CancelSubscriptionButton";
+import { MarketingOptIn } from "@/components/growth/MarketingOptIn";
 import { intlLocale, isLocale, localePath, type Locale } from "@/i18n/locale";
 import { isMemberAuthConfigured } from "@/server/auth";
 import { getSignedInMember } from "@/server/auth/session";
+import { isGrowthCapabilityEnabled } from "@/server/growth/featureGate";
+import { getOwnMarketingPreference } from "@/server/growth/marketingPreference";
 import { hasRequiredMemberConsents } from "@/server/member/consents";
 import { getOwnSavedResults, listOwnShareLinks } from "@/server/member/dal";
 import { listOwnBillingOrders } from "@/server/billing/service";
@@ -55,6 +58,9 @@ export default async function AccountPage() {
 
   const billingOrders = await listOwnBillingOrders().catch(() => []);
   const subscriptions = await listOwnSubscriptions().catch(() => []);
+  // Turning notifications off must stay reachable even after the sign-up gate closes.
+  const marketingSignupOpen = isGrowthCapabilityEnabled("marketingRetention");
+  const marketingPreference = await getOwnMarketingPreference(session.user.id).catch(() => null);
 
   let savedResults: readonly ResultSnapshotV1[];
   let shareLinks: readonly Readonly<{
@@ -176,6 +182,12 @@ export default async function AccountPage() {
             <p className="mt-3 text-sm text-hobun-dim">{locale !== "ko" ? "No subscriptions." : "구독 내역이 없습니다."}</p>
           )}
         </section>
+        {marketingPreference && (marketingSignupOpen || marketingPreference.status === "subscribed") ? (
+          <section className="mt-10 border-t border-ink-800 pt-8">
+            <h2 className="text-lg font-medium text-hobun">{locale !== "ko" ? "Notifications" : "알림"}</h2>
+            <MarketingOptIn locale={locale} initialStatus={marketingPreference.status} canSubscribe={marketingSignupOpen} />
+          </section>
+        ) : null}
         <ShareSavedResults
           locale={locale}
           savedResults={savedResults.map((result) => ({

@@ -5,6 +5,7 @@ import { intlLocale, isLocale } from "@/i18n/locale";
 import { AdminRefundForm } from "@/components/admin/billing/AdminRefundForm";
 import { getAdminAccess } from "@/server/admin/authorization";
 import { getBillingChannelSummary, getBillingKpiSummary, listBillingAdminOrders } from "@/server/billing/service";
+import { getMarketingSubscriberCounts } from "@/server/growth/marketingPreference";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Billing operations | LUMINA", robots: { index: false, follow: false } };
@@ -15,10 +16,11 @@ export default async function AdminBillingPage() {
   if (access.role !== "owner") redirect("/admin/analytics");
   const localeValue = await getLocale();
   const locale = isLocale(localeValue) ? localeValue : "ko";
-  const [orders, kpis, channels] = await Promise.all([
+  const [orders, kpis, channels, notifySignups] = await Promise.all([
     listBillingAdminOrders().catch(() => null),
     getBillingKpiSummary().catch(() => null),
     getBillingChannelSummary().catch(() => null),
+    getMarketingSubscriberCounts().catch(() => null),
   ]);
   return (
     <main className="mx-auto w-full max-w-7xl px-5 py-10 sm:px-8">
@@ -54,6 +56,13 @@ export default async function AdminBillingPage() {
                 " · 추정 AI 요청: " + (kpis.aiEstimatedRequests30d ?? "—") + "건"}
           </p>
         </div>
+      ) : null}
+      {notifySignups !== null ? (
+        <p className="mt-3 text-[11px] leading-5 text-hobun-faint">
+          {locale !== "ko"
+            ? "Launch-notification sign-ups (marketing consent): " + notifySignups.subscribed + " subscribed · " + notifySignups.unsubscribed + " opted out"
+            : "출시 알림 신청(광고성 정보 수신 동의): 수신 " + notifySignups.subscribed + "명 · 해지 " + notifySignups.unsubscribed + "명"}
+        </p>
       ) : null}
       {channels !== null ? (
         <section className="mt-8" aria-label={locale !== "ko" ? "Revenue by channel" : "채널별 매출"}>

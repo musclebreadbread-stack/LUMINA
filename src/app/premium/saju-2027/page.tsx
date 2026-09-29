@@ -10,12 +10,14 @@ import { SceneShell } from "@/components/ui/SceneShell";
 import { assetPath } from "@/lib/assets";
 import { buildAlternates } from "@/lib/seoAlternates";
 import { contentLocaleFor, intlLocale, localePath, type Locale } from "@/i18n/locale";
+import { MarketingOptIn } from "@/components/growth/MarketingOptIn";
 import { CheckoutButton } from "@/components/premium/CheckoutButton";
 import {
   PremiumReportFreeAnalysisLink,
   PremiumReportViewTracker,
 } from "@/components/premium/PremiumReportAnalytics";
 import { getSaju2027SaleState, isEuCountryCode, type ActiveSaju2027Sale } from "@/server/billing/service";
+import { isGrowthCapabilityEnabled } from "@/server/growth/featureGate";
 
 export const dynamic = "force-dynamic";
 
@@ -166,7 +168,12 @@ export default async function YearlySaju2027Page({ searchParams }: YearlySaju202
               {saleState.status === "live" ? (
                 <CheckoutButton locale={locale} isEuCountry={isEuCountry} />
               ) : (
-                <p className="mt-3 text-sm leading-relaxed text-hobun-dim">{t("previewNotice")}</p>
+                <>
+                  <p className="mt-3 text-sm leading-relaxed text-hobun-dim">{t("previewNotice")}</p>
+                  {isGrowthCapabilityEnabled("marketingRetention") ? (
+                    <MarketingOptIn locale={locale} returnTo={localePath("/premium/saju-2027", locale)} canSubscribe />
+                  ) : null}
+                </>
               )}
             </section>
           ) : null}

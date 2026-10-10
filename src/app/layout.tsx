@@ -1,5 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans_KR, Noto_Serif_KR } from "next/font/google";
+import "@fontsource/ibm-plex-sans-kr/latin-300.css";
+import "@fontsource/ibm-plex-sans-kr/latin-400.css";
+import "@fontsource/ibm-plex-sans-kr/latin-500.css";
+import "@fontsource/ibm-plex-sans-kr/latin-600.css";
+import "@fontsource/ibm-plex-sans-kr/latin-700.css";
+import "@fontsource/noto-serif-kr/latin-500.css";
+import "@fontsource/noto-serif-kr/latin-900.css";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import Script from "next/script";
@@ -16,32 +22,8 @@ import { contentLocaleFor, DEFAULT_LOCALE, isLocale, openGraphLocale } from "@/i
 import "./globals.css";
 
 /* 본문·UI — 계측기 눈금판의 서체. 한글 전 굵기를 갖춘다. */
-const plexKr = IBM_Plex_Sans_KR({
-  variable: "--font-plex-kr",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
-  preload: false,
-});
-
 /* 수치·시각·좌표 — 자릿수가 흔들리지 않아야 하는 모든 값. */
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  display: "swap",
-  preload: false,
-});
-
 /* 여덟 글자 — 한자 자형 자체가 이 화면의 주인공이다. */
-const notoSerifKr = Noto_Serif_KR({
-  variable: "--font-noto-serif-kr",
-  subsets: ["latin"],
-  weight: ["500", "900"],
-  display: "swap",
-  preload: false,
-});
-
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations();
   const localeValue = await getLocale();
@@ -113,7 +95,7 @@ export default async function RootLayout({
   return (
     <html
       lang={contentLocale}
-      className={`${plexKr.variable} ${plexMono.variable} ${notoSerifKr.variable} h-full`}
+      className="h-full"
     >
       <body className="lumina-app relative min-h-full">
         <ServiceWorkerRegistration />

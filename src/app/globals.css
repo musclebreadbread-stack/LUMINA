@@ -63,9 +63,10 @@
   --color-philosophy: #d0b7ec;
   --color-sand: #d7b47b;
 
-  --font-sans: var(--font-plex-kr), system-ui, sans-serif;
+  /* Google font 설정과 같은 Latin subset만 자체 호스팅하고, 한글·한자 글리프는 OS CJK 서체로 연결해 번들 용량을 제한한다. */
+  --font-sans: var(--font-plex-kr), "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans CJK KR", system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
-  --font-hanja: var(--font-noto-serif-kr), serif;
+  --font-hanja: var(--font-noto-serif-kr), "AppleMyungjo", "Batang", "Noto Serif CJK KR", serif;
 
   --radius-none: 0px;
 }
@@ -73,6 +74,9 @@
 @layer base {
   :root {
     color-scheme: dark;
+    --font-plex-kr: "IBM Plex Sans KR";
+    --font-plex-mono: "IBM Plex Mono";
+    --font-noto-serif-kr: "Noto Serif KR";
     --motion-fast: 140ms;
     --motion-state: 360ms;
     --motion-scene: 900ms;

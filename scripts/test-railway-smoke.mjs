@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { hasRequiredSecurityHeaders, resolveOrigin, runSmoke } from "./railway-smoke.mjs";
+import {
+  hasRequiredSecurityHeaders,
+  resolveOrigin,
+  robotsPointsToSitemap,
+  runSmoke,
+  sitemapUsesOrigin,
+} from "./railway-smoke.mjs";
 
 const REQUIRED_SECURITY_HEADERS = {
   "strict-transport-security": "max-age=31536000",
@@ -18,6 +24,46 @@ function authGuardResponse(pathname) {
   const error = AUTH_GUARD_RESPONSES[pathname];
   return error === undefined ? null : Response.json({ error }, { status: 403 });
 }
+
+const INTERNAL_READ_ENDPOINTS = new Set(["/api/internal/analytics-rollup", "/api/internal/growth-report"]);
+
+function seoResponse(pathname, origin = "https://example.com") {
+  if (pathname === "/sitemap.xml") {
+    return new Response(`<urlset><url><loc>${origin}/</loc></url><url><loc>${origin}/saju/2027</loc></url></urlset>`, {
+      status: 200,
+      headers: { "content-type": "application/xml" },
+    });
+  }
+  if (pathname === "/ads.txt") {
+    return new Response("# ads.txt\n", { status: 200, headers: { "content-type": "text/plain; charset=utf-8" } });
+  }
+  if (pathname === "/robots.txt") {
+    return new Response(`User-Agent: *\nAllow: /\n\nSitemap: ${origin}/sitemap.xml\n`, {
+      status: 200,
+      headers: { "content-type": "text/plain" },
+    });
+  }
+  return null;
+}
+
+test("requires every sitemap URL and the robots sitemap line to use the checked origin", () => {
+  const origin = "https://lumina.example";
+  assert.equal(sitemapUsesOrigin(`<loc>${origin}/</loc><loc>${origin}/tarot</loc>`, origin), true);
+  assert.equal(sitemapUsesOrigin("<loc>http://localhost:3000/</loc>", origin), false);
+  assert.equal(sitemapUsesOrigin(`<loc>${origin}/</loc><loc>http://localhost:3000/tarot</loc>`, origin), false);
+  assert.equal(sitemapUsesOrigin("<urlset></urlset>", origin), false);
+  assert.equal(sitemapUsesOrigin(`<loc>${origin}.evil.test/</loc>`, origin), false);
+  assert.equal(
+    sitemapUsesOrigin(`<loc>${origin}/</loc><xhtml:link rel="alternate" hreflang="en" href="http://localhost:3000/en"/>`, origin),
+    false,
+  );
+  assert.equal(
+    sitemapUsesOrigin(`<loc>${origin}/</loc><xhtml:link rel="alternate" hreflang="en" href="${origin}/en"/>`, origin),
+    true,
+  );
+  assert.equal(robotsPointsToSitemap(`Sitemap: ${origin}/sitemap.xml`, origin), true);
+  assert.equal(robotsPointsToSitemap("Sitemap: http://localhost:3000/sitemap.xml", origin), false);
+});
 
 test("requires the Phase 0 production security headers", () => {
   const headers = new Headers({
@@ -56,6 +102,8 @@ test("checks only the expected routes and passes on healthy responses", async ()
 
     const authResponse = authGuardResponse(url.pathname);
     if (authResponse !== null) return authResponse;
+    const seo = seoResponse(url.pathname);
+    if (seo !== null) return seo;
 
     if (init.method === "HEAD") {
       if (url.pathname.startsWith("/audio/")) {
@@ -86,7 +134,7 @@ test("checks only the expected routes and passes on healthy responses", async ()
     if (url.pathname === "/api/auth/get-session") {
       return Response.json(null);
     }
-    if (url.pathname === "/api/internal/analytics-rollup") {
+    if (INTERNAL_READ_ENDPOINTS.has(url.pathname)) {
       return Response.json({ error: "unauthorized" }, { status: 401 });
     }
     return new Response("export {};", { status: 200, headers: { "content-type": "application/javascript" } });
@@ -94,7 +142,7 @@ test("checks only the expected routes and passes on healthy responses", async ()
 
   const results = await runSmoke("https://example.com", mockFetch);
 
-  assert.equal(results.length, 19);
+  assert.equal(results.length, 23);
   assert.ok(results.every((result) => result.passed));
   assert.equal(results.find((result) => result.path === "/")?.securityHeadersValid, true);
   assert.ok(requests.some((request) => request.path === "/audio/bgm/digital-observatory.mp3" && request.method === "HEAD"));
@@ -120,6 +168,8 @@ test("expects the Umami proxy to stay disabled in staging", async () => {
     const url = new URL(input);
     const authResponse = authGuardResponse(url.pathname);
     if (authResponse !== null) return authResponse;
+    const seo = seoResponse(url.pathname);
+    if (seo !== null) return seo;
 
     if (init.method === "HEAD") {
       return new Response(null, {
@@ -139,7 +189,7 @@ test("expects the Umami proxy to stay disabled in staging", async () => {
     if (url.pathname === "/api/health" || url.pathname === "/api/health/ready") {
       return Response.json({ ok: true });
     }
-    if (url.pathname === "/api/internal/analytics-rollup") {
+    if (INTERNAL_READ_ENDPOINTS.has(url.pathname)) {
       return Response.json({ error: "unauthorized" }, { status: 401 });
     }
     if (url.pathname === "/") {
@@ -153,7 +203,7 @@ test("expects the Umami proxy to stay disabled in staging", async () => {
 
   const results = await runSmoke("https://example.com", mockFetch, "staging");
 
-  assert.equal(results.length, 19);
+  assert.equal(results.length, 23);
   assert.ok(results.every((result) => result.passed));
   assert.equal(results.find((result) => result.path === "/api/umami/script.js")?.status, 503);
 });
@@ -187,6 +237,8 @@ test("fails when health JSON is malformed or the unauthenticated endpoint is not
     if (url.pathname === "/api/umami/script.js") {
       return new Response("export {};", { status: 200, headers: { "content-type": "application/javascript" } });
     }
+    const seo = seoResponse(url.pathname, "http://localhost:3000");
+    if (seo !== null) return seo;
     return Response.json({ ok: true }, { status: 200 });
   };
 
@@ -197,4 +249,7 @@ test("fails when health JSON is malformed or the unauthenticated endpoint is not
   assert.equal(results.find((result) => result.path === "/api/auth/sign-up/email")?.passed, false);
   assert.equal(results.find((result) => result.path === "/api/auth/sign-in/social")?.passed, false);
   assert.equal(results.find((result) => result.path === "/ja/p/x")?.privateShareHeadersValid, false);
+  assert.equal(results.find((result) => result.path === "/api/internal/growth-report")?.passed, false);
+  assert.equal(results.find((result) => result.path === "/sitemap.xml")?.passed, false);
+  assert.equal(results.find((result) => result.path === "/robots.txt")?.passed, false);
 });

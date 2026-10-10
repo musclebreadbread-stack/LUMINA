@@ -206,6 +206,40 @@ interface EventCountPoint {
   readonly count: number;
 }
 
+export interface UmamiMetricRow {
+  readonly value: string;
+  readonly count: number;
+}
+
+/**
+ * Umami `metrics` 순위(유입 경로·페이지 등) 한 종류. 값은 Umami가 이미 집계한
+ * 문자열 그대로이므로, 외부로 내보내는 쪽에서 반드시 다시 정제해야 한다.
+ */
+export async function fetchUmamiMetric(
+  range: AnalyticsDateRange,
+  type: string,
+  limit: number,
+): Promise<readonly UmamiMetricRow[]> {
+  const config = readUmamiAnalyticsConfig();
+  if (config === null) throw new UmamiAnalyticsError("not_configured", "Umami analytics is not configured");
+  const params = queryRange(range);
+  params.set("type", type);
+  params.set("limit", String(Math.max(1, Math.min(Math.trunc(limit), 100))));
+  const payload = await getJson(config, "metrics", params);
+  // Some Umami builds wrap list payloads as { data: [...] }.
+  const items = Array.isArray(payload) ? payload : isRecord(payload) && Array.isArray(payload.data) ? payload.data : null;
+  if (items === null) throw new UmamiAnalyticsError("invalid_response", "Umami returned invalid metrics");
+  const rows: UmamiMetricRow[] = [];
+  for (const item of items as readonly unknown[]) {
+    // Umami reports direct visits (no referrer) as a null label.
+    if (!isRecord(item) || (typeof item.x !== "string" && item.x !== null)) continue;
+    const count = finiteCount(item.y);
+    if (count === null) continue;
+    rows.push(Object.freeze({ value: item.x ?? "", count }));
+  }
+  return Object.freeze(rows);
+}
+
 export async function fetchUmamiAnalyticsRollup(range: AnalyticsDateRange): Promise<UmamiAnalyticsRollupRange> {
   const config = readUmamiAnalyticsConfig();
   if (config === null) throw new UmamiAnalyticsError("not_configured", "Umami analytics is not configured");

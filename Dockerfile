@@ -39,10 +39,36 @@ ENV NEXT_PUBLIC_SELLER_NAME=$NEXT_PUBLIC_SELLER_NAME \
     NEXT_PUBLIC_SELLER_CONTACT_EMAIL=$NEXT_PUBLIC_SELLER_CONTACT_EMAIL \
     NEXT_PUBLIC_HOSTING_PROVIDER=$NEXT_PUBLIC_HOSTING_PROVIDER
 
+# Every other NEXT_PUBLIC_* the app reads. Without these, prerendered routes
+# (sitemap.xml, robots.txt) fall back to http://localhost:3000 and client bundles
+# ship without the Umami, AdSense, Sentry and Kakao values even when Railway has them.
+# scripts/test-railway-preflight.mjs fails when src/ reads a NEXT_PUBLIC_* missing here.
+ARG NEXT_PUBLIC_SITE_URL
+ARG NEXT_PUBLIC_CONTACT_EMAIL
+ARG NEXT_PUBLIC_ADSENSE_CLIENT
+ARG NEXT_PUBLIC_ADSENSE_SLOT_ID
+ARG NEXT_PUBLIC_UMAMI_SCRIPT_URL
+ARG NEXT_PUBLIC_UMAMI_WEBSITE_ID
+ARG NEXT_PUBLIC_SENTRY_DSN
+ARG NEXT_PUBLIC_KAKAO_JS_KEY
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
+    NEXT_PUBLIC_CONTACT_EMAIL=$NEXT_PUBLIC_CONTACT_EMAIL \
+    NEXT_PUBLIC_ADSENSE_CLIENT=$NEXT_PUBLIC_ADSENSE_CLIENT \
+    NEXT_PUBLIC_ADSENSE_SLOT_ID=$NEXT_PUBLIC_ADSENSE_SLOT_ID \
+    NEXT_PUBLIC_UMAMI_SCRIPT_URL=$NEXT_PUBLIC_UMAMI_SCRIPT_URL \
+    NEXT_PUBLIC_UMAMI_WEBSITE_ID=$NEXT_PUBLIC_UMAMI_WEBSITE_ID \
+    NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN \
+    NEXT_PUBLIC_KAKAO_JS_KEY=$NEXT_PUBLIC_KAKAO_JS_KEY
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN pnpm run build
+# An ARG that Railway did not forward still becomes ENV X="" above, and Next.js
+# inlines "" as a literal — which would turn today's working server-side runtime
+# reads into empty strings. Unset empty NEXT_PUBLIC_* values so only provided
+# values are inlined and everything else keeps reading process.env at runtime.
+RUN for name in $(env | sed -n 's/^\(NEXT_PUBLIC_[A-Z0-9_]*\)=$/\1/p'); do unset "$name"; done \
+    && pnpm run build
 
 FROM node:22-bookworm-slim AS runner
 

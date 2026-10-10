@@ -21,6 +21,7 @@ import { PlatformAtmosphere } from "@/components/scene3d/PlatformAtmosphere";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildAlternates } from "@/lib/seoAlternates";
 import { getSiteUrl } from "@/lib/siteUrl";
+import { readAdSenseClient } from "@/lib/adsense";
 import { isMemberAuthConfigured } from "@/server/auth";
 import { contentLocaleFor, DEFAULT_LOCALE, isLocale, openGraphLocale } from "@/i18n/locale";
 import "./globals.css";
@@ -51,6 +52,8 @@ export async function generateMetadata(): Promise<Metadata> {
       locale: openGraphLocale(contentLocaleFor(locale)),
       type: "website",
     },
+    // AdSense 사이트 소유확인. 게시자 ID가 없거나 형식이 틀리면 내보내지 않는다.
+    ...(adSenseClient ? { other: { "google-adsense-account": adSenseClient } } : {}),
   };
 }
 
@@ -59,7 +62,7 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-const adSenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
+const adSenseClient = readAdSenseClient(process.env.NEXT_PUBLIC_ADSENSE_CLIENT);
 
 export default async function RootLayout({
   children,

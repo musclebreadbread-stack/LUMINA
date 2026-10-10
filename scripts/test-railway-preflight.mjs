@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
@@ -30,7 +31,17 @@ const readyBillingEnvironment = {
   BILLING_LEGAL_DOCUMENTS_APPROVED: "true",
   BILLING_TERMS_VERSION: "billing-terms-v1",
   BILLING_WITHDRAWAL_NOTICE_VERSION: "billing-withdrawal-v1",
+  NEXT_PUBLIC_SELLER_NAME: "Example Seller",
+  NEXT_PUBLIC_SELLER_REPRESENTATIVE: "Example Representative",
+  NEXT_PUBLIC_SELLER_REGISTRATION_NUMBER: "000-00-00000",
+  NEXT_PUBLIC_SELLER_MAIL_ORDER_NUMBER: "2026-Example-0000",
+  NEXT_PUBLIC_SELLER_ADDRESS: "Example address",
+  NEXT_PUBLIC_SELLER_PHONE: "000-0000-0000",
+  NEXT_PUBLIC_SELLER_CONTACT_EMAIL: "help@example.invalid",
+  NEXT_PUBLIC_HOSTING_PROVIDER: "Example Hosting",
 };
+const sellerDisclosureVariables = Object.keys(readyBillingEnvironment)
+  .filter((name) => name.startsWith("NEXT_PUBLIC_"));
 
 function runPreflight(overrides = {}) {
   const env = Object.fromEntries(
@@ -129,6 +140,33 @@ test("accepts complete billing and member configuration without external request
   assert.equal(result.stderr, "");
   assert.equal(result.stdout.includes('"event":"warning"'), false);
   assert.match(result.stdout, /Railway preflight passed for staging/u);
+});
+
+test("blocks checkout until every seller disclosure shown in the site footer is configured", () => {
+  assert.equal(sellerDisclosureVariables.length, 8);
+  for (const name of sellerDisclosureVariables) {
+    const result = runPreflight({ ...readyBillingEnvironment, [name]: " " });
+    assert.equal(result.status, 1, `${name} should be required`);
+    assert.match(result.stderr, new RegExp(`billing: ${name} must be configured for the seller disclosure footer`, "u"));
+  }
+});
+
+test("passes every seller disclosure into the Docker build where Next.js inlines public values", () => {
+  const dockerfile = readFileSync(fileURLToPath(new URL("../Dockerfile", import.meta.url)), "utf8");
+  const builderStage = dockerfile.slice(dockerfile.indexOf("AS builder"), dockerfile.indexOf("RUN pnpm run build"));
+
+  for (const name of sellerDisclosureVariables) {
+    assert.match(builderStage, new RegExp(`^ARG ${name}$`, "mu"), `${name} needs a builder ARG`);
+    assert.match(builderStage, new RegExp(`${name}=\\$${name}`, "u"), `${name} needs a builder ENV`);
+  }
+});
+
+test("rejects seller disclosures containing line breaks", () => {
+  const result = runPreflight({ ...readyBillingEnvironment, NEXT_PUBLIC_SELLER_ADDRESS: "line one\nline two" });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /billing: NEXT_PUBLIC_SELLER_ADDRESS must not contain line breaks/u);
+  assert.doesNotMatch(result.stdout + result.stderr, /line one/u);
 });
 
 test("requires Toss test keys in staging and live keys in production", () => {

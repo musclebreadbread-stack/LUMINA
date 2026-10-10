@@ -485,3 +485,10 @@
 - **변경:** 저장소의 Docker 이미지를 production `cron-10min`에 배포해 예약 작업 구성을 현재 코드와 맞췄다. 데이터베이스 마이그레이션이나 운영 기능 게이트는 변경하지 않았다.
 - **검증:** `scripts/test-railway-cron.mjs` 9/9 통과. Railway 배포 `2e87adaf-51bd-4601-ac09-33906b25db34`와 서비스 상태가 `SUCCESS`; 첫 예약 실행은 UTC 23:10에 예상한 `billing_receipts`, `ai_sweeper`, `subscription_sweeper` 3개를 모두 건너뛰었다. `cron-daily`의 17:00 UTC 실행은 분석 작업 1건 성공, 건너뜀·실패 0건이었다. staging 환경에는 `web`만 있고 cron 서비스는 없다.
 - **운영 경계·다음:** 결제·AI·구독 작업은 계속 승인 게이트로 비활성이다. Sentry server 보고도 production DSN이 없어 꺼져 있다. 실제 작업 효과, Toss 결제·환불, staging 회원/RLS 흐름은 외부 설정과 승인이 갖춰진 뒤 검증한다.
+
+## 2026-10-10 판매자 정보 전역 표시와 결제 개통 게이트
+
+- **관찰:** 토스 카드사 심사는 홈페이지 하단에 상호·대표자·사업자등록번호·주소·고객센터 연락처·통신판매업 신고번호를 요구한다([토스 체크리스트](https://www.tosspayments.com/blog/articles/53711)). 기존 `BusinessInfoFooter`는 `/refund-policy`에만 있었고 대표자·신고번호·전화·호스팅 제공자가 없었다. preflight도 판매자 정보 없이 `FEATURE_BILLING=true`를 허용했다. Dockerfile에 `ARG`가 없어 Railway 변수 `NEXT_PUBLIC_SELLER_*`가 빌드에 전달되지 않았다([Railway 문서](https://docs.railway.com/guides/build-time-vs-runtime-secrets)).
+- **변경:** 판매자 정보 8개 항목을 루트 레이아웃 하단에 표시한다. 한 항목이라도 비면 아무것도 그리지 않으며, 세션을 읽지 않는 동기 컴포넌트라 정적 렌더링을 유지한다. builder 단계에 8개 `ARG`를 추가했고, 결제를 켜면 preflight가 8개 변수를 모두 요구하며 줄바꿈을 거부한다. Dockerfile ARG 목록과 preflight 목록이 어긋나면 테스트가 실패한다. 외부 승인 항목은 `docs/LAUNCH-APPROVAL-READINESS.md`로 정리했다.
+- **검증:** preflight 11/11, cron 9/9, 푸터 DOM 10/10, 전체 Vitest 185개 파일·1,631개 테스트, ESLint, typecheck, Next.js production build 통과.
+- **운영 경계·다음:** 변수가 설정되지 않은 현재 운영 화면에는 변화가 없다. Railway 변수 등록·배포·push는 하지 않았다. 판매자 변수 등록 후 재배포하고 운영 홈 하단 표시를 확인한다. 코드 리뷰의 후속 개선 2건(다건 부분 취소 시 `provider_refund_id` 미기록, 환불 라우트의 항상 같은 값으로 평가되는 분기)은 금액 흐름에 영향이 없어 보류했다.

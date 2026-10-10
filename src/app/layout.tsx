@@ -13,6 +13,7 @@ import { Suspense } from "react";
 import { AnalyticsGate } from "@/components/analytics/AnalyticsGate";
 import { ConsentBanner } from "@/components/ads/ConsentBanner";
 import { BgmControl } from "@/components/audio/BgmControl";
+import { BusinessInfoFooter } from "@/components/commerce/BusinessInfoFooter";
 import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration";
 import { PlatformAtmosphere } from "@/components/scene3d/PlatformAtmosphere";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -111,7 +112,10 @@ export default async function RootLayout({
         )}
         <NextIntlClientProvider locale={locale} messages={messages}>
           <PlatformAtmosphere />
-          <div className="lumina-app-shell relative z-10">{children}</div>
+          <div className="lumina-app-shell relative z-10">
+            {children}
+            <BusinessInfoFooter locale={locale} className="mx-auto mb-10 w-full max-w-6xl px-5 sm:px-8" />
+          </div>
           <Suspense fallback={null}>
             <BgmControl />
           </Suspense>

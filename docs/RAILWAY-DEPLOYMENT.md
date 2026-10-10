@@ -76,3 +76,8 @@ Railway의 프로젝트 구성은 현재 IaC(TypeScript) 방식으로 관리할 
 - `https://lumina.jack.ai.kr` 비변경 smoke 18/18 통과: 홈페이지·health·auth session, 회원 API의 닫힌 상태(403), 내부 롤업 비인증 차단(401), BGM audio/mpeg, Umami 프록시, ko/en/ja/zh-Hant/es 비공개 공유 경로의 응답·캐시·referrer 헤더. 분석 이벤트는 보내지 않았다. 배포 후 15분 Railway HTTP 5xx는 0건이었다.
 - Vercel CLI의 `lumina-cognitive` 읽기 전용 재조회 결과 `project_not_found`였다. Vercel 프로젝트는 앞서 삭제 완료했고, 이번 저장소 정리에서 `vercel.json`, 환경 동기화·분석 fallback/import 코드 및 로컬 `.vercel` 링크를 제거했다.
 - DB 마이그레이션, Railway 환경 변수, 기능 플래그는 변경하지 않았다. Sentry DSN 미설정과 결제 비활성은 의도된 현재 상태다.
+
+## 판매자 정보(사업자 표시)
+
+- `NEXT_PUBLIC_SELLER_NAME`, `_REPRESENTATIVE`, `_REGISTRATION_NUMBER`, `_MAIL_ORDER_NUMBER`, `_ADDRESS`, `_PHONE`, `_CONTACT_EMAIL`과 `NEXT_PUBLIC_HOSTING_PROVIDER`는 `web` 서비스 변수로 등록한다. Next.js가 빌드 시점에 값을 인라인하므로 Dockerfile builder 단계가 같은 이름의 `ARG`를 선언한다. 값을 바꾸면 **재배포**해야 화면에 반영된다.
+- 8개가 모두 있어야 전역 푸터가 표시된다. `FEATURE_BILLING=true`이면 preflight가 8개 모두를 요구한다.

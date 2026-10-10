@@ -203,6 +203,25 @@ if (!validBoolean(billingFeatureValue)) {
       issues.push(`billing: ${name} must be a non-empty document version no longer than 100 characters`);
     }
   }
+  // 전자상거래법 사업자 표시와 카드사 심사는 사이트 하단 판매자 정보를 요구한다.
+  // NEXT_PUBLIC_* 값은 빌드 시점에 인라인되므로 Dockerfile ARG와 같은 목록을 유지한다.
+  const sellerDisclosureVariables = [
+    "NEXT_PUBLIC_SELLER_NAME",
+    "NEXT_PUBLIC_SELLER_REPRESENTATIVE",
+    "NEXT_PUBLIC_SELLER_REGISTRATION_NUMBER",
+    "NEXT_PUBLIC_SELLER_MAIL_ORDER_NUMBER",
+    "NEXT_PUBLIC_SELLER_ADDRESS",
+    "NEXT_PUBLIC_SELLER_PHONE",
+    "NEXT_PUBLIC_SELLER_CONTACT_EMAIL",
+    "NEXT_PUBLIC_HOSTING_PROVIDER",
+  ];
+  for (const name of sellerDisclosureVariables) {
+    if (!hasConfiguredValue(name)) {
+      issues.push(`billing: ${name} must be configured for the seller disclosure footer`);
+    } else if (/[\r\n]/u.test(process.env[name])) {
+      issues.push(`billing: ${name} must not contain line breaks`);
+    }
+  }
 } else if (appEnvironment === "production") {
   warnings.push("Production billing checkout is disabled; paid orders cannot be accepted.");
 }

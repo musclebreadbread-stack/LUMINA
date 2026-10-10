@@ -4,13 +4,13 @@ import { readBoundedJson } from "@/server/http/readBoundedJson";
 import { getSignedInMember } from "@/server/auth/session";
 import { hasRequiredMemberConsents } from "@/server/member/consents";
 import { MemberAccessError } from "@/server/member/dal";
-import { getOwnOpenedEntitlementId } from "@/server/billing/service";
+import { getOwnOpenedEntitlement } from "@/server/billing/service";
 import { enqueueYearForecastNarrative, getOwnYearForecastNarrative, AIQuotaError } from "@/server/ai/service";
 import { buildYearForecastFacts } from "@/server/ai/facts";
 import { isAIReportingEnabled } from "@/server/ai/settings";
 import { processYearForecastNarrative } from "@/server/ai/worker";
 import { forecastFromProfile } from "@/server/premium/forecastFromProfile";
-import { getOwnBoundProfile } from "@/server/premium/reportContext";
+import { getOwnProfileForOrder } from "@/server/premium/reportContext";
 import { captureServerError } from "@/server/observability/captureServerError";
 
 export const runtime = "nodejs";
@@ -54,9 +54,12 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!user) return json(401, { error: "authentication_required" });
 
   try {
-    // AI chapters are paid content: require an opened report so a buyer cannot take them and still self-refund.
-    const [entitlementId, profile] = await Promise.all([getOwnOpenedEntitlementId("saju-2027"), getOwnBoundProfile("saju-2027")]);
-    if (!entitlementId) return json(403, { error: "opened_entitlement_required" });
+    // AI chapters are paid content: require an opened report so a buyer cannot take them and still self-refund,
+    // and build them from that same order's profile, never from a newer unopened (refundable) purchase.
+    const opened = await getOwnOpenedEntitlement("saju-2027");
+    if (!opened) return json(403, { error: "opened_entitlement_required" });
+    const entitlementId = opened.entitlementId;
+    const profile = await getOwnProfileForOrder(opened.orderId);
     if (!profile) return json(409, { error: "profile_required" });
     const forecast = forecastFromProfile(profile);
     const facts = buildYearForecastFacts(forecast);

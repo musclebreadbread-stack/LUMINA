@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  getOwnOpenedEntitlementId: vi.fn(),
-  getOwnBoundProfile: vi.fn(),
+  getOwnOpenedEntitlement: vi.fn(),
+  getOwnProfileForOrder: vi.fn(),
+  forecastFromProfile: vi.fn(),
   enqueueYearForecastNarrative: vi.fn(),
 }));
 
@@ -17,9 +18,9 @@ vi.mock("@/server/auth/session", () => ({
 }));
 vi.mock("@/server/member/consents", () => ({ hasRequiredMemberConsents: vi.fn(async () => true) }));
 vi.mock("@/server/member/dal", () => ({ MemberAccessError: class MemberAccessError extends Error {} }));
-vi.mock("@/server/billing/service", () => ({ getOwnOpenedEntitlementId: mocks.getOwnOpenedEntitlementId }));
-vi.mock("@/server/premium/reportContext", () => ({ getOwnBoundProfile: mocks.getOwnBoundProfile }));
-vi.mock("@/server/premium/forecastFromProfile", () => ({ forecastFromProfile: vi.fn(() => ({})) }));
+vi.mock("@/server/billing/service", () => ({ getOwnOpenedEntitlement: mocks.getOwnOpenedEntitlement }));
+vi.mock("@/server/premium/reportContext", () => ({ getOwnProfileForOrder: mocks.getOwnProfileForOrder }));
+vi.mock("@/server/premium/forecastFromProfile", () => ({ forecastFromProfile: mocks.forecastFromProfile }));
 vi.mock("@/server/ai/facts", () => ({ buildYearForecastFacts: vi.fn(() => []) }));
 vi.mock("@/server/ai/worker", () => ({ processYearForecastNarrative: vi.fn() }));
 vi.mock("@/server/ai/service", () => ({
@@ -42,31 +43,47 @@ function narrativeRequest(): Request {
 describe("POST /api/premium/saju-2027/narrative", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.getOwnBoundProfile.mockResolvedValue({ id: "profile-1" });
+    mocks.forecastFromProfile.mockReturnValue({});
   });
 
-  it("refuses AI chapters for a purchase whose report has not been opened, so it stays self-refundable only without the content", async () => {
-    mocks.getOwnOpenedEntitlementId.mockResolvedValue(null);
+  it("refuses AI chapters while no purchase has been opened, so an unopened order cannot be refunded after taking them", async () => {
+    mocks.getOwnOpenedEntitlement.mockResolvedValue(null);
 
     const response = await POST(narrativeRequest());
 
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toEqual({ error: "opened_entitlement_required" });
-    expect(mocks.getOwnOpenedEntitlementId).toHaveBeenCalledWith("saju-2027");
+    expect(mocks.getOwnOpenedEntitlement).toHaveBeenCalledWith("saju-2027");
+    expect(mocks.getOwnProfileForOrder).not.toHaveBeenCalled();
     expect(mocks.enqueueYearForecastNarrative).not.toHaveBeenCalled();
   });
 
-  it("queues AI chapters once the report has been opened", async () => {
-    mocks.getOwnOpenedEntitlementId.mockResolvedValue("entitlement-1");
+  it("builds the chapters from the opened order's own profile, not from a newer unopened purchase", async () => {
+    const openedOrderProfile = { id: "profile-of-opened-order" };
+    mocks.getOwnOpenedEntitlement.mockResolvedValue({ entitlementId: "entitlement-opened", orderId: "order-opened" });
+    mocks.getOwnProfileForOrder.mockResolvedValue(openedOrderProfile);
     mocks.enqueueYearForecastNarrative.mockResolvedValue({ id: "narrative-1", status: "succeeded" });
 
     const response = await POST(narrativeRequest());
 
     expect(response.status).toBe(200);
+    expect(mocks.getOwnProfileForOrder).toHaveBeenCalledWith("order-opened");
+    expect(mocks.forecastFromProfile).toHaveBeenCalledWith(openedOrderProfile);
     expect(mocks.enqueueYearForecastNarrative).toHaveBeenCalledWith(expect.objectContaining({
       userId: "member-1",
-      entitlementId: "entitlement-1",
+      entitlementId: "entitlement-opened",
       locale: "ko",
     }));
+  });
+
+  it("uses the live profile for LUMINA+ access, which has no purchase order", async () => {
+    mocks.getOwnOpenedEntitlement.mockResolvedValue({ entitlementId: "plus-entitlement", orderId: null });
+    mocks.getOwnProfileForOrder.mockResolvedValue({ id: "live-profile" });
+    mocks.enqueueYearForecastNarrative.mockResolvedValue({ id: "narrative-2", status: "succeeded" });
+
+    const response = await POST(narrativeRequest());
+
+    expect(response.status).toBe(200);
+    expect(mocks.getOwnProfileForOrder).toHaveBeenCalledWith(null);
   });
 });

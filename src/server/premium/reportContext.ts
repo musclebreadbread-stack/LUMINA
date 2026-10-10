@@ -18,7 +18,16 @@ import type { MemberProfile } from "@/server/member/profileSchema";
  * pre-B2 order that predates order_profiles existing.
  */
 export async function getOwnBoundProfile(productKey: ProductKey): Promise<MemberProfile | null> {
-  const orderId = await getOwnDirectEntitlementOrderId(productKey);
+  return getOwnProfileForOrder(await getOwnDirectEntitlementOrderId(productKey));
+}
+
+/**
+ * The profile bound to one specific order, with the same live-profile fallback as
+ * getOwnBoundProfile (null order = LUMINA+ access, or a pre-B2 order without a
+ * binding). Use this when an access check already picked the order, so the content
+ * is built for that order's chart and not for a different, newer purchase.
+ */
+export async function getOwnProfileForOrder(orderId: string | null): Promise<MemberProfile | null> {
   if (orderId) {
     const [profileId] = await getOwnOrderProfileIds(orderId);
     if (profileId) {

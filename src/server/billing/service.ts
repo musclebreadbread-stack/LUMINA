@@ -1058,14 +1058,18 @@ export async function getOwnActiveEntitlementId(productKey: ProductKey): Promise
  * Entitlement for paid content delivered outside the report page (AI narrative).
  * A direct purchase qualifies only after the report was explicitly opened, because
  * opening is what ends the self-refund window; otherwise a buyer could take the AI
- * chapters and still self-refund an "unopened" order. LUMINA+ invoices are never
- * self-refundable, so the subscription fallback is unchanged.
+ * chapters and still self-refund an "unopened" order. The opened order is returned
+ * with the entitlement so callers derive the profile from that same order — never
+ * from a newer, unopened (still refundable) purchase. LUMINA+ invoices are never
+ * self-refundable, so the subscription fallback has no order (orderId: null).
  */
-export async function getOwnOpenedEntitlementId(productKey: ProductKey): Promise<string | null> {
+export async function getOwnOpenedEntitlement(
+  productKey: ProductKey,
+): Promise<Readonly<{ entitlementId: string; orderId: string | null }> | null> {
   const member = await requireBillingMember();
   return withMemberTransaction(member.id, async (client) => {
-    const result = await client.query<{ id: string }>(
-      `select e.id::text
+    const result = await client.query<{ id: string; order_id: string }>(
+      `select e.id::text, e.order_id::text as order_id
          from billing.entitlements e
          join billing.orders o on o.id = e.order_id
         where e.user_id = $1 and e.product_key = $2 and e.status = 'active'
@@ -1074,8 +1078,10 @@ export async function getOwnOpenedEntitlementId(productKey: ProductKey): Promise
         order by e.granted_at desc limit 1`,
       [member.id, productKey],
     );
-    if (result.rows[0]?.id) return result.rows[0].id;
-    return activePlusEntitlementId(client, member.id, productKey);
+    const opened = result.rows[0];
+    if (opened?.id) return { entitlementId: opened.id, orderId: opened.order_id };
+    const plusEntitlementId = await activePlusEntitlementId(client, member.id, productKey);
+    return plusEntitlementId ? { entitlementId: plusEntitlementId, orderId: null } : null;
   });
 }
 

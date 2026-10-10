@@ -36,7 +36,59 @@ describe("Toss refund reconciliation", () => {
     };
 
     expect(isCompletedFullRefund(payment, target)).toBe(true);
+    expect(reconciledRefundTransactionKey(payment, target.amount)).toBe("cancel-part-1,cancel-part-2");
+  });
+
+  it("records no provider refund reference when any completed cancellation lacks a transaction key", () => {
+    const payment: TossPayment = {
+      ...fullyCanceledPayment,
+      cancels: [
+        { cancelAmount: 4_000, cancelStatus: "DONE", transactionKey: "cancel-part-1" },
+        { cancelAmount: 5_900, cancelStatus: "DONE" },
+      ],
+    };
+
     expect(reconciledRefundTransactionKey(payment, target.amount)).toBeNull();
+  });
+
+  it("ignores cancellations that are not completed and refuses sums that differ from the amount", () => {
+    const withPending: TossPayment = {
+      ...fullyCanceledPayment,
+      cancels: [
+        { cancelAmount: 9_900, cancelStatus: "DONE", transactionKey: "cancel-done" },
+        { cancelAmount: 100, cancelStatus: "IN_PROGRESS", transactionKey: "cancel-pending" },
+      ],
+    };
+    const shortSum: TossPayment = {
+      ...fullyCanceledPayment,
+      cancels: [
+        { cancelAmount: 4_000, cancelStatus: "DONE", transactionKey: "cancel-part-1" },
+        { cancelAmount: 5_000, cancelStatus: "DONE", transactionKey: "cancel-part-2" },
+      ],
+    };
+
+    expect(reconciledRefundTransactionKey(withPending, target.amount)).toBe("cancel-done");
+    expect(reconciledRefundTransactionKey(shortSum, target.amount)).toBeNull();
+  });
+
+  it("refuses negative or unsafe cancellation amounts even when they offset to the order amount", () => {
+    const offsetting: TossPayment = {
+      ...fullyCanceledPayment,
+      cancels: [
+        { cancelAmount: 10_900, cancelStatus: "DONE", transactionKey: "cancel-part-1" },
+        { cancelAmount: -1_000, cancelStatus: "DONE", transactionKey: "cancel-part-2" },
+      ],
+    };
+    const fractional: TossPayment = {
+      ...fullyCanceledPayment,
+      cancels: [
+        { cancelAmount: 4_950.5, cancelStatus: "DONE", transactionKey: "cancel-part-1" },
+        { cancelAmount: 4_949.5, cancelStatus: "DONE", transactionKey: "cancel-part-2" },
+      ],
+    };
+
+    expect(reconciledRefundTransactionKey(offsetting, target.amount)).toBeNull();
+    expect(reconciledRefundTransactionKey(fractional, target.amount)).toBeNull();
   });
 
   it.each([

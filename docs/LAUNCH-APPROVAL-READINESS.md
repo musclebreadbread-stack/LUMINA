@@ -45,8 +45,18 @@
 
 ## 4. 엔지니어링 출시 전 확인(승인과 별개)
 
-- [ ] staging: 테스트 키로 결제 → 확정 → 열람 → 셀프 환불 끝까지, 같은 웹훅 반복 재전송에도 권한 1건
-- [ ] staging: 회원 2명 RLS 교차 조회 0행(`pnpm db:neon:verify-rls`)
-- [ ] Sentry DSN 설정과 실제 알림 수신, 롤백 리허설(`FEATURE_BILLING=false`로 구매 버튼만 숨김)
+로컬에서 끝낸 검증(2026-10-10, 실제 PostgreSQL 18 + 운영 역할, 절차는 `docs/LOCAL-DB-INTEGRATION.md`):
+
+- [x] 마이그레이션 14개가 빈 DB에 순서대로 적용된다.
+- [x] 37개 업무 테이블 모두 RLS·FORCE RLS·정책 존재. 회원 역할에서 타인 행 0건, 타인 명의 쓰기·권한 자가 부여 차단.
+- [x] 결제 worker 역할로 같은 웹훅 6회 재전송에도 권한 1건, 금액 변조 무시, 환불 완료 시 권한 회수·감사 1건, 결제사 거절 시 `paid` 복구.
+- [x] 롤백 계약: `FEATURE_BILLING=false`이면 새 주문은 DB 접근 전에 거부되고 기존 구매자 열람은 유지된다(`src/server/billing/rollback.test.ts`).
+
+외부 자격 증명이 있어야 하는 검증(staging):
+
+- [ ] staging: Toss **테스트 키**로 결제창 → 확정 → 열람 → 셀프 환불을 끝까지 한 번 수행하고, 웹훅을 토스 개발자센터에서 재전송해 권한이 1건인지 확인
+- [ ] staging: 회원 2명 RLS 교차 조회 0행(`pnpm db:neon:verify-rls`) — Neon 실제 역할 비밀번호·풀러 경로 확인
+- [ ] Sentry: DSN과 `SENTRY_SERVER_ENABLED=true` 등록 후 `railway run --service web --environment production -- node scripts/sentry-verify.mjs --send`로 합성 이벤트 1건을 보내고, 출력된 `verificationId`가 Sentry와 알림 채널에 도착했는지 확인. SDK의 flush 성공은 도착을 보장하지 않는다
+- [ ] 롤백 리허설: staging에서 `FEATURE_BILLING=false`로 재시작 후 구매 버튼이 사라지고 구매 완료 계정이 리포트를 계속 여는지 확인
 - [ ] 사업자 변수 설정 후 **재배포**하고 운영 홈 하단에 8개 항목이 표시되는지 확인. `NEXT_PUBLIC_*`는 빌드 시점에 코드에 들어가며, Railway Dockerfile 빌드는 `ARG`로 선언한 변수만 전달한다([Railway 문서](https://docs.railway.com/guides/build-time-vs-runtime-secrets))
 - [ ] production 첫 실결제 1건 → 환불 리허설

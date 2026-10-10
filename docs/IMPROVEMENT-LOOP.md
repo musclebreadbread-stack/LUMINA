@@ -492,3 +492,11 @@
 - **변경:** 판매자 정보 8개 항목을 루트 레이아웃 하단에 표시한다. 한 항목이라도 비면 아무것도 그리지 않으며, 세션을 읽지 않는 동기 컴포넌트라 정적 렌더링을 유지한다. builder 단계에 8개 `ARG`를 추가했고, 결제를 켜면 preflight가 8개 변수를 모두 요구하며 줄바꿈을 거부한다. Dockerfile ARG 목록과 preflight 목록이 어긋나면 테스트가 실패한다. 외부 승인 항목은 `docs/LAUNCH-APPROVAL-READINESS.md`로 정리했다.
 - **검증:** preflight 11/11, cron 9/9, 푸터 DOM 10/10, 전체 Vitest 185개 파일·1,631개 테스트, ESLint, typecheck, Next.js production build 통과.
 - **운영 경계·다음:** 변수가 설정되지 않은 현재 운영 화면에는 변화가 없다. Railway 변수 등록·배포·push는 하지 않았다. 판매자 변수 등록 후 재배포하고 운영 홈 하단 표시를 확인한다. 코드 리뷰의 후속 개선 2건(다건 부분 취소 시 `provider_refund_id` 미기록, 환불 라우트의 항상 같은 값으로 평가되는 분기)은 금액 흐름에 영향이 없어 보류했다.
+
+## 2026-10-10 실제 PostgreSQL에서 RLS·결제 전이 검증과 롤백·Sentry 확인 경로
+
+- **관찰:** 결제·회원 DB 동작은 지금까지 모의 트랜잭션으로만 검증했고, RLS 교차 사용자 검증과 롤백 리허설, Sentry 알림 수신 확인이 출시 전 DoD로 남아 있었다. 코드 리뷰에서는 다건 부분 취소의 Toss 거래키가 원장에 남지 않는 문제(MEDIUM)와 항상 같은 값으로 평가되는 분기(LOW)가 지적됐다.
+- **변경:** 로컬 일회용 PostgreSQL 18에 마이그레이션 14개를 적용하는 통합 테스트(`src/server/__integration__/`)를 추가했다. 로컬 호스트가 아니면 실행을 거부한다. RLS는 37개 테이블 전수와 회원 역할 교차 조회를, 결제는 운영용 `lumina_billing_worker` 역할로 실제 서비스 함수를 검증한다. 다건 취소는 모든 거래키를 쉼표로 이어 기록하고, 하나라도 없으면 기록하지 않는다. `FEATURE_BILLING=false` 롤백 계약을 회귀 테스트로 고정했다. `pnpm sentry:verify`는 기본적으로 설정만 검사하고, `--send`를 줄 때만 합성 이벤트 1건을 보낸다.
+- **검증:** 통합 19/19(PG 18.6), 기본 Vitest 1,635개 통과(통합 19개는 기본 건너뜀), 스크립트 테스트 33/33, ESLint, typecheck, Next.js production build 통과. 일반 Node ESM import로는 `@sentry/nextjs`의 `captureMessage`·`flush`가 노출되지 않아 CommonJS 진입점으로 바꿨다. SDK의 `flush` 성공은 네트워크 도달을 보장하지 않으므로, 출력은 `submitted`로 표기하고 도착은 Sentry 화면에서 확인한다.
+- **리뷰 반영:** 통합 테스트를 CI `db-integration` job(PG18 서비스 컨테이너, `LUMINA_IT_REQUIRED=1`이면 skip 대신 실패)에 연결했다. 거래키 함수가 음수·비정수 취소 금액을 자체적으로 거부하게 했다. CI job은 trust 인증 컨테이너로 로컬 시뮬레이션해 마이그레이션 14개 적용과 통합 19/19를 확인했다. GitHub Actions에서의 실제 실행은 push 이후에 확인한다.
+- **운영 경계·다음:** Neon·Railway·Toss·Sentry에는 연결하거나 변경하지 않았다. staging Toss 테스트 키 결제창 여정, Neon 실제 역할 경로의 RLS 확인, Sentry DSN 등록 후 수신 확인, staging 롤백 리허설은 `docs/LAUNCH-APPROVAL-READINESS.md` §4에 남아 있다.

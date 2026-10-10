@@ -68,7 +68,7 @@ export async function POST(request: Request): Promise<Response> {
         await failReservedRefund({
           refundId: reservation.id,
           orderId: reservation.orderId,
-          errorCode: cancellationAttempted ? "provider_cancel_rejected" : "payment_provider_unavailable",
+          errorCode: "provider_cancel_rejected",
         });
       } catch {
         // Keep the reservation blocked if its state could not be safely reconciled.

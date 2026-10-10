@@ -25,6 +25,7 @@ import { decryptBillingValue } from "./crypto";
 import {
   applyTossPaymentEvent,
   getOwnActiveEntitlementId,
+  getOwnOpenedEntitlementId,
   getReceiptRecipient,
   hasOwnEntitlement,
   listBillingAdminOrders,
@@ -354,6 +355,27 @@ describe("billing orders and account lifecycle", () => {
 
     expect(memberQueryMock).toHaveBeenCalledTimes(2);
     expect(memberQueryMock.mock.calls[1]?.[0]).toContain("s.status in ('active', 'past_due')");
+  });
+
+  it("only returns a direct-purchase entitlement for paid AI content after the report was opened", async () => {
+    memberQueryMock.mockResolvedValueOnce({ rows: [{ id: "opened-entitlement-1" }] });
+    vi.mocked(withMemberTransaction).mockImplementation(runMemberTransaction);
+
+    await expect(getOwnOpenedEntitlementId("saju-2027")).resolves.toBe("opened-entitlement-1");
+
+    const statement = String(memberQueryMock.mock.calls[0]?.[0]).replace(/\s+/gu, " ");
+    expect(statement).toContain("o.viewed_at is not null");
+    expect(memberQueryMock.mock.calls[0]?.[1]).toEqual(["member-1", "saju-2027"]);
+  });
+
+  it("refuses AI content for an unopened purchase and falls back only to LUMINA+", async () => {
+    memberQueryMock
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+    vi.mocked(withMemberTransaction).mockImplementation(runMemberTransaction);
+
+    await expect(getOwnOpenedEntitlementId("saju-2027")).resolves.toBeNull();
+    expect(String(memberQueryMock.mock.calls[1]?.[0])).toContain("s.status in ('active', 'past_due')");
   });
 
   it("does not use a Plus entitlement for an unrelated report product", async () => {

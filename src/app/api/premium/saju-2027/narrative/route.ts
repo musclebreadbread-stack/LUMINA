@@ -4,7 +4,7 @@ import { readBoundedJson } from "@/server/http/readBoundedJson";
 import { getSignedInMember } from "@/server/auth/session";
 import { hasRequiredMemberConsents } from "@/server/member/consents";
 import { MemberAccessError } from "@/server/member/dal";
-import { getOwnActiveEntitlementId } from "@/server/billing/service";
+import { getOwnOpenedEntitlementId } from "@/server/billing/service";
 import { enqueueYearForecastNarrative, getOwnYearForecastNarrative, AIQuotaError } from "@/server/ai/service";
 import { buildYearForecastFacts } from "@/server/ai/facts";
 import { isAIReportingEnabled } from "@/server/ai/settings";
@@ -54,8 +54,9 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!user) return json(401, { error: "authentication_required" });
 
   try {
-    const [entitlementId, profile] = await Promise.all([getOwnActiveEntitlementId("saju-2027"), getOwnBoundProfile("saju-2027")]);
-    if (!entitlementId) return json(403, { error: "entitlement_required" });
+    // AI chapters are paid content: require an opened report so a buyer cannot take them and still self-refund.
+    const [entitlementId, profile] = await Promise.all([getOwnOpenedEntitlementId("saju-2027"), getOwnBoundProfile("saju-2027")]);
+    if (!entitlementId) return json(403, { error: "opened_entitlement_required" });
     if (!profile) return json(409, { error: "profile_required" });
     const forecast = forecastFromProfile(profile);
     const facts = buildYearForecastFacts(forecast);

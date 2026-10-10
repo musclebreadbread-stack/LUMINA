@@ -1,8 +1,9 @@
 import { z } from "zod";
-import { TossPaymentError } from "@/server/billing/toss";
+import { isDefinitiveTossCancelRejection, TossPaymentError } from "@/server/billing/toss";
 import { getPaymentProvider } from "@/server/billing/paymentProvider";
 import {
   applyTossCancellation,
+  authorizeOwnRefund,
   BillingAccessError,
   BillingInputError,
   failReservedRefund,
@@ -41,9 +42,12 @@ export async function POST(request: Request): Promise<Response> {
   if (!parsed.success) return response(400, { error: "invalid_request" });
 
   let reservation: Awaited<ReturnType<typeof reserveOwnRefund>> | null = null;
+  let cancellationAttempted = false;
   try {
-    reservation = await reserveOwnRefund(parsed.data.orderId, parsed.data.reasonCode);
+    await authorizeOwnRefund();
     const provider = await getPaymentProvider();
+    reservation = await reserveOwnRefund(parsed.data.orderId, parsed.data.reasonCode);
+    cancellationAttempted = true;
     const cancellation = await provider.cancelPayment(
       { paymentKey: reservation.paymentKey, reason: reservation.reasonCode },
       `refund:${reservation.id}`,
@@ -58,9 +62,15 @@ export async function POST(request: Request): Promise<Response> {
     });
     return response(200, { ok: true });
   } catch (error) {
-    if (reservation && error instanceof TossPaymentError && error.status >= 400 && error.status < 500) {
+    const canReleaseReservation = reservation !== null && cancellationAttempted
+      && error instanceof TossPaymentError && isDefinitiveTossCancelRejection(error);
+    if (reservation && canReleaseReservation) {
       try {
-        await failReservedRefund({ refundId: reservation.id, orderId: reservation.orderId, errorCode: "provider_cancel_rejected" });
+        await failReservedRefund({
+          refundId: reservation.id,
+          orderId: reservation.orderId,
+          errorCode: cancellationAttempted ? "provider_cancel_rejected" : "payment_provider_unavailable",
+        });
       } catch {
         // Keep the reservation blocked if its state could not be safely reconciled.
       }

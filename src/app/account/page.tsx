@@ -16,7 +16,6 @@ import { hasRequiredMemberConsents } from "@/server/member/consents";
 import { getOwnSavedResults, listOwnShareLinks } from "@/server/member/dal";
 import { listOwnBillingOrders } from "@/server/billing/service";
 import { listOwnSubscriptions } from "@/server/billing/subscriptions";
-import type { ResultSnapshotV1 } from "@/lib/integratedPortrait/contracts";
 
 export const metadata: Metadata = {
   title: "LUMINA Account",
@@ -53,31 +52,19 @@ export default async function AccountPage() {
     );
   }
 
-  const billingOrders = await listOwnBillingOrders().catch(() => []);
-  const subscriptions = await listOwnSubscriptions().catch(() => []);
+  const [billingOrdersResult, subscriptionsResult] = await Promise.allSettled([
+    listOwnBillingOrders(),
+    listOwnSubscriptions(),
+  ]);
+  const billingOrders = billingOrdersResult.status === "fulfilled" ? billingOrdersResult.value : null;
+  const subscriptions = subscriptionsResult.status === "fulfilled" ? subscriptionsResult.value : null;
 
-  let savedResults: readonly ResultSnapshotV1[];
-  let shareLinks: readonly Readonly<{
-    id: string;
-    created_at: string;
-    expires_at: string;
-    revoked_at: string | null;
-  }>[];
-  try {
-    [savedResults, shareLinks] = await Promise.all([getOwnSavedResults(), listOwnShareLinks()]);
-  } catch {
-    return (
-      <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
-        <header className="flex items-center justify-between border-b border-ink-700 py-5">
-          <Link href="/" className="font-mono text-xs tracking-[0.28em] text-hobun">LUMINA</Link>
-          <LocaleSwitcher />
-        </header>
-        <p className="mt-10 text-sm text-hobun-dim">
-          {locale !== "ko" ? "Saved account data is temporarily unavailable. Please try again." : "저장한 계정 데이터를 일시적으로 불러올 수 없습니다. 잠시 후 다시 시도해 주세요."}
-        </p>
-      </main>
-    );
-  }
+  const [savedResultsResult, shareLinksResult] = await Promise.allSettled([
+    getOwnSavedResults(),
+    listOwnShareLinks(),
+  ]);
+  const savedResults = savedResultsResult.status === "fulfilled" ? savedResultsResult.value : null;
+  const shareLinks = shareLinksResult.status === "fulfilled" ? shareLinksResult.value : null;
 
   return (
     <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
@@ -96,7 +83,16 @@ export default async function AccountPage() {
           {locale !== "ko" ? "Export account data" : "계정 자료 내보내기"}
         </a>
         <h2 className="mt-8 text-lg font-medium text-hobun">{locale !== "ko" ? "Saved reports" : "저장한 리포트"}</h2>
-        {savedResults.length > 0 ? (
+        {savedResults === null ? (
+          <div className="mt-3">
+            <p className="text-sm text-hobun-dim" role="status">
+              {locale !== "ko" ? "Saved reports are temporarily unavailable." : "\uC800\uC7A5\uD55C \uB9AC\uD3EC\uD2B8\uB97C \uC77C\uC2DC\uC801\uC73C\uB85C \uBD88\uB7EC\uC62C \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."}
+            </p>
+            <Link href={routeForLocale(locale, "/account")} className="mt-3 inline-flex min-h-11 items-center text-xs text-hobun underline underline-offset-4">
+              {locale !== "ko" ? "Reload account" : "\uACC4\uC815 \uB2E4\uC2DC \uBD88\uB7EC\uC624\uAE30"}
+            </Link>
+          </div>
+        ) : savedResults.length > 0 ? (
           <ul className="mt-3 divide-y divide-ink-800 border-y border-ink-800">
             {savedResults.map((result) => (
               <li key={result.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
@@ -113,7 +109,16 @@ export default async function AccountPage() {
           </p>
         )}
         <h2 className="mt-10 text-lg font-medium text-hobun">{locale !== "ko" ? "Purchases" : "구매 내역"}</h2>
-        {billingOrders.length > 0 ? (
+        {billingOrders === null ? (
+          <div className="mt-3 border border-ink-800 bg-ink-950/45 p-4">
+            <p className="text-sm text-hobun-dim" role="status">
+              {locale !== "ko" ? "Purchase history is temporarily unavailable." : "구매 내역을 일시적으로 불러올 수 없습니다."}
+            </p>
+            <Link href={routeForLocale(locale, "/account")} className="mt-3 inline-flex min-h-11 items-center text-xs text-hobun underline underline-offset-4">
+              {locale !== "ko" ? "Reload purchase history" : "구매 내역 다시 불러오기"}
+            </Link>
+          </div>
+        ) : billingOrders.length > 0 ? (
           <ul className="mt-3 divide-y divide-ink-800 border-y border-ink-800">
             {billingOrders.map((order) => {
               const canOpenReport = order.status === "paid" && order.productKey === "saju-2027";
@@ -154,7 +159,16 @@ export default async function AccountPage() {
               LUMINA+
             </Link>
           </div>
-          {subscriptions.length > 0 ? (
+          {subscriptions === null ? (
+            <div className="mt-3 border border-ink-800 bg-ink-950/45 p-4">
+              <p className="text-sm text-hobun-dim" role="status">
+                {locale !== "ko" ? "Subscription history is temporarily unavailable." : "구독 내역을 일시적으로 불러올 수 없습니다."}
+              </p>
+              <Link href={routeForLocale(locale, "/account/subscriptions")} className="mt-3 inline-flex min-h-11 items-center text-xs text-hobun underline underline-offset-4">
+                {locale !== "ko" ? "Reload subscription history" : "구독 내역 다시 불러오기"}
+              </Link>
+            </div>
+          ) : subscriptions.length > 0 ? (
             <ul className="mt-4 divide-y divide-ink-800 border-y border-ink-800">
               {subscriptions.map((subscription) => (
                 <li key={subscription.id} className="py-4">
@@ -176,21 +190,35 @@ export default async function AccountPage() {
             <p className="mt-3 text-sm text-hobun-dim">{locale !== "ko" ? "No subscriptions." : "구독 내역이 없습니다."}</p>
           )}
         </section>
-        <ShareSavedResults
-          locale={locale}
-          savedResults={savedResults.map((result) => ({
-            id: result.id,
-            analysisKey: result.analysisKey,
-            completedAt: result.completedAt,
-            locale: result.locale,
-          }))}
-          initialShareLinks={shareLinks.map((link) => ({
-            id: link.id,
-            createdAt: link.created_at,
-            expiresAt: link.expires_at,
-            revokedAt: link.revoked_at,
-          }))}
-        />
+        {savedResults !== null && shareLinks !== null ? (
+          <ShareSavedResults
+            locale={locale}
+            savedResults={savedResults.map((result) => ({
+              id: result.id,
+              analysisKey: result.analysisKey,
+              completedAt: result.completedAt,
+              locale: result.locale,
+            }))}
+            initialShareLinks={shareLinks.map((link) => ({
+              id: link.id,
+              createdAt: link.created_at,
+              expiresAt: link.expires_at,
+              revokedAt: link.revoked_at,
+            }))}
+          />
+        ) : (
+          <section className="mt-10 border-t border-ink-700 pt-8" aria-labelledby="account-share-title">
+            <h2 id="account-share-title" className="text-lg font-medium text-hobun">
+              {locale !== "ko" ? "Share a saved report" : "\uC800\uC7A5\uD55C \uB9AC\uD3EC\uD2B8 \uACF5\uC720"}
+            </h2>
+            <p className="mt-3 text-sm text-hobun-dim" role="status">
+              {locale !== "ko" ? "Saved report sharing information is temporarily unavailable." : "\uB9AC\uD3EC\uD2B8 \uACF5\uC720 \uC815\uBCF4\uB97C \uC77C\uC2DC\uC801\uC73C\uB85C \uBD88\uB7EC\uC62C \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."}
+            </p>
+            <Link href={routeForLocale(locale, "/account")} className="mt-3 inline-flex min-h-11 items-center text-xs text-hobun underline underline-offset-4">
+              {locale !== "ko" ? "Reload sharing information" : "\uACF5\uC720 \uC815\uBCF4 \uB2E4\uC2DC \uBD88\uB7EC\uC624\uAE30"}
+            </Link>
+          </section>
+        )}
         <DeleteAccountForm locale={locale} email={session.user.email} />
       </section>
     </main>

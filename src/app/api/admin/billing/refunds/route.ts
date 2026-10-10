@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { getAdminAccess } from "@/server/admin/authorization";
-import { TossPaymentError } from "@/server/billing/toss";
+import { isDefinitiveTossCancelRejection, TossPaymentError } from "@/server/billing/toss";
 import { getPaymentProvider } from "@/server/billing/paymentProvider";
 import {
   applyTossCancellation,
@@ -44,9 +44,11 @@ export async function POST(request: Request): Promise<Response> {
   if (!parsed.success) return json(400, "invalid_request");
 
   let reservation: Awaited<ReturnType<typeof reserveAdminRefund>> | null = null;
+  let cancellationAttempted = false;
   try {
-    reservation = await reserveAdminRefund(parsed.data.orderId, access.userId, parsed.data.reasonCode);
     const provider = await getPaymentProvider();
+    reservation = await reserveAdminRefund(parsed.data.orderId, access.userId, parsed.data.reasonCode);
+    cancellationAttempted = true;
     const cancellation = await provider.cancelPayment(
       { paymentKey: reservation.paymentKey, reason: reservation.reasonCode },
       `refund:${reservation.id}`,
@@ -59,9 +61,15 @@ export async function POST(request: Request): Promise<Response> {
     });
     return json(200);
   } catch (error) {
-    if (reservation && error instanceof TossPaymentError && error.status >= 400 && error.status < 500) {
+    const canReleaseReservation = reservation !== null && cancellationAttempted
+      && error instanceof TossPaymentError && isDefinitiveTossCancelRejection(error);
+    if (reservation && canReleaseReservation) {
       try {
-        await failReservedRefund({ refundId: reservation.id, orderId: reservation.orderId, errorCode: "provider_cancel_rejected" });
+        await failReservedRefund({
+          refundId: reservation.id,
+          orderId: reservation.orderId,
+          errorCode: cancellationAttempted ? "provider_cancel_rejected" : "payment_provider_unavailable",
+        });
       } catch {
         // Keep the reservation blocked if its state could not be safely reconciled.
       }

@@ -38,7 +38,7 @@
 | P1 | Phase 1 production 서버 오류 모니터링 | production `SENTRY_DSN`이 없어 서버 오류가 Sentry로 전송되지 않는다. preflight는 비활성 상태를 경고하되 서비스를 시작하고, 부분·잘못된 활성화는 차단하도록 보강했다. 완료 전 Sentry 설정, 테스트 오류 전송, 수신 경보를 확인한다. |
 | P1 | 실제 결제 개통 | production 회원 인증·결제 기능 플래그, `BILLING_DATABASE_URL`, Toss 키, billing·회원 동의 문서 버전이 준비되지 않았다. 사용자가 정책·PG 미준비를 확인했다. 승인 전까지 판매는 닫고, 값이 마련되면 staging 결제·환불·RLS 검증 후 별도 production 절차로 진행한다. |
 | P2 | Railway 분석 저장소 권역 정렬 | `web`과 cron은 Singapore지만 Umami와 볼륨이 있는 Railway Postgres는 SFO다. 상태 저장소 이동 전 백업·복원 검증, 중단 허용 범위와 롤백 절차를 마련한다. |
-| P2 | Railway cron 실행 결과 가시성 | production `cron-10min` 최근 로그가 컨테이너 시작만 보여 작업 완료·실패와 게이트로 건너뛴 작업 수를 알 수 없었다. 로컬 코드에 비식별 구조화 로그를 추가했으며 production 반영 후 실제 실행 이벤트를 확인한다. |
+| P2 | Railway cron 실행 결과 가시성 | 비식별 구조화 로그를 production에서 확인했다. 2026-10-08 `cron-10min`을 저장소 기준으로 갱신한 뒤 첫 실행에서 예상한 3개 작업이 모두 정책 게이트로 건너뛰어졌고, `cron-daily` 분석 롤업은 성공했다. 실제 결제·AI 작업 검증은 승인 게이트가 열릴 때 수행한다. staging에는 cron 서비스가 없다. |
 | P2 | Phase 9 PWA 설치 인수 검증 | Chromium에서 standalone manifest와 아이콘, 오프라인 진입·복구, 비공개 경로 비저장, 실제 서비스 워커 버전 교체를 검증했다. OS 설치 UI와 설치된 앱 단독 실행은 기기별 검증이 남았다. |
 | P2 | Phase 2 회원 인증 staging E2E | staging DB 역할과 Railway URL 연결은 준비됐지만 `FEATURE_MEMBER_AUTH=false`를 유지 중이다. 승인된 OAuth/메일/Turnstile 설정과 법무 동의 버전이 준비된 뒤 로그인·프로필·교차 사용자 RLS 흐름을 검증한다. |
 
@@ -67,6 +67,20 @@
 - **변경:** 기존 원장 집계값을 서버 전용 관리자 요약 타입에 포함하고 결제 관리 화면 첫 번째 지표로 표시했다. 최근 30일 결제분에서 성공한 환불을 뺀다는 정의를 한국어·영어로 덧붙였다. 기존 owner 접근 통제와 결제 플래그를 유지했다.
 - **검증·운영 경계:** SQL·스키마·가격·결제 설정은 변경하지 않았다. 코드 검증 후 승인된 범위의 코드 커밋·푸시만 진행하고 Railway 운영 배포나 운영 데이터 조회는 별도 승인 전까지 하지 않는다.
 - **다음:** 결제·환불 정책과 사업 설정이 승인되어 운영 주문이 생기면 이 지표를 원장 합계와 대조한다. 승인 전까지 판매 기능은 비활성으로 유지한다.
+
+## 2026-09-30 최근 결제분 순매출의 환불 연결
+
+- **관찰:** 관리자 지표는 최근 30일에 결제된 KRW 주문의 순매출로 설명하지만, SQL은 성공 환불에도 최근 30일의 `processed_at` 조건을 적용했다. 그 결과 최근 결제 주문이 30일보다 늦게 환불되면 주문 금액에서 환불액이 빠지지 않았다.
+- **변경:** 최근 30일 결제 주문 코호트는 그대로 두고, 그 주문에 연결된 모든 성공 환불액을 처리 시점과 관계없이 차감하도록 했다. 환불 합계 대상도 해당 코호트의 결제만 포함한다. 관리자 설명은 이 코호트 기준을 명시하며 데이터 구조와 결제 설정은 변경하지 않았다.
+- **검증:** KPI 집중 테스트 3/3, 전체 Vitest 166개 파일·1,384개 테스트, lint, typecheck, Next production build가 통과했고 코드 리뷰 승인을 받았다. SQL 테스트는 기간 필터·코호트 연결·성공 상태를 확인했으며, skill-manager `verify --run`은 Windows bare `pnpm` 경로 문제로 네 검사 모두 `WinError 2`였고 같은 게이트를 `pnpm.cmd`로 직접 통과했다.
+- **운영 경계·다음:** 실제 PostgreSQL 실행계획과 운영 주문·환불 원장 대사는 검증하지 않았다. 이 화면 산식은 계획상 재무·제품 정의 승인도 남아 있어 확정 회계 지표가 아니다. 결제 플래그 활성화, 운영 DB 변경, 배포 없이 코드만 검증했다.
+
+## 2026-09-30 결제 지표의 빈 원장·산출 정보
+
+- **관찰:** billing DB가 연결되어도 최근 30일 결제 주문이 하나도 없으면 집계 쿼리가 결과 행을 만들지 않았다. 이때 관리자 화면에서 MRR 0과 초기 상태를 볼 수 없었고, 운영 지표 DoD의 산출 시각과 원천도 표시하지 않았다.
+- **변경:** `active` 요약을 집계의 기준으로 두고 결제 코호트를 left join해 매출이 없어도 KPI가 0으로 반환되도록 했다. 서버 계산 완료 시각을 ISO UTC로 내리고 화면에는 KST 표시 시각과 billing 원장·AI 사용량 원천을 안내한다. 산식과 기능 게이트는 바꾸지 않았다.
+- **검증:** KPI 집중 테스트 3/3, 전체 Vitest 166개 파일·1,384개 테스트, ESLint, TypeScript typecheck, Next production build 통과. 테스트는 유료·환불 표본, 무매출 기본값, null 분모, 계산 시각과 SQL의 빈 코호트 경계를 확인한다. skill-manager `verify --run`은 Windows에서 bare `pnpm` 실행 파일을 찾지 못해 네 검사 모두 `WinError 2`였고 같은 gate를 `pnpm.cmd`로 직접 통과했다.
+- **운영 경계·다음:** finance-approved 산식, Neon 실데이터 대사, AI 사용량 DB 동시성/가용성은 별도 운영 검증이 남아 있다. DB 구조·설정·배포는 변경하지 않는다.
 
 ## 2026-09-27 staging 회원 인증 DB 역할 준비
 
@@ -278,3 +292,196 @@
 - **검증:** `pnpm.cmd lint`, `typecheck`, 전체 Vitest(145개 파일·1,183개 테스트), Next production build 통과. DOCX ZIP 구조와 여섯 가지 cutover 문구 검사 통과. skill-manager `verify --run`은 bare `pnpm`을 찾지 못해 네 항목 모두 Windows `WinError 2`였으나, 직접 `pnpm.cmd` 검증은 통과했다. Word·LibreOffice가 없어 페이지 레이아웃 시각 검토는 하지 않았다.
 - **배포:** 커밋 `31a9323`을 staging 배포 `94b40b76-c038-4365-b111-f862653d7341`과 production 배포 `a2769d8f-b569-4725-9de8-972bf8a7db08`에 반영했다. 양쪽 preflight는 각각 9개 성장 게이트를 통과하고 Next 서버가 준비됐다. `lumina.jack.ai.kr` 비변경 smoke 18/18, 배포 후 15분 HTTP 5xx 0건. Vercel 재조회는 `project_not_found`였다. DB·환경 변수·기능 플래그·분석 이벤트는 변경하지 않았다.
 - **남은 운영 항목:** Sentry production DSN과 알림 수신은 미설정이다. 유료 결제는 상품·법무·PG 승인이 없어 계속 비활성이다. 최근 3일보다 오래된 Umami 집계 backfill CLI는 제공하지 않는다. 이 항목은 승인·절차가 준비될 때까지 열어 둔다.
+
+## 2026-09-30 Toss 웹훅 원장 상태 정합성
+
+- **관찰:** 결제 완료 주문에 새 Toss 전송 ID가 도착하면 권한을 중복 생성하지 않고 이벤트 결과도 `ignored`로 반환하지만, `billing.webhook_events.status`는 기본값 `applied`로 남았다. 서로 다른 전송 ID로 같은 결제 상태가 재전달될 때 이벤트 원장과 처리 결과가 달라질 수 있었다.
+- **변경:** 이미 결제된 주문의 새 이벤트를 명시적으로 `ignored`로 갱신한다. 유효 결제, 동일 전송 ID 재전송, 이미 결제된 주문, 결제 금액 불일치의 핵심 전이를 외부 Neon/Toss 없이 검증하는 서버 단위 테스트를 추가했다.
+- **검증:** 전용 Vitest 4/4, 수정 파일 ESLint, 전체 TypeScript typecheck, 전체 Vitest 146개 파일·1,187개 테스트, Next.js production build가 통과했다. skill-manager `verify --run`은 Windows에서 bare `pnpm`을 찾지 못해 `WinError 2`였고, 동일한 lint·typecheck·test·build를 `pnpm.cmd`로 직접 실행해 모두 통과했다.
+- **운영 경계:** Railway 읽기 전용 상태에서 `web`, 두 Postgres 서비스, 두 cron이 Online/Completed였고 daily 분석 롤업은 2026-09-29 17:01 UTC에 성공했다. production health·privacy·2027 상품 HEAD는 HTTP 200이며, 운영 결제·DB·배포는 변경하지 않았다.
+- **다음:** 이 회귀 검증은 SQL 동작을 모의한 단위 범위다. staging Toss 결제·동일 웹훅 5회 재전송·환불·RLS 검증과 production 활성화는 계약·법무·운영 승인 이후 별도로 진행한다.
+
+## 2026-09-30 Checkout 설정과 환불 재시도 안전성
+
+- **관찰:** 체크아웃은 사이트 원본 URL과 사용자 참조 HMAC을 주문을 기록한 뒤 검사해 설정 오류 시 30분 만료 대기 주문이 남을 수 있었다. 또 Toss 환불 요청이 모호하게 실패해 예약을 보존한 경우, 사용자의 재시도는 `refunding` 상태에서 거절돼 동일한 Toss 멱등 키로 복구할 수 없었다.
+- **변경:** 주문 기록 트랜잭션 전에 사이트 원본과 HMAC 키를 검증한다. 서버 가격표를 사용하는 주문 생성, 브라우저 금액 위조 거부, EU 철회권 포기 동의, 소유자 자신의 pending 환불 재사용, 관리자 예약 격리, 보고서 열람·시간 조건과 환불 완료 시 권한 회수를 테스트한다. Toss 공식 API 가이드의 15일 멱등 키 유효기간에 맞춰 자동 재시도는 14일까지만 허용한다([Toss Payments API guide](https://docs.tosspayments.com/en/api-guide)).
+- **검증:** 핵심 결제/체크아웃/환불 테스트 20/20, 전체 Vitest 149개 파일·1,203개 테스트 통과. 전체 ESLint, TypeScript typecheck, Next production build 통과. `test:cov` 테스트는 통과했지만 전역 statements/lines 63.09%, functions 75.92%, engine 94.68%로 설정 임계치에 미달했다. 결제 `service.ts`는 statements/lines 44.01%, billing 디렉터리는 12.98%다. skill-manager는 bare `pnpm` 실행이 Windows `WinError 2`였고 `pnpm.cmd` 직접 실행은 통과했다.
+- **운영 경계:** 변경은 로컬 코드와 테스트뿐이다. DB·Toss·기능 플래그·production 배포는 건드리지 않았다. 현재 테스트는 모의 SQL 기반이며 실제 staging DB/RLS, Toss sandbox의 모호한 응답 재시도와 환불까지 증명하지 않는다.
+- **다음:** 14일이 지난 미확정 환불은 자동 재호출하지 않고 지원 문의를 통해 수동 조정해야 한다. 결제 주요 경로의 테스트 커버리지를 확장하고, 승인된 staging 환경에서 Toss·RLS·실제 권한 회수 여정을 검증한다. production 유료 판매는 상품·법무·PG 승인 및 별도 운영 검증이 끝나기 전까지 활성화하지 않는다.
+
+## 2026-09-30 미확정 환불 결제사 대사 경로
+
+- **관찰:** Toss 멱등 키 유효기간 뒤에는 안전한 자동 재호출이 차단되지만, `/admin/billing`은 `refunding` 주문에 조치 항목을 표시하지 않아 결제사에서 이미 완료된 취소를 내부 권한 상태와 대조할 수 없었다.
+- **변경:** 관리자 청구 화면에 취소 상태 대조 액션을 추가했다. 소유자 권한·같은 출처 요청을 검증하고, 서버에서 주문/예약/결제 금액 및 KRW 통화를 맞춘 뒤 Toss 주문 조회 결과가 같은 결제 키·주문·금액이며 `CANCELED`, `DONE` 취소 합계 전액임을 확인할 때만 주문·환불·권한을 내부 완료 처리한다. 부분 취소, 조회 실패, 불일치, 미완료 취소는 그대로 보류한다. 보류 주문은 관리자 최근 200건에서 우선 노출한다. ([Toss 코어 API](https://docs.tosspayments.com/reference))
+- **검증:** 환불 대사/관리자 API/환불 서비스 테스트 23/23, 전체 Vitest 151개 파일·1,218개 테스트, 전체 ESLint, TypeScript typecheck, Next.js production build 통과. 별도 `test:cov`도 전체 테스트는 통과했으나 global statements/lines 63.03%, functions 75.89%, engine statements/lines 94.68%로 임계치(80%/95%)에 미달해 exit 1이었다. billing `service.ts`는 42.26%, billing 디렉터리는 13.96%다. skill-manager `verify --run`은 Windows에서 bare `pnpm` 실행이 `WinError 2`로 실패했지만 `pnpm.cmd`로 lint/typecheck/test/build를 직접 검증했다.
+- **운영 경계:** 변경은 로컬 코드다. 실제 Neon/RLS 및 Toss sandbox 대사는 검증하지 않았고, DB·결제사·기능 플래그·배포에 쓰기를 수행하지 않았다. 결제사 조회 결과가 전액 취소를 증명하지 않으면 운영자가 Toss 상태를 확인해야 한다. 판매 활성화는 상품·법무·PG 승인과 staging 종단간 결제/환불 검증 이후 별도 단계다.
+- **다음:** 테스트 커버리지의 결제 핵심 경로 부족을 보완하고, 승인된 staging에서 Toss 결제·웹훅 중복·환불·권한 회수 및 RLS를 검증한다.
+
+## 2026-09-30 Toss 웹훅 입력 제한과 HTTP 경로 회귀 검증
+
+- **관찰:** 웹훅 경로는 32KB 초과 여부를 확인하기 전에 `request.clone().arrayBuffer()`로 전체 본문을 메모리에 읽었다. 서비스 단위 테스트는 웹훅 HTTP 입력 검증, 결제사 상태 조회, 원문 해시 전달을 직접 확인하지 않았다.
+- **변경:** `readBoundedBody` 스트리밍 제한기를 추가하고 기존 `readBoundedJson`의 반환 형식은 유지했다. 웹훅은 32KB 이내 본문만 읽고 그 바이트로 이벤트 해시를 만든다. 콘텐츠 타입·전송 ID·크기 제한·미지원 이벤트·결제사 기준 상태 조회·주문 불일치·일반화된 재시도 응답을 검사하는 라우트 테스트 6개를 추가했다. 기존 결제 어댑터/제공자/영수증/주문/환불 테스트도 함께 유지했다.
+- **검증:** 전용 웹훅 테스트 6/6, 전체 Vitest 156개 파일·1,266개 테스트 통과, ESLint, TypeScript typecheck, Next.js production build 통과. `test:cov`도 전체 테스트는 통과했지만 statements/lines 64.12%, functions 77.63%, engine statements/lines 94.68%로 설정 임계치(80%/95%)에 미달해 exit 1이었다. billing `service.ts` 커버리지는 46.4%다. 코드 리뷰에서 수정 사항은 보고되지 않았다. skill-manager `verify --run`은 bare `pnpm`을 실행하지 못해 Windows `WinError 2`였고 직접 `pnpm.cmd` 검증 결과로 게이트를 확인했다.
+- **운영 경계·다음:** 변경은 로컬 코드·테스트·문서에 한정했다. Neon/RLS, Toss sandbox, DB, 결제 플래그, 외부 배포는 검증하거나 변경하지 않았다. 다음은 승인된 staging에서 실제 Toss 결제·동일 웹훅 중복·환불 및 RLS 여정을 확인하는 일이며, 상품·법무·PG 승인과 production 판매 활성화는 별도 운영 게이트다.
+
+## 2026-09-30 결제 대사·회원 주문 조회 회귀 범위
+
+- **관찰:** 결제사 환불 대사 검사는 예약/주문/결제 데이터 간 금액·통화 일치와 잠금 조건을 서비스 쿼리 수준에서 직접 고정하지 않았다. 회원 주문 조회 테스트도 쿼리에 `user_id` 조건을 확인했지만, 트랜잭션 경계에 로그인 사용자 ID가 전달되는지 검증하지 않았다.
+- **변경:** 환불 대사 대상 조회의 Toss 제공자·전체 금액·KRW 조건, 대기 상태와 `FOR UPDATE` 절, 잘못된 식별자 및 결과 0/복수 건 처리를 검증하는 서비스 테스트 9개를 추가했다. 회원 주문 단건/목록 테스트 3개는 잘못된 ID와 비소유 주문의 동일한 not-found 응답, 회원 범위 쿼리, 최대 100건 제한, 서버 환불 가능 표시를 검사하고 트랜잭션 래퍼가 `member-1`을 받는지도 고정한다.
+- **검증:** 전체 158개 Vitest 파일·1,278개 테스트가 통과했고, 수정 테스트 2개 파일 12/12와 해당 ESLint가 추가 수정 후 통과했다. 전체 typecheck와 Next.js production build도 통과했다. `test:cov` 테스트는 모두 통과했지만 global statements/lines 64.93%, functions 76.63%, branches 84.05%, engine statements/lines 94.68%로 임계치(80%/75%/95%)에 미달해 exit 1이었다. billing `service.ts`는 statements/lines 56.04%, billing 디렉터리는 31.85%다. skill-manager `verify --run`은 Windows에서 bare `pnpm`을 찾지 못해 네 명령 모두 `WinError 2`였으며, `pnpm.cmd` 직접 검증을 병행했다.
+- **운영 경계·다음:** 코드·테스트·문서만 수정했다. 테스트 DB 쿼리를 모의했으므로 실제 Neon 행 잠금이나 RLS 정책은 증명하지 않으며, Toss sandbox 결제/환불과 production 판매도 검증·변경하지 않았다. 결제 기능의 높은 미검증 범위를 더 줄이고, 승인된 staging에서 결제·중복 웹훅·환불·권한 회수·RLS 종단간 경로를 검증한 뒤에만 상용 판매 게이트를 재평가한다.
+
+## 2026-09-30 계정 구매·구독 조회 장애 표시
+
+- **관찰:** 계정 페이지는 구매와 구독 조회가 실패하면 각각 빈 배열로 대체해 “구매 내역이 없습니다” 또는 “구독 내역이 없습니다”로 표시했다. 결제한 사용자가 일시적인 billing DB 장애를 실제 기록 부재로 오해하고 환불·구매 접근 경로를 찾지 못할 수 있었다.
+- **변경:** 서버 계정 페이지가 구매와 구독 목록을 병렬로 읽고 각 실패를 별도로 보존한다. 실패한 목록에는 일시적 조회 불가 안내와 해당 기록을 다시 불러오는 링크를 표시하고, 정상적으로 조회된 다른 목록은 그대로 보여 준다. 회원 인증과 기존 사용자 범위 조회는 유지했다.
+- **검증:** 장애 조합 두 가지를 확인하는 DOM 테스트 2/2, 전체 Vitest 159개 파일·1,280개 테스트, 전체 ESLint, TypeScript typecheck, Next.js production build가 통과했다. `test:cov`의 테스트는 전부 통과했으나 global statements/lines 64.93%, functions 76.63%, branches 84.04%, engine statements/lines 94.68%로 설정 임계치에 미달해 exit 1이었다. skill-manager `verify --run`은 Windows에서 bare `pnpm`을 찾지 못해 실패했고, 동등한 `pnpm.cmd` 명령을 직접 실행했다. 코드 리뷰에서 수정 사항은 보고되지 않았다.
+- **운영 경계·다음:** 변경은 코드·테스트·문서에 한정했다. 두 가지 장애 상태는 모의 함수로 검증했으므로 실제 Neon 장애 복구나 RLS를 증명하지 않는다. 다음은 승인된 staging에서 고객 계정의 결제 완료·구매 이력·리포트 열람·셀프 환불을 연결해 검증하고, 운영 Sentry 알림과 롤백 리허설을 완료하는 일이다.
+
+## 2026-09-30 계정 리포트·공유 조회 장애 격리
+
+- **관찰:** 구매·구독 목록은 각각 조회 실패를 보존하도록 바뀌었지만, 저장 리포트와 공유 링크는 `Promise.all`의 공통 예외 처리 때문에 둘 중 하나만 실패해도 계정 페이지 전체가 중단됐다. 정상 조회된 구매·환불 및 구독 정보도 숨겨질 수 있었다.
+- **변경:** 저장 리포트와 공유 링크를 독립적으로 조회하고, 실패한 영역에 일시적 조회 불가 안내와 재시도 링크를 표시한다. 둘 다 정상 조회된 경우에만 공유 관리 클라이언트 컴포넌트를 렌더링해 불완전한 데이터로 공유·해지 조작을 허용하지 않는다. 계정 구매 및 구독 목록은 계속 표시한다.
+- **검증:** 계정 DOM 실패 조합 4/4, 전체 Vitest 159개 파일·1,282개 테스트, 전체 ESLint, TypeScript typecheck, Next.js production build 통과. `test:cov` 테스트는 모두 통과했지만 global statements/lines 64.93%, functions 76.63%, engine statements/lines 94.68%로 각각 설정 임계치 80%/95%에 미달했다. skill-manager `verify --run`은 Windows에서 bare `pnpm` 실행이 `WinError 2`로 실패했으며 동등한 `pnpm.cmd` lint/typecheck/test/build 검증을 직접 실행했다.
+- **운영 경계·다음:** 코드·테스트·문서만 수정했다. 실제 Neon/RLS, 승인 staging의 결제·환불 및 알림·롤백 리허설은 확인하지 않았고 DB, 결제 플래그, Toss sandbox, 배포를 변경하지 않았다. 다음은 승인된 staging에서 결제 완료부터 주문 조회·리포트 접근·환불·권한 회수까지의 사용자 여정과 RLS를 검증하는 일이다.
+
+## 2026-09-30 결제 준비 게이트에서 멤버 인증 확인
+
+- **관찰:** 결제 준비 함수가 결제 플래그와 PG·암호화·법률 설정은 확인했지만 멤버 인증 설정은 확인하지 않았다. 이 경우 상품 페이지가 판매가를 표시해도 주문 단계에서 결제가 막힐 수 있었다.
+- **변경:** 결제 준비 조건에 `isMemberAuthConfigured()`를 포함해 멤버 인증 기능 또는 필수 설정이 준비되지 않은 동안 상품 노출과 주문 생성을 함께 차단한다. 인증 기능 플래그, 회원 법률 승인, 결제 법률 승인을 각각 끈 테스트에서 세션 조회와 결제 DB 호출이 발생하지 않는지도 확인한다.
+- **검증:** 결제 준비 테스트 8/8, 전체 Vitest 159개 파일·1,285개 테스트, ESLint, TypeScript typecheck, Next.js production build 통과. 리뷰어 승인. `test:cov`는 테스트 자체는 통과했으나 전역 statements/lines 64.93%, functions 76.9%, 엔진 statements/lines 94.68%로 설정 기준 80%/95%에 미달해 종료 코드 1이다. skill-manager `verify --run`은 bare `pnpm` 실행 경로를 찾지 못했지만 `pnpm.cmd`로 해당 lint·typecheck·test·build를 직접 통과했다.
+- **운영 경계:** 코드와 로컬 검증만 진행했다. 실제 Neon/RLS, Toss sandbox 결제·환불, 운영 알림·롤백, 법무·PG 승인, production 배포는 확인하거나 변경하지 않았다.
+
+## 2026-09-30 암호화 키 교체와 암호문 검증 강화
+
+- **관찰:** 결제 데이터 복호화가 활성 키 하나만 사용해 버전 전환 뒤 과거 키·영수증을 읽지 못했고, 암호문에서 payload 구분자가 빠져도 빈 payload로 처리될 수 있었다. 회원 데이터 AAD의 U+001F 구분자는 허용된 ID에 포함될 수 있어 서로 다른 사용자·레코드 조합이 같은 인증 문맥을 만들 수 있었다. base64url 디코더도 비정규 payload 인코딩을 허용했다.
+- **변경:** 결제 암호화는 활성 키·버전을 쓰고, 복호화는 과거 버전의 BILLING_ENCRYPTION_KEY_V<version> 보관 키를 조회한다. 두 복호화 경로에서 누락 필드는 거부하되 정당한 빈 payload는 보존하고, base64url 정규 인코딩만 통과시킨다. 회원 ID의 AAD 구분자 포함도 거부하되 기존 AAD 직렬화 형식은 유지했다. .env.example와 Railway 키 교체 절차를 갱신했다.
+- **검증:** 집중 암호화 테스트 52/52, 전체 Vitest 161개 파일·1,337개 테스트, ESLint, TypeScript typecheck, Next production build 통과. 리뷰어 승인. test:cov 테스트는 모두 통과했지만 전역 statements/lines 65.52%, functions 77.45%, 엔진 statements/lines 94.68%로 설정 기준 80%/95%에 미달했다. skill-manager verify --run은 Windows bare pnpm을 찾지 못해 네 체크가 모두 WinError 2였고, 같은 lint·typecheck·test·build를 pnpm.cmd로 직접 통과했다.
+- **운영 경계·다음:** 키 회전, Neon/DB 변경, 결제 플래그, Toss 결제, 배포는 하지 않았다. 운영 도메인의 기존 버전 read-only smoke는 18/18이었으며 이 코드 변경은 아직 배포되지 않았다. 실제 staging RLS, Toss sandbox 결제·중복 웹훅·환불·권한 회수, 법무·PG 승인, 운영 Sentry 알림과 롤백 리허설을 확인한 뒤에만 유료 판매 준비도를 재평가한다.
+
+## 2026-09-30 회원 로컬 데이터 claim 경계 검증
+
+- **관찰:** `claimOwnLocalData`는 계정 프로필과 브라우저 로컬 결과의 서버 저장 경계지만 직접 회귀 테스트가 없었다. 실제 staging 교차 사용자 RLS 검증은 별도 운영 게이트로 남아 있다.
+- **변경:** 새 DAL 테스트에서 인증·필수 동의가 없을 때 저장 트랜잭션을 차단하고, 추가 필드가 포함된 프로필·원시 응답을 담은 snapshot·중복 snapshot ID를 저장 전에 거부하는 동작을 고정했다. 프로필 행 잠금과 기존 ID 재사용, 회원 ID 범위의 upsert, 결과 재요청 시 충돌 무시와 첫 삽입만 집계하는 동작도 확인한다.
+- **검증:** 집중 DAL 테스트 6/6, 전체 Vitest 162개 파일·1,343개 테스트, ESLint, TypeScript typecheck, Next.js production build 통과. 코드 리뷰 승인. skill-manager `verify --run`은 Windows에서 bare `pnpm`을 찾지 못해 실패했지만, 동일 gate를 `pnpm.cmd`로 직접 실행해 통과했다.
+- **운영 경계·다음:** DB 호출은 모의 환경에서 검증했다. staging의 실제 RLS 양방향 소유권, 결제·환불 사용자 여정, Sentry 알림과 롤백, 법무·PG 승인은 확인하지 않았고 데이터베이스·배포·결제 설정도 변경하지 않았다.
+
+## 2026-09-30 결제 worker 재조정·영수증 큐 검증
+
+- **관찰:** `billing/service.ts`의 재조정 주문 조회, 만료 미결제 주문 회수, 영수증 작업 claim·완료 처리 함수가 직접 테스트되지 않았다. 이 경로들은 결제 상태 정리와 결제 완료 후 영수증 전달을 담당한다.
+- **변경:** 9개 테스트로 Toss 재조정 배치 제한과 SQL `LIMIT`, 만료된 pending Toss 주문만 취소하는 조건, 유료 주문·최대 재시도·lease 만료·`SKIP LOCKED`에 따른 receipt claim과 processing 전이를 검증한다. 영수증 완료 표시는 현재 attempt에만 적용되고 공급자 메시지 ID를 200자로 제한하는지 확인한다.
+- **검증:** 집중 테스트 9/9, 전체 Vitest 163개 파일·1,352개 테스트, ESLint, TypeScript typecheck, Next.js production build 통과. 코드 리뷰 승인. `test:cov`의 테스트는 통과했지만 전역 statements/lines 66.78%, branches 84.47%, functions 76.99%로 임계치(각 80%/75%/80%) 중 statements/lines와 functions가 미달하고, engine statements/lines 94.68%도 95% 기준에 미달했다. `billing/service.ts`는 statement counter 421/655, function counter 24/36, branch counter 121/142가 실행됐다.
+- **운영 경계·다음:** DB transaction은 mock으로 실행했으며 실제 Neon의 행 잠금·`SKIP LOCKED`, Railway worker schedule, Resend 전달, Toss sandbox는 검증하지 않았다. staging RLS 테스트 계정 ID 두 개가 현재 로컬 설정에 없어 교차 사용자 RLS를 실행하지 못했다. 실제 결제·영수증·권한 여정과 Sentry 알림·롤백 리허설은 해당 staging 계정과 외부 승인을 준비한 뒤 검증한다.
+
+## 2026-09-30 Toss 환불 거절·상태 복구 경계
+
+- **관찰:** 환불 취소 API의 모든 4xx를 실패로 처리해 예약을 해제하고 주문을 `paid`로 복구했다. Toss는 이미 취소된 결제도 `ALREADY_CANCELED_PAYMENT`와 HTTP 400으로 응답할 수 있어, PG는 취소됐는데 로컬 주문이 유료로 되돌아갈 수 있었다. 실패 복구 쿼리도 환불 예약이 실제로 `pending`에서 `failed`로 바뀌었는지 확인하지 않았다.
+- **변경:** Toss 오류 응답에서 형식이 검증된 오류 코드만 읽고, 요청 검증·인증 또는 만료·취소 불가가 명시된 코드에만 예약 복구를 허용한다. `ALREADY_CANCELED_PAYMENT`, 알 수 없는 코드, 서버 오류는 환불 상태에 남겨 대사하도록 했다. 두 환불 API 모두 같은 판정기를 사용한다. 복구 트랜잭션은 먼저 `refunding` 주문을 잠그고, 해당 주문에 속한 `pending` 환불 행이 실제 갱신된 경우에만 주문을 `paid`로 복구한다.
+- **검증:** 환불·Toss 집중 테스트 27/27, 전체 Vitest 163개 파일·1,356개 테스트, ESLint, TypeScript typecheck, Next.js production build 통과. `test:cov`는 테스트 자체는 통과했지만 전역 statements/lines 66.89%, functions 77.14%, `src/engine/**` statements/lines 94.68%로 각각 80%/95% 임계치에 미달해 exit 1이었다. skill-manager `verify --run`은 Windows에서 bare `pnpm` 실행 경로를 찾지 못해 네 체크 모두 `WinError 2`로 종료했으며, 같은 lint/typecheck/test/build 명령은 `pnpm.cmd`로 직접 실행해 통과했다.
+- **운영 경계·다음:** DB 동시성은 모의 트랜잭션으로만 검증했고 Neon staging, Toss sandbox·실결제, 배포는 실행하지 않았다. 모호한 PG 오류는 의도적으로 주문을 `refunding`에 유지하므로 실제 대사 후 복구 절차와 알림은 운영 계정으로 계속 검증해야 한다.
+
+## 2026-09-30 환불 제공자 초기화·예약 경합 순서
+
+- **관찰:** 제공자를 해석하기 전에 환불 예약을 만들면 설정 오류가 신규·재사용 예약을 잘못 해제할 수 있었다. 같은 Toss 멱등 요청 두 개가 성공하는 경우에는 첫 요청이 환불을 끝낸 뒤 두 번째 요청이 이미 완료된 같은 환불을 `400`으로 응답할 수 있었다.
+- **변경:** 회원 환불은 회원 인증·필수 동의를 확인하고, 관리자 환불은 owner 권한을 확인한 뒤 결제 제공자를 먼저 해석한다. 제공자 준비 뒤에만 예약을 만들고, 실제 취소 요청 후 Toss의 명시적 거절 코드가 확인된 경우에만 예약을 복구한다. 이미 `refunded`인 주문은 동일 결제에 속한 동일 `refundId`가 `succeeded`일 때만 성공으로 재응답하며 감사·권한 변경을 반복하지 않는다. 다른 환불 ID나 결제 ID는 거부한다.
+- **검증:** 환불 라우트·서비스 집중 테스트 28/28, 전체 Vitest 165개 파일·1,373개 테스트, ESLint, TypeScript typecheck, Next.js production build 통과. 코드 리뷰 승인. `test:cov`의 테스트는 통과했지만 전역 statements/lines 66.89%, functions 77.06%, `src/engine/**` statements/lines 94.68%로 설정 기준 80%/95%에 미달해 exit 1이다. skill-manager `verify --run`은 Windows bare `pnpm` 실행을 찾지 못해 네 체크가 `WinError 2`였고, 같은 lint·typecheck·test·build는 `pnpm.cmd`로 직접 통과했다.
+- **운영 경계·다음:** 변경은 로컬 코드·테스트·문서에 한정했다. 실제 Neon transaction/RLS, Toss sandbox 환불·대사, Sentry 알림·롤백 리허설, 법무·PG 승인과 운영 배포는 확인하지 않았다. 이 운영 증거와 엔진 커버리지 기준을 확보한 뒤 유료 판매 준비도를 다시 평가한다.
+
+## 2026-09-30 엔진 근거 블록·규준 검증 보강
+
+- **관찰:** 인지 점수 규준 표의 연령 범위·단조성·theta grid 오류와 MBTI 64유형 해설의 잘못된 한·영 문안, 인용·근거 블록 생성 경로를 직접 검증하는 테스트가 부족했다. 이 조건은 승인 규준 적용과 유료 리포트의 완결성에 영향을 준다.
+- **변경:** 인지 규준이 비어 있거나 범위가 불완전하고, 환산 표가 비단조·비유한 값·잘못된 theta grid를 포함하거나, 버전·모집단·입력 메타데이터가 맞지 않을 때 거부되는 사례를 추가했다. MBTI 유형별 해설의 비진단적 영문·국문 방법 문구, 유효 인용과 근거 ID, 잘못된 문안 길이·키워드·성장 질문 수 거부, 결과 불변성을 검증했다. 규준 미승인 상태의 점수 공개 차단은 변경하지 않았다.
+- **검증:** 집중 테스트 31/31, 전체 Vitest 165개 파일·1,381개 테스트, ESLint, TypeScript typecheck, Next.js production build 통과. 엔진 커버리지는 statements 95.10%, branches 92.50%, functions 98.18%로 설정 기준 95%/90%/95%를 통과했다. `test:cov` 전체는 statements/lines 67.06%, branches 85.16%, functions 77.26%로 전역 기준 80%/75%/80% 중 statements/lines와 functions가 미달해 exit 1이다. 코드 리뷰 승인.
+- **운영 경계·다음:** skill-manager `verify --run`은 Windows에서 bare `pnpm`을 찾지 못해 네 체크가 `WinError 2`로 종료됐다. 직접 실행한 `pnpm.cmd` 검사 결과는 별도로 통과했다. 실제 Neon RLS, Toss sandbox 결제·환불, Sentry 알림·롤백 리허설, 법무·PG 승인, production 배포는 확인하거나 변경하지 않았다. 이 외부 운영 증거와 전역 서버 커버리지 개선을 계속 진행한다.
+
+## 2026-09-30 관리자 AI 원가율 안내의 null 원인 구분
+
+- **관찰:** 순매출이 0이면 분모가 없어 `aiCostSharePercent`가 `null`인데, 화면은 모든 `null`을 재무 승인 환율 누락으로 표시했다. AI 원가 원장 조회 실패도 같은 안내로 합쳐져 운영자가 원인을 잘못 해석할 수 있었다.
+- **변경:** 매출 분모가 0인 상태, AI 사용 원가 데이터 부재, 재무 승인 환율 누락을 별도 한국어·영어 문구로 표시한다. 서버 컴포넌트 DOM 회귀 테스트에서 무매출 문구는 두 언어를 확인하고, 원가 데이터 부재와 환율 누락도 따로 확인한다.
+- **검증:** 집중 DOM 테스트 3/3, 전체 Vitest 167개 파일·1,387개 테스트, ESLint, TypeScript typecheck, Next.js production build 통과. 코드 리뷰 승인. skill-manager `verify --run`은 Windows bare `pnpm` 경로 문제로 네 항목이 `WinError 2`였고 동일 검사를 `pnpm.cmd`로 직접 통과했다.
+- **운영 경계·다음:** Neon 실데이터·재무 승인 환율·Toss 결제/환불·RLS와 외부 운영 절차는 검증하거나 변경하지 않았다. 법무·PG 승인과 운영 대사, Sentry 알림·롤백 리허설은 유료 판매 전 별도 DoD로 유지한다.
+
+## 2026-10-01 2027 report expert review release gate
+
+- **관찰:** Phase 4 완료 조건에는 전문가 검수 서명이 있지만 판매·주문 생성 경로가 이를 강제하지 않았다. AI는 승인 boolean만 확인했고, 기존 구매자에게 새 미승인 보고서가 제공되거나 열람 기록이 먼저 남을 위험도 확인됐다.
+- **변경:** 검수 boolean과 보고서 버전 2027-saju-report-v1이 모두 일치할 때만 판매·주문·AI를 허용하도록 공통 서버 게이트를 추가했다. 기존 구매자도 승인 전에는 보고서와 AI 본문을 볼 수 없고, 승인 후에만 열람 기록을 남긴다. 오프라인 프로덕션 빌드를 위해 이미 설치된 Fontsource Latin CSS와 명시적인 OS CJK 서체 대체를 적용했다.
+- **검증:** 집중 검수 게이트 16/16, 전체 Vitest 170개 파일·1,395개 테스트, ESLint, TypeScript typecheck, Next.js production build, git diff --check 통과. 코드 리뷰 승인. skill-manager verify --run은 Windows에서 bare pnpm을 찾지 못해 WinError 2였고, 같은 lint·typecheck·test·build를 pnpm.cmd로 직접 통과했다.
+- **운영 경계·다음:** .env.example은 승인 false를 유지한다. 운영 환경 승인값, 실제 전문가 서명, Neon/RLS, Toss sandbox 결제·환불, 법무·PG 승인, Sentry 경보·롤백 리허설과 production 배포는 확인하거나 변경하지 않았다. 정확한 버전 검수 증거를 받은 뒤 staging 검증을 이어간다.
+- **Phase 4 DoD 확인:** 기존 골든 케이스는 2027 입춘 전후 5분, 출생 시각 미상, 23:15 야자시를 직접 검증하고 16개 서술 블록의 evidenceRefs를 확인한다. yearForecast.ts 집중 커버리지는 statements/lines 98.79%, branches 92.3%, functions 100%다. 전문가의 실제 서명은 여전히 별도 승인 조건이다.
+
+## 2026-10-01 회원 데이터 내보내기·계정 삭제 경계
+
+- **관찰:** 상용화 Phase 2의 회원 데이터 접근을 구현한 DAL에는 프로필·저장 결과 조회, 전체 개인정보 내보내기, 계정 삭제의 직접 회귀 테스트가 없었다. 계정 삭제는 청구 데이터를 먼저 정리한 다음 인증 DB의 사용자 행을 삭제한다.
+- **변경:** 프로필·결과 조회의 회원 범위와 복호화 AAD, 내보내기의 개인정보·결제·구매 동의 포함 및 결제 저장소 미설정 분기, 이메일 소유 확인과 청구 정리 선행, identity 삭제 트랜잭션의 성공·실패 복구를 8개 테스트로 고정했다. 애플리케이션 로직과 DB 스키마는 변경하지 않았다.
+- **검증:** DAL 집중 테스트 14/14, 전체 Vitest 170개 파일·1,403개 테스트, ESLint, TypeScript typecheck, Next.js production build, `git diff --check` 통과. 코드 리뷰 승인. `test:cov`는 테스트 전체 통과 후 statements/lines 68.08%, branches 85.07%, functions 78.15%로 전역 기준 80%/75%/80% 중 statements/lines와 functions가 미달해 exit 1이다. skill-manager `verify --run`은 Windows의 bare `pnpm` 탐색 오류(WinError 2)로 실패했으며 직접 실행한 `pnpm.cmd` 네 검사 결과는 통과했다.
+- **운영 경계·다음:** DB 응답은 모의 환경에서만 확인했다. 실제 Neon/identity RLS와 다중 DB 계정 삭제 동작, staging 회원 내보내기·삭제 여정은 확인하지 않았다. 전체 서버 커버리지 게이트와 Sentry 운영 알림·롤백, 결제 staging E2E, 법무·PG 승인은 계속 출시 전 DoD로 남긴다.
+
+## 2026-10-01 프로필 세션 서버 만료·재사용 방지
+
+- **관찰:** 리포트 프로필 세션은 브라우저 쿠키에만 30분 만료가 설정되어 있었다. 쿠키 값을 복사하면 만료 뒤에도 서버 복호화가 이를 받아들여 개인정보가 든 birth/compatibility 프로필을 계속 재사용할 수 있었다.
+- **변경:** 암호화된 세션 안에 버전과 서버 검증 만료 시각을 포함하고, 만료·구버전·변조·잘못된 종류의 페이로드를 거부한다. 쿠키 만료도 동일한 TTL 상수를 사용한다. 회귀 테스트는 정확히 30분 경계, 쿠키 보안 속성, 키·암호문 오류, 미설정 쿠키, 기존 URL 공유 프로필 호환 경로와 잘못된 프로필 거부를 확인한다. 배포 시 기존 v1 임시 세션 쿠키는 재입력 대상으로 무효화된다.
+- **검증:** 집중 테스트 19/19, 전체 Vitest 172개 파일·1,444개 테스트, ESLint, TypeScript typecheck, Next.js production build, `git diff --check` 통과. 프로필 세션 모듈은 statements/lines 97.93%, branches 90.47%, functions 100%다. `test:cov` 전체 테스트는 통과했지만 전역 statements/lines 68.84%, branches 85.43%, functions 78.52%로 전역 기준 80%/75%/80% 중 statements/lines와 functions가 미달해 exit 1이다. skill-manager `verify --run`은 Windows의 bare `pnpm` 경로 오류(WinError 2)로 실패했고, 같은 lint·typecheck·test·build를 `pnpm.cmd`로 직접 실행해 통과했다.
+- **운영 경계·다음:** 변경은 로컬 코드·테스트·기록뿐이다. Neon/RLS, staging 쿠키 회전·로그인 및 실제 배포는 확인하지 않았다. 기존 공유 URL 경로는 테스트로 확인했지만 실제 브라우저 여정과 production 비밀키 교체 영향은 별도 staging에서 검증해야 한다. 미달한 전체 커버리지는 서버의 고위험 결제·회원 경로부터 행동 기반 테스트로 보강하고, 결제 staging E2E·Sentry 경보/롤백·법무/PG 승인도 유료 판매 전 DoD로 계속 추적한다.
+
+## 2026-10-01 음력 공유 프로필 날짜 검증 호환
+
+- **관찰:** `memberProfileSchema`가 양력 월 길이를 모든 프로필에 적용해, 엔진의 공통 입력 검증기와 공유 URL 디코더가 허용하는 유효한 음력 날짜 1990-02-30을 거부했다. 이 검증은 신규 프로필 세션, 세션 복호화, 기존 호환성 공유 URL에 모두 영향을 줬다.
+- **변경:** 회원 프로필 스키마가 엔진의 `assertValidBirthInput`을 사용하도록 맞춰 양력 날짜만 그레고리 월 길이를 검사하게 했다. 회귀 테스트는 음력 프로필을 신규 birth/compatibility 세션에 저장·복호화하고, 기존 compatibility 공유 URL에서도 유지되는지 확인한다.
+- **검증:** 집중 테스트 20/20, 전체 Vitest 172개 파일·1,445개 테스트, ESLint, TypeScript typecheck, Next.js production build 통과. `test:cov` 테스트는 전체 통과했지만 statements/lines 68.85%, branches 85.43%, functions 78.52%로 전역 기준 80%/75%/80% 중 statements/lines와 functions가 미달해 exit 1이다. `profileSchema.ts` 커버리지는 statements/lines 90%, branches 66.66%, functions 100%다. skill-manager `verify --run`은 Windows bare `pnpm` 탐색 오류(WinError 2)로 실패했고 직접 실행한 `pnpm.cmd` 검사는 통과했다.
+- **운영 경계·다음:** 달력별 입력과 URL 호환만 로컬 코드에서 검증했다. Neon/RLS, staging 로그인·결제, Sentry 경보/롤백, 법무·PG 승인은 확인되지 않아 유료 판매 전 DoD로 남아 있다. 다음 단계에서 회원·결제 서버 경로의 행동 커버리지를 높이고 실제 staging 검증 증거를 확보한다.
+
+## 2026-10-01 음력 실제 변환 가능성 검증
+
+- **관찰:** 형식상 날짜 범위 검사만으로는 변환표에 없는 윤달 날짜와 변환 지원 범위를 넘는 음력 연도를 저장할 수 있었다. 이런 세션은 나중에 사주 계산 시 변환 오류를 일으킬 수 있었다.
+- **변경:** 프로필 스키마가 한국 음력 변환기의 지원 연도와 실제 날짜 변환을 확인한다. 변환 불가 연도와 존재하지 않는 날짜는 신규 세션 저장 단계와 암호화 세션 해석 단계에서 거부하고, 유효한 음력 2월 30일 및 기존 공유 URL은 허용한다.
+- **검증:** 프로필 세션·회원 DAL 집중 테스트 35/35, 전체 Vitest 172개 파일·1,446개 테스트, ESLint, TypeScript typecheck, Next.js production build 통과. `test:cov` 전체 테스트는 통과했지만 statements/lines 68.87%, branches 85.50%, functions 78.52%로 전역 기준 80%/75%/80% 중 statements/lines와 functions가 미달해 exit 1이다. `profileSchema.ts` 커버리지는 statements/lines 92.30%, branches 80%, functions 100%다. skill-manager `verify --run`은 Windows bare `pnpm` 탐색 오류(WinError 2)로 실패했고, 같은 네 검사를 `pnpm.cmd`로 직접 통과했다.
+- **운영 경계·다음:** 음력 유효성은 현재 설치된 한국 음력 변환기와 로컬 테스트로 확인했다. Neon/RLS, staging 로그인·결제, Sentry 경보·롤백, 법무·PG 승인은 확인하지 않았다. 출시 전에는 실제 staging에서 회원·결제 여정을 확인하고 전역 커버리지 게이트를 충족해야 한다.
+
+## 2026-10-01 회원 인증 설정의 줄바꿈 입력 차단
+
+- **관찰:** 회원 인증 준비 판정은 `AUTH_EMAIL_FROM`과 Turnstile 키가 줄바꿈을 포함해도 구성 완료로 판단할 수 있었다. 발신 주소는 인증 초기화 시 예외를 일으키고 CAPTCHA 사이트 키는 화면 제공 단계에서 숨겨져, readiness 결과와 실제 사용 가능성이 달라질 수 있었다.
+- **변경:** 발신 주소와 Turnstile 비밀 키·사이트 키의 CR/LF를 공통 검사해 인증을 fail-closed 처리한다. CAPTCHA 사이트 키 getter에도 같은 검사를 적용하고 정상값은 그대로 유지한다.
+- **검증:** 집중 테스트 4/4, 전체 Vitest 173개 파일·1,450개 테스트, ESLint, TypeScript typecheck, Next.js production build, `git diff --check` 통과. 코드 리뷰 승인. skill-manager `verify --run`은 Windows bare `pnpm` 탐색 오류(WinError 2)로 실패했으나 동일 gate를 `pnpm.cmd`로 직접 실행해 통과했다.
+- **운영 경계·다음:** 로컬 코드·테스트·문서만 변경했다. 회원 인증 환경값, Neon/RLS, staging 로그인·결제, 배포는 변경하거나 확인하지 않았다. 실제 staging의 교차 사용자 RLS와 로그인·결제 여정, Sentry 알림·롤백, 법무·PG 승인은 출시 전 DoD로 남아 있다.
+
+## 2026-10-01 LUMINA Plus 자동결제와 알림 검증 확장
+
+- **관찰:** Plus 구독 판매 준비, 빌링 키 등록, PG 응답 확인, 결제 원장 반영, 재시도·해지·정리 작업, 구독 통지는 상용 과금 흐름의 핵심인데 단위 검증이 부족했다. 전체 테스트 통과와 별개로 statements/lines 커버리지도 전역 출시 게이트에 미달했다.
+- **변경:** 인증 메일 전송이 거부되거나 예외를 던질 때 공급자 세부 오류가 외부로 나가지 않도록 일반 오류로 정규화했다. Plus 가격·체크아웃·빌링 키 등록·내 구독 취소·갱신 청구·재시도·만료·빌링 키 정리와 알림 outbox의 승인 게이트, 결제 불일치, 원장 반영, 이메일 escape·idempotency·재시도 테스트를 추가했다.
+- **검증:** 전체 Vitest 178개 파일·1,537개 테스트, ESLint, TypeScript typecheck, Next.js production build 통과. `test:cov`의 테스트는 모두 통과했으며 커버리지는 statements/lines 74.62%, branches 85.43%, functions 81.25%다. 전역 statements/lines 기준 80%를 채우지 못해 coverage 명령은 exit 1이다. 두 구독 모듈은 각각 statements/lines 95.48%와 96.95%다. `skill_manager verify --run`은 Windows bare `pnpm` 실행 파일 탐색 오류(WinError 2)로 중단됐고 동일 lint/typecheck/test/build는 `pnpm.cmd` 직접 실행으로 통과했다.
+- **운영 경계·다음:** DB 드라이버, PG, Resend를 모의한 로컬 테스트만 실행했다. Neon staging RLS, 실제 로그인·결제·환불·이메일 전달, Sentry 경보·롤백, 법무·PG 승인은 확인하거나 변경하지 않았다. 전역 statements/lines 80%와 실제 staging 회원·결제 여정 및 RLS 검증은 출시 전 DoD로 남아 있다.
+
+## 2026-10-01 구독 알림 lease와 원장 연결 검증 보강
+
+- **관찰:** 구독 알림 재청구 기준이 생성 시각이어서 오래된 알림은 claim 직후 다른 worker가 다시 가져갈 수 있었다. 암호화 수신 주소가 없는 알림도 claim 뒤 필터링돼 `processing`에 남을 수 있었고, 최대 10회 처리 중 worker가 중단되면 DB 시도 횟수 제한을 넘어 재청구될 여지도 있었다. 체크아웃·갱신 성공·최종 실패 테스트는 일부 쿼리 존재만 확인했다.
+- **변경:** 현재 스키마에 있는 `send_after`를 lease 시각으로 갱신하고, lease가 만료된 작업만 회수한다. 수신 암호문과 유효 키 버전이 있는 구독만 claim하며, lease가 만료된 10회 처리 작업은 `attempt_limit`으로 종료한다. 테스트가 체크아웃 구독·동의 INSERT, 결제 ledger·권한 만료·구독 기간 연결, 최종 `expired` 상태의 바인딩 값을 확인한다. 새 마이그레이션은 만들거나 실행하지 않았다.
+- **검증:** 전체 Vitest 178개 파일·1,538개 테스트, ESLint, TypeScript typecheck, Next.js production build, `git diff --check`가 통과했다. `test:cov` 테스트도 모두 통과했지만 전역 커버리지는 statements/lines 74.63%, branches 85.42%, functions 81.25%로 statements/lines 80% 기준을 충족하지 못해 명령이 exit 1이다. `subscriptionNotices.ts` 97.20%, `subscriptions.ts` 95.48%다. skill-manager `verify --run`은 bare `pnpm`을 찾지 못해 4개 명령 모두 `WinError 2`였고, 직접 실행한 `pnpm.cmd` lint·typecheck·test·build는 통과했다.
+- **운영 경계·다음:** 결제 DB 쿼리는 모의 테스트로만 검증했다. 실제 PostgreSQL의 CTE 실행, staging RLS, 로그인·Toss 결제·환불·Resend 전달, Sentry 알림·롤백, 법무·PG 승인은 확인하거나 변경하지 않았다. 전역 statements/lines 80%와 실제 staging 회원·결제 여정 및 RLS 검증, 외부 승인 항목이 출시 전 DoD로 남아 있다.
+
+## 2026-10-01 AI 생성량·비용 한도 경계
+
+- **관찰:** AI 생성량과 원가 경로에는 상품별·일별·월별 생성 한도, 예산 초과 예약 차단, 예약 해제, 원가 원장 기록을 함께 고정하는 직접 회귀 테스트가 없었다. 음수 원가가 들어오면 일일 지출액은 감소시키면서 원장에는 0을 기록할 수 있었다.
+- **변경:** 중복 요청은 할당량을 재사용하고, 신규 요청은 상품·일·월 한도를 예약한 뒤에만 큐에 들어가는지 검증한다. 요청 원가가 남은 일일 예산을 넘으면 예약을 거부하며, 실제 사용료·예약액·토큰·모델은 정산 원장에 연결한다. 사용료는 일일 예산과 원장에서 동일한 0 이상 값으로 정산하고, 예약 해제 및 집계 기간·안전 정수 경계도 검증한다.
+- **검증:** AI service/database 집중 테스트 22/22, 전체 Vitest 180개 파일·1,560개 테스트, ESLint, TypeScript typecheck, Next.js production build 통과. DB 테스트는 non-superuser·non-BYPASSRLS 역할 제한, 성공 commit, 오류 시 rollback과 원래 오류 보존을 확인한다. 코드 리뷰 승인. `test:cov`의 테스트는 모두 통과했지만 전역 statements/lines 76.43%로 80% 기준에 못 미쳐 명령은 exit 1이다. `skill_manager verify --run`은 Windows에서 bare `pnpm`을 찾지 못해 4개 항목이 `WinError 2`로 종료됐고 직접 실행한 `pnpm.cmd` 검사 결과는 통과했다.
+- **운영 경계·다음:** 비용 예약 테스트는 모의 DB로만 검증했다. 실제 Neon 동시성·RLS, OpenRouter 과금 응답, 결제·환불 staging, Sentry 알림·롤백, 법무·PG 승인은 확인하거나 변경하지 않았다. 전역 커버리지 기준과 실제 staging 회원·결제·RLS 검증, 운영 알림, 외부 승인은 유료 판매 전 DoD로 남아 있다.
+
+## 2026-10-03 AI 내러티브 안전 검증의 Unicode 우회 차단
+
+- **관찰:** AI 문장 필터가 ASCII 숫자만 확인했고, 금칙 표현 탐색에는 제한된 혼동 문자 목록을 사용했다. 전각 텍스트, 기본 무시 문자, 다른 스크립트의 시각적 유사 문자를 사용하면 숫자 판정이나 금칙 표현 탐색을 우회할 수 있었다.
+- **변경:** 검증 전 NFKC 정규화와 기본 무시 문자 제거를 적용한다. 십진 숫자는 원문 정규화 결과와 혼동 문자 변환 결과에서 모두 확인한다. Unicode 18 UTS #39 데이터에서 단일 코드포인트가 ASCII 영숫자로 대응되는 1,792개 매핑을 추출해 금칙 표현 탐색에 사용하고, 소스·라이선스 고지를 포함했다([Unicode 18 confusables data](https://www.unicode.org/Public/18.0.0/security/confusables.txt), [Unicode License v3](https://www.unicode.org/license.txt)). 근거 lane·존재하지 않는 인용·월별 인용 대상·90% 커버리지 경계와 Unicode 우회 사례를 직접 검증한다.
+- **검증:** AI 검증 집중 테스트 20/20, 전체 Vitest 181개 파일·1,580개 테스트, ESLint, TypeScript typecheck, Next.js production build 통과. `validation.ts` 커버리지는 statements/lines 95.94%, branches 91.42%, functions 100%이며 `unicodeConfusables.ts`는 statements/lines·branches·functions 100%다. 전체 커버리지는 statements/lines 78.63%, branches 85.38%, functions 81.55%로 80% statements/lines 기준에 미달해 coverage 명령은 exit 1이다. skill-manager `verify --run`은 Windows에서 bare `pnpm` 탐색 오류(WinError 2)로 4개 명령 실행에 실패했다.
+- **운영 경계·다음:** 검증은 로컬 코드와 테스트에 한정한다. 실사용 AI 출력 품질 골든셋, OpenRouter 응답·과금, Neon 동시성/RLS, staging 회원·결제, Sentry 알림·롤백, 법무·PG 승인은 확인하지 않았다. 전역 커버리지와 실제 staging 검증 및 외부 승인 항목은 유료 판매 전 DoD로 남아 있다.
+
+## 2026-10-03 AI 파이프라인·결제 계정 생명주기 커버리지 보강
+
+- **관찰:** AI 사실 구성·공급자 비용 기록·worker 재시도 경계와 결제 주문 조회·권한 대체·계정 삭제 정리는 유료 서비스의 정확성 및 비용·개인정보 보호에 중요하지만 직접 행동 검증이 부족했다. 직전 전체 커버리지는 statements/lines 79.54%로 저장소의 80% 문턱을 넘지 못했다.
+- **변경:** AI facts/provider/worker에 28개 테스트를 추가해 골든 사실·설정·예산 차단·재시도·실패 fallback을 확인한다. 결제 서비스에는 회원 범위 주문과 비식별 운영자 조회, Plus 권한 대체, 계정 삭제 시 미결제 주문/처리 중 invoice 차단 및 구독 종료·수신 정보 삭제, 영수증 오류 상태 변경을 검증하는 13개 테스트를 추가한다. 서비스 동작 코드는 수정하지 않았다.
+- **검증:** 결제 서비스 집중 테스트 22/22, 전체 Vitest 184개 파일·1,621개 테스트 통과. 전체 statements/lines 80.07%, branches 85.64%, functions 82.61%로 전역 기준을 통과했다. `server/billing/service.ts`는 statements/lines 91.55%, branches 85.98%, functions 89.18%다. ESLint, TypeScript, Next.js production build, `git diff --check`도 통과했다. skill-manager `verify --run`은 Windows bare `pnpm` 탐색 오류(WinError 2)였고 동등한 명령을 `pnpm.cmd`로 직접 실행해 통과했다.
+- **운영 경계·다음:** 결제 DB 테스트는 모의 transaction이며 Neon/RLS, Toss sandbox 승인·환불, OpenRouter 실사용 과금, staging 여정, Sentry 경보·복구, 법무·PG 승인은 확인하지 않았다. 코드는 로컬에만 두었고 마이그레이션·배포·push를 실행하지 않았다. 상용 판매 전 실제 staging 결제와 교차 계정 RLS 증거를 추가 확보해야 한다.
+
+## 2026-10-08 production cron 배포 정렬
+
+- **관찰:** production `cron-10min`의 9월 29일 배포는 저장소와 다른 4개 작업 목록을 실행했고, 그중 `billing_reconcile`이 10분 일정에 포함돼 있었다. 네 작업 모두 승인 게이트가 닫혀 실행되지는 않았다. 저장소와 배포 문서는 대사를 `cron-daily`에 둔다.
+- **변경:** 저장소의 Docker 이미지를 production `cron-10min`에 배포해 예약 작업 구성을 현재 코드와 맞췄다. 데이터베이스 마이그레이션이나 운영 기능 게이트는 변경하지 않았다.
+- **검증:** `scripts/test-railway-cron.mjs` 9/9 통과. Railway 배포 `2e87adaf-51bd-4601-ac09-33906b25db34`와 서비스 상태가 `SUCCESS`; 첫 예약 실행은 UTC 23:10에 예상한 `billing_receipts`, `ai_sweeper`, `subscription_sweeper` 3개를 모두 건너뛰었다. `cron-daily`의 17:00 UTC 실행은 분석 작업 1건 성공, 건너뜀·실패 0건이었다. staging 환경에는 `web`만 있고 cron 서비스는 없다.
+- **운영 경계·다음:** 결제·AI·구독 작업은 계속 승인 게이트로 비활성이다. Sentry server 보고도 production DSN이 없어 꺼져 있다. 실제 작업 효과, Toss 결제·환불, staging 회원/RLS 흐름은 외부 설정과 승인이 갖춰진 뒤 검증한다.

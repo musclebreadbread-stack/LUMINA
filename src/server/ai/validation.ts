@@ -1,6 +1,7 @@
 import "server-only";
 
 import { narrativeSectionIds, narrativeOutputSchema, type AIFacts, type NarrativeOutput, type NarrativeSectionId } from "./types";
+import { mapUnicodeConfusable } from "./unicodeConfusables";
 
 const FORBIDDEN_CLAIMS = [
   /운명|예언|반드시|확실히|틀림없이|무조건|정해져 있|일어날 것|성공할 것|부자가 될|당첨|사망|불임|임신|질병|병에 걸|진단|치료|약을 복용|투자|수익률|법률 조언|소송|이혼|단명/iu,
@@ -15,6 +16,11 @@ const ALLOWED_LANES: Readonly<Record<NarrativeSectionId, ReadonlySet<AIFacts[num
   growth: new Set<AIFacts[number]["lane"]>(["growth"]),
   monthly: new Set<AIFacts[number]["lane"]>(["monthly"]),
 });
+
+function normalizeTextForSafetyCheck(text: string): string {
+  const normalized = text.normalize("NFKC").replace(/\p{Default_Ignorable_Code_Point}/gu, "");
+  return Array.from(normalized, mapUnicodeConfusable).join("");
+}
 
 export interface NarrativeValidationResult {
   readonly accepted: boolean;
@@ -55,8 +61,11 @@ export function validateNarrative(value: unknown, facts: AIFacts): NarrativeVali
         && citedFacts.every((fact) => fact !== undefined && ALLOWED_LANES[sectionId].has(fact.lane));
       const monthlyFactIsRelevant = sectionId !== "monthly"
         || paragraph.citedFactIds.some((id) => id.startsWith(`month.${String(index + 1).padStart(2, "0")}.`));
-      const textIsSafe = !/\d/u.test(paragraph.text)
-        && !FORBIDDEN_CLAIMS.some((pattern) => pattern.test(paragraph.text));
+      const containsDecimalDigits = /\p{Nd}/u.test(paragraph.text.normalize("NFKC"));
+      const safetyText = normalizeTextForSafetyCheck(paragraph.text);
+      const textIsSafe = !containsDecimalDigits
+        && !/\p{Nd}/u.test(safetyText)
+        && !FORBIDDEN_CLAIMS.some((pattern) => pattern.test(safetyText));
       if (!citationIsValid || !monthlyFactIsRelevant || !textIsSafe) {
         repairReasons.push(`invalid_${sectionId}_paragraph_${index + 1}`);
         continue;

@@ -35,14 +35,29 @@ function safeErrorCode(name: string | undefined): string {
 async function claimNoticeJobs(limit: number): Promise<readonly NoticeJob[]> {
   return withBillingTransaction(async (client) => {
     const sql = [
-      "with due as (",
+      "with exhausted as (",
       "  select n.id from billing.subscription_notices n",
-      "   where (n.status = 'queued' and n.send_after <= now())",
-      "      or (n.status = 'processing' and n.created_at < now() - interval '10 minutes')",
+      "   where n.status = 'processing' and n.send_after < now() - interval '10 minutes'",
+      "     and n.attempt_count >= 10",
+      "   for update of n skip locked limit $1",
+      "), terminal as (",
+      "  update billing.subscription_notices n set status = 'failed', last_error_code = 'attempt_limit'",
+      "    from exhausted where n.id = exhausted.id",
+      "  returning n.id",
+      "), due as (",
+      "  select n.id from billing.subscription_notices n",
+      "  join billing.subscriptions eligible_s on eligible_s.id = n.subscription_id",
+      "   where ((n.status = 'queued' and n.send_after <= now())",
+      "      or (n.status = 'processing' and n.send_after < now() - interval '10 minutes'))",
+      "     and n.attempt_count < 10",
+      "     and eligible_s.receipt_email_ciphertext is not null",
+      "     and eligible_s.receipt_email_key_version > 0",
+      "     and not exists (select 1 from terminal where terminal.id = n.id)",
       "   order by n.send_after, n.created_at",
       "   for update of n skip locked limit $1",
       "), claimed as (",
-      "  update billing.subscription_notices n set status = 'processing', attempt_count = n.attempt_count + 1",
+      "  update billing.subscription_notices n",
+      "     set status = 'processing', send_after = now(), attempt_count = n.attempt_count + 1",
       "    from due where n.id = due.id",
       "  returning n.id, n.subscription_id, n.invoice_id, n.attempt_count, n.notice_type",
       ")",
@@ -59,7 +74,7 @@ async function claimNoticeJobs(limit: number): Promise<readonly NoticeJob[]> {
       "  left join billing.subscription_invoices i on i.id = c.invoice_id",
     ].join("\n");
     const result = await client.query<NoticeJob>(sql, [Math.max(1, Math.min(20, Math.trunc(limit)))]);
-    return result.rows.filter((job) => Boolean(job.ciphertext && job.keyVersion));
+    return result.rows;
   });
 }
 

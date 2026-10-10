@@ -20,10 +20,18 @@ export interface TossPayment {
   readonly orderId: string;
   readonly status: string;
   readonly totalAmount: number;
+  readonly balanceAmount?: number;
   readonly currency: string;
   readonly method: string;
   readonly approvedAt?: string | null;
   readonly lastTransactionKey?: string | null;
+  readonly cancels?: readonly TossPaymentCancellation[] | null;
+}
+
+export interface TossPaymentCancellation {
+  readonly cancelAmount: number;
+  readonly cancelStatus?: string;
+  readonly transactionKey?: string | null;
 }
 
 export interface BillingAuthorization {

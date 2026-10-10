@@ -1,5 +1,7 @@
 import "server-only";
 
+import { assertValidBirthInput } from "@engine/shared/birth";
+import { isLunarConvertible, lunarToSolar } from "@engine/saju/lunar";
 import { z } from "zod";
 
 const profileFields = z.object({
@@ -20,9 +22,24 @@ const profileFields = z.object({
 }).strict();
 
 export const memberProfileSchema = profileFields.superRefine((profile, context) => {
-  const daysInMonth = new Date(Date.UTC(profile.year, profile.month, 0)).getUTCDate();
-  if (profile.day > daysInMonth) {
+  try {
+    assertValidBirthInput({
+      date: { year: profile.year, month: profile.month, day: profile.day },
+      calendar: profile.calendar,
+    });
+  } catch {
     context.addIssue({ code: "custom", path: ["day"], message: "Invalid calendar day" });
+  }
+  if (profile.calendar === "lunar") {
+    if (!isLunarConvertible(profile.year)) {
+      context.addIssue({ code: "custom", path: ["year"], message: "Lunar year is outside the supported range" });
+    } else {
+      try {
+        lunarToSolar(profile.year, profile.month, profile.day, profile.isLeapMonth);
+      } catch {
+        context.addIssue({ code: "custom", path: ["day"], message: "Invalid Korean lunar date" });
+      }
+    }
   }
   if (profile.calendar === "solar" && profile.isLeapMonth) {
     context.addIssue({ code: "custom", path: ["isLeapMonth"], message: "Solar dates cannot be leap months" });

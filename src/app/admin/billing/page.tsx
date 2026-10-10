@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { intlLocale, isLocale } from "@/i18n/locale";
 import { AdminRefundForm } from "@/components/admin/billing/AdminRefundForm";
+import { AdminRefundReconcileButton } from "@/components/admin/billing/AdminRefundReconcileButton";
 import { getAdminAccess } from "@/server/admin/authorization";
 import { getBillingKpiSummary, listBillingAdminOrders } from "@/server/billing/service";
 
@@ -19,6 +20,22 @@ export default async function AdminBillingPage() {
     listBillingAdminOrders().catch(() => null),
     getBillingKpiSummary().catch(() => null),
   ]);
+  const kpiCalculatedAt = kpis
+    ? new Intl.DateTimeFormat(intlLocale(locale), {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: "Asia/Seoul",
+      }).format(new Date(kpis.calculatedAt))
+    : null;
+  const aiCostShareLabel = kpis
+    ? kpis.aiCostSharePercent !== null
+      ? kpis.aiCostSharePercent.toFixed(2) + "%"
+      : kpis.netRevenue30dKrw <= 0
+        ? locale !== "ko" ? "not calculated without net revenue" : "순매출이 없어 원가율을 계산할 수 없습니다"
+        : kpis.aiCostUsd30d === null
+          ? locale !== "ko" ? "AI usage cost data is unavailable" : "AI 사용 원가 데이터를 조회할 수 없습니다"
+          : locale !== "ko" ? "requires finance-approved REPORTING_KRW_PER_USD" : "재무 승인 환율 REPORTING_KRW_PER_USD 필요"
+    : null;
   return (
     <main className="mx-auto w-full max-w-7xl px-5 py-10 sm:px-8">
       <header className="border-b border-ink-700 pb-5">
@@ -45,12 +62,17 @@ export default async function AdminBillingPage() {
         <div className="mt-3 space-y-1 text-[11px] leading-5 text-hobun-faint">
           <p>
             {locale !== "ko"
-              ? "Net revenue is KRW orders paid in the last 30 days minus succeeded refunds. Paying users: " + kpis.activePayers30d + " · AI cost rate: " +
-                (kpis.aiCostSharePercent === null ? "needs finance-approved REPORTING_KRW_PER_USD" : kpis.aiCostSharePercent.toFixed(2) + "%") +
+              ? "Net revenue is KRW orders paid in the last 30 days minus succeeded refunds linked to those orders, regardless of when the refund was processed. Paying users: " + kpis.activePayers30d + " · AI cost rate: " +
+                (aiCostShareLabel ?? "—") +
                 " · estimated AI requests: " + (kpis.aiEstimatedRequests30d ?? "—")
-              : "순매출은 최근 30일 내 결제된 KRW 주문에서 성공 처리된 환불을 뺀 값입니다. 결제 고객: " + kpis.activePayers30d + "명 · AI 원가율: " +
-                (kpis.aiCostSharePercent === null ? "재무 승인 환율 REPORTING_KRW_PER_USD 필요" : kpis.aiCostSharePercent.toFixed(2) + "%") +
+              : "순매출은 최근 30일 내 결제된 KRW 주문 금액에서 해당 주문의 성공 환불액을 환불 처리 시점과 관계없이 뺀 값입니다. 결제 고객: " + kpis.activePayers30d + "명 · AI 원가율: " +
+                (aiCostShareLabel ?? "—") +
                 " · 추정 AI 요청: " + (kpis.aiEstimatedRequests30d ?? "—") + "건"}
+          </p>
+          <p>
+            {locale !== "ko"
+              ? `Calculated ${kpiCalculatedAt} KST · Billing source: billing.orders, billing.payments, billing.refunds, billing.subscriptions and billing.prices · AI cost source: ai.usage_ledger when available.`
+              : `산출 시각 ${kpiCalculatedAt} KST · 결제 원천: billing.orders, billing.payments, billing.refunds, billing.subscriptions, billing.prices · AI 원천: 조회 가능할 때 ai.usage_ledger`}
           </p>
         </div>
       ) : null}
@@ -78,7 +100,11 @@ export default async function AdminBillingPage() {
                   <td className="py-4 pr-4">{order.productName}</td>
                   <td className="py-4 pr-4">{new Intl.NumberFormat(intlLocale(locale), { style: "currency", currency: order.currency }).format(order.amount)}</td>
                   <td className="py-4 pr-4">{order.status}{order.viewedAt ? <span className="mt-1 block text-hobun-faint">{locale !== "ko" ? "Viewed" : "열람"}</span> : null}</td>
-                  <td className="py-4">{order.status === "paid" ? <AdminRefundForm orderId={order.id} locale={locale} /> : "—"}</td>
+                  <td className="py-4">{order.status === "paid"
+                    ? <AdminRefundForm orderId={order.id} locale={locale} />
+                    : order.status === "refunding"
+                      ? <AdminRefundReconcileButton orderId={order.id} locale={locale} />
+                      : "—"}</td>
                 </tr>
               ))}
             </tbody>

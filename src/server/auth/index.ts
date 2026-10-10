@@ -22,6 +22,10 @@ function readProviderCredentials(idName: string, secretName: string): ProviderCr
   return clientId && clientSecret ? { clientId, clientSecret } : null;
 }
 
+function hasLineBreak(value: string | undefined): boolean {
+  return value !== undefined && /[\r\n]/u.test(value);
+}
+
 function memberAuthBaseUrl(): URL {
   const rawValue = process.env.BETTER_AUTH_URL;
   if (!rawValue) throw new Error("BETTER_AUTH_URL is not configured");
@@ -57,6 +61,11 @@ export function isMemberAuthConfigured(): boolean {
     process.env.MEMBER_AUTH_TURNSTILE_SITE_KEY,
   ];
   if (requiredValues.some((value) => !value?.trim())) return false;
+  if ([
+    process.env.AUTH_EMAIL_FROM,
+    process.env.MEMBER_AUTH_TURNSTILE_SECRET_KEY,
+    process.env.MEMBER_AUTH_TURNSTILE_SITE_KEY,
+  ].some(hasLineBreak)) return false;
   if ((process.env.BETTER_AUTH_SECRET?.length ?? 0) < 32) return false;
   if (!getActiveConsentVersions()) return false;
 
@@ -86,7 +95,7 @@ export function getMemberAuth() {
   const baseUrl = memberAuthBaseUrl();
   const resend = new Resend(process.env.RESEND_API_KEY);
   const authEmailFrom = process.env.AUTH_EMAIL_FROM;
-  if (!authEmailFrom || /[\r\n]/u.test(authEmailFrom)) {
+  if (!authEmailFrom || hasLineBreak(authEmailFrom)) {
     throw new Error("AUTH_EMAIL_FROM is invalid");
   }
 
@@ -126,13 +135,17 @@ export function getMemberAuth() {
         storeOTP: "hashed",
         async sendVerificationOTP({ email, otp, type }) {
           const subject = type === "sign-in" ? "LUMINA 로그인 인증 코드" : "LUMINA 이메일 인증 코드";
-          const { error } = await resend.emails.send({
-            from: authEmailFrom,
-            to: email,
-            subject,
-            text: `LUMINA 인증 코드: ${otp}\n유효 시간은 5분입니다. 본인이 요청하지 않았다면 이 메일을 무시하세요.`,
-          });
-          if (error) throw new Error("Could not send the authentication email");
+          try {
+            const { error } = await resend.emails.send({
+              from: authEmailFrom,
+              to: email,
+              subject,
+              text: `LUMINA 인증 코드: ${otp}\n유효 시간은 5분입니다. 본인이 요청하지 않았다면 이 메일을 무시하세요.`,
+            });
+            if (error) throw new Error("Could not send the authentication email");
+          } catch {
+            throw new Error("Could not send the authentication email");
+          }
         },
       }),
       nextCookies(),
@@ -167,5 +180,5 @@ export function getMemberAuth() {
 
 export function getMemberAuthCaptchaSiteKey(): string | null {
   const value = process.env.MEMBER_AUTH_TURNSTILE_SITE_KEY?.trim();
-  return value && !/[\r\n]/u.test(value) ? value : null;
+  return value && !hasLineBreak(value) ? value : null;
 }

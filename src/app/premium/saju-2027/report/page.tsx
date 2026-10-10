@@ -12,6 +12,7 @@ import { getSignedInMember } from "@/server/auth/session";
 import { MemberAccessError, getOwnProfile } from "@/server/member/dal";
 import type { MemberProfile } from "@/server/member/profileSchema";
 import { isAIReportingEnabled } from "@/server/ai/settings";
+import { isYearForecastExpertReviewApproved } from "@/server/yearForecastApproval";
 import { NarrativeChapters } from "@/components/premium/NarrativeChapters";
 
 export const dynamic = "force-dynamic";
@@ -69,9 +70,12 @@ export default async function Saju2027ReportPage() {
   }
   if (!entitled) redirect(basePath);
 
-  const viewed = await markOwnEntitlementViewed();
-  if (!viewed) redirect(basePath);
-  const forecast = createForecast(profile);
+  const expertReviewApproved = isYearForecastExpertReviewApproved();
+  if (expertReviewApproved) {
+    const viewed = await markOwnEntitlementViewed();
+    if (!viewed) redirect(basePath);
+  }
+  const forecast = expertReviewApproved ? createForecast(profile) : null;
   const textLocale = locale !== "ko" ? "en" : "ko";
 
   return (
@@ -96,22 +100,34 @@ export default async function Saju2027ReportPage() {
             : "계산된 전통 분류와 그 한계를 설명합니다. 특정 사건을 예언하거나 전문적인 조언을 대신하지 않습니다."}
         </p>
       </section>
-      <div className="space-y-4">
-        {forecast.blocks.map((block) => (
-          <article key={block.id} className="border border-ink-800 bg-ink-950/50 p-5 sm:p-7">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-hobun-faint">{block.kind}</p>
-            <h2 className="mt-2 text-lg font-medium text-hobun">{block.summary[textLocale]}</h2>
-            <p className="mt-4 text-sm leading-7 text-hobun-dim">{block.detail[textLocale]}</p>
-            {block.method ? <p className="mt-4 border-l border-ink-700 pl-3 text-xs leading-6 text-hobun-faint">{block.method[textLocale]}</p> : null}
-            <p className="mt-4 text-[10px] leading-5 text-hobun-faint">
-              {locale !== "ko" ? "Evidence refs" : "계산 근거"}: {block.evidenceRefs.join(", ")}
-            </p>
-          </article>
-        ))}
-      </div>
-      {isAIReportingEnabled() ? <NarrativeChapters locale={textLocale} /> : null}
+      {forecast ? (
+        <>
+          <div className="space-y-4">
+            {forecast.blocks.map((block) => (
+              <article key={block.id} className="border border-ink-800 bg-ink-950/50 p-5 sm:p-7">
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-hobun-faint">{block.kind}</p>
+                <h2 className="mt-2 text-lg font-medium text-hobun">{block.summary[textLocale]}</h2>
+                <p className="mt-4 text-sm leading-7 text-hobun-dim">{block.detail[textLocale]}</p>
+                {block.method ? <p className="mt-4 border-l border-ink-700 pl-3 text-xs leading-6 text-hobun-faint">{block.method[textLocale]}</p> : null}
+                <p className="mt-4 text-[10px] leading-5 text-hobun-faint">
+                  {locale !== "ko" ? "Evidence refs" : "계산 근거"}: {block.evidenceRefs.join(", ")}
+                </p>
+              </article>
+            ))}
+          </div>
+          {isAIReportingEnabled() ? <NarrativeChapters locale={textLocale} /> : null}
+        </>
+      ) : (
+        <p role="status" className="border border-ink-800 bg-ink-950/50 p-5 text-sm leading-7 text-hobun-dim">
+          {locale !== "ko"
+            ? "Your purchase remains available. Report access will open after expert review is complete."
+            : "구매 권한은 유지됩니다. 전문가 검수가 완료되면 보고서를 열람할 수 있습니다."}
+        </p>
+      )}
       <p className="mt-7 text-xs leading-6 text-hobun-faint">
-        {locale !== "ko" ? "Expert review status: pending." : "전문가 검수 상태: 대기 중."}
+        {expertReviewApproved
+          ? locale !== "ko" ? "Expert review status: approved." : "전문가 검수 상태: 승인됨."
+          : locale !== "ko" ? "Expert review status: pending." : "전문가 검수 상태: 대기 중."}
       </p>
     </main>
   );

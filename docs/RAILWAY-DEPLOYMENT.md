@@ -19,6 +19,13 @@
 
 웹 서비스에는 런타임에 필요한 인증, 데이터베이스, 외부 API 값을 서버 전용 변수로 등록합니다. Neon 관리자 연결 문자열은 웹 서비스에 넣지 않습니다. 분석 롤업은 `lumina_jobs_worker`, 빌링 작업은 `lumina_billing_worker`, AI 작업은 `lumina_ai_worker` 전용 URL을 사용합니다. 각 작업자의 URL은 지정된 역할과 RLS를 확인하고, 선택 환경의 Neon endpoint에 연결해야 합니다. `CRON_SECRET`, `BILLING_CRON_SECRET`, `AI_CRON_SECRET`은 별도 난수로 만들고 해당 웹·cron 서비스에만 등록합니다. 어떤 비밀도 `NEXT_PUBLIC_*` 이름으로 등록하지 않습니다.
 
+## 결제 암호화 키 교체
+
+- `BILLING_ENCRYPTION_KEY`는 현재 `BILLING_ENCRYPTION_KEY_VERSION`으로 새 결제 데이터를 암호화합니다. 버전 설정이 없으면 `1`을 사용합니다.
+- 키를 교체할 때 새 32바이트 키와 증가한 버전을 함께 설정하고, 이전 활성 키는 `BILLING_ENCRYPTION_KEY_V<이전 버전>`으로 보관합니다. 예를 들어 버전 `1`에서 `2`로 전환하면 이전 키는 `BILLING_ENCRYPTION_KEY_V1`에 둡니다.
+- 복호화는 현재 버전 데이터에 활성 키를, 이전 버전 데이터에 해당 버전의 보관 키를 사용합니다. 암호문이 해당 버전을 참조하는 동안 이전 키를 유지해야 합니다. 키를 먼저 제거하면 그 데이터가 필요한 결제·영수증 처리가 실패합니다.
+- 키 값은 Railway 서버 환경에만 보관하고 저장소, `NEXT_PUBLIC_*`, 로그에 기록하지 않습니다. 환경 변경 전 staging에서 이전 버전 데이터 복호화와 새 버전 암복호화를 확인하고, 키 교체만으로 기존 데이터를 자동 재암호화하지 않습니다.
+
 ## 분석 cron
 
 - `cron-daily`는 `node scripts/railway-daily-jobs.mjs`로 분석 롤업을 실행하고, `BILLING_RECONCILE_ENABLED=true`와 법무 승인 플래그가 함께 켜진 경우에만 결제 대사를 호출합니다.

@@ -29,7 +29,11 @@ import {
   JUNGIAN_TYPE_PROFILE_CODES,
   MODIFIER_CODES,
   mbtiTypeProfile,
+  typeExplanation,
+  type ModifierCode,
+  type TypeVariantProfile,
 } from "@engine/psychometrics/jungianExplanations";
+import { freezeBaseTypeVariants } from "@engine/psychometrics/jungian/types/shared";
 import { computeFactorScores, type FactorScore, type LikertResponse, type ResponseMap } from "@engine/psychometrics/scoring";
 
 function responses(value: LikertResponse): ResponseMap {
@@ -56,6 +60,16 @@ function scoresWithZ(zByFactor: Partial<Record<BigFiveFactor, number>>): readonl
       },
     };
   });
+}
+
+function validTypeVariant(): TypeVariantProfile {
+  const profile = mbtiTypeProfile("ISTJ-AV");
+  if (!profile) throw new Error("expected the ISTJ-AV profile fixture");
+  return profile;
+}
+
+function variantsWith(profile: TypeVariantProfile): Record<ModifierCode, TypeVariantProfile> {
+  return { AV: profile, AW: profile, TV: profile, TW: profile };
 }
 
 function aspectsWithZ(zByAspect: Partial<Record<EmotionalAspect, number>>): readonly AspectScore[] {
@@ -326,6 +340,49 @@ describe("MBTI 유형 해설 완결성 — 64유형", () => {
   it("알 수 없는 코드에는 프로필 대신 null을 돌려준다", () => {
     expect(mbtiTypeProfile("XXXX-XX")).toBeNull();
     expect(mbtiTypeProfile("INFP-AV")).not.toBeNull();
+  });
+
+  it("유형별 해설 블록은 주의 문구와 검증 가능한 근거를 포함한다", () => {
+    const block = typeExplanation("ISTJ-AV");
+    if (!block) throw new Error("expected the ISTJ-AV explanation fixture");
+
+    assertExplanationBlock(block);
+    expect(block.id).toBe("jungian-type-istj-av");
+    expect(block.evidenceRefs).toEqual(["jungian-type:ISTJ-AV", "jungian-six-axis-continuous"]);
+    expect(block.citations.length).toBeGreaterThan(0);
+    expect(block.citations.every(isValidCitation)).toBe(true);
+    expect(block.tier).toBe("scientific");
+    expect(block.method?.ko).toContain("예언");
+    expect(block.method?.en).toContain("does not divide");
+    expect(typeExplanation("ISTJ-??")).toBeNull();
+  });
+
+  it("rejects incomplete bilingual copy and freezes all validated variant content", () => {
+    const profile = validTypeVariant();
+
+    expect(() => freezeBaseTypeVariants("ISTJ", variantsWith({
+      ...profile,
+      nickname: { ...profile.nickname, ko: "   " },
+    }))).toThrow('field "nickname"');
+    expect(() => freezeBaseTypeVariants("ISTJ", variantsWith({
+      ...profile,
+      summary: { ...profile.summary, en: "too short" },
+    }))).toThrow('field "summary"');
+    expect(() => freezeBaseTypeVariants("ISTJ", variantsWith({
+      ...profile,
+      keywords: profile.keywords.slice(0, 2),
+    }))).toThrow("exactly 3 keywords");
+    expect(() => freezeBaseTypeVariants("ISTJ", variantsWith({
+      ...profile,
+      growth: profile.growth.slice(0, 2),
+    }))).toThrow("exactly 3 growth prompts");
+
+    const variants = freezeBaseTypeVariants("ISTJ", variantsWith(profile));
+    expect(Object.isFrozen(variants)).toBe(true);
+    expect(Object.isFrozen(variants.AV)).toBe(true);
+    expect(Object.isFrozen(variants.AV.nickname)).toBe(true);
+    expect(Object.isFrozen(variants.AV.keywords)).toBe(true);
+    expect(Object.isFrozen(variants.AV.growth)).toBe(true);
   });
 });
 

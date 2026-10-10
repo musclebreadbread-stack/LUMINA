@@ -3,7 +3,7 @@ import { z } from "zod";
 import { NextResponse } from "next/server";
 import { applyTossPaymentEvent } from "@/server/billing/service";
 import { getPaymentProvider } from "@/server/billing/paymentProvider";
-import { readBoundedJson } from "@/server/http/readBoundedJson";
+import { readBoundedBody } from "@/server/http/readBoundedJson";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,11 +23,15 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
   const transmissionId = request.headers.get("tosspayments-webhook-transmission-id")?.trim() ?? "";
   if (!/^[A-Za-z0-9:_-]{1,200}$/u.test(transmissionId)) return json(400, { error: "invalid_event" });
-  const raw = await request.clone().arrayBuffer();
-  if (raw.byteLength > 32_768) return json(413, { error: "request_too_large" });
-  const body = await readBoundedJson(request, 32_768);
-  if (!body.ok) return json(body.status, { error: "invalid_event" });
-  const parsed = webhookSchema.safeParse(body.value);
+  const raw = await readBoundedBody(request, 32_768);
+  if (!raw.ok) return json(raw.status, { error: raw.status === 413 ? "request_too_large" : "invalid_event" });
+  let bodyValue: unknown;
+  try {
+    bodyValue = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(raw.bytes)) as unknown;
+  } catch {
+    return json(400, { error: "invalid_event" });
+  }
+  const parsed = webhookSchema.safeParse(bodyValue);
   if (!parsed.success) return json(400, { error: "invalid_event" });
   if (parsed.data.eventType !== "PAYMENT_STATUS_CHANGED") return json(200, { ok: true });
 
@@ -38,7 +42,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     await applyTossPaymentEvent({
       eventId: transmissionId,
       eventType: parsed.data.eventType,
-      payloadHash: createHash("sha256").update(Buffer.from(raw)).digest(),
+      payloadHash: createHash("sha256").update(raw.bytes).digest(),
       payment,
     });
     return json(200, { ok: true });

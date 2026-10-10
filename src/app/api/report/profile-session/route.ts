@@ -1,7 +1,11 @@
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { memberProfileSchema } from "@/server/member/profileSchema";
-import { encryptReportProfileSession, reportProfileCookieName } from "@/server/reportProfileSession";
+import {
+  encryptReportProfileSession,
+  reportProfileCookieName,
+  REPORT_PROFILE_SESSION_TTL_SECONDS,
+} from "@/server/reportProfileSession";
 import { readBoundedJson } from "@/server/http/readBoundedJson";
 
 export const runtime = "nodejs";
@@ -58,7 +62,7 @@ export async function POST(request: Request): Promise<Response> {
     secure: origin.protocol === "https:",
     sameSite: "lax",
     path: cookiePath,
-    maxAge: 30 * 60,
+    maxAge: REPORT_PROFILE_SESSION_TTL_SECONDS,
   });
 
   return Response.json({ saved: true }, { headers: { "Cache-Control": "no-store" } });

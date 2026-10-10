@@ -1,6 +1,7 @@
 import "server-only";
 
 import { serverFeatureFlags } from "@/lib/flags";
+import { isYearForecastExpertReviewApproved } from "@/server/yearForecastApproval";
 
 export interface AISettings {
   readonly apiKey: string;
@@ -24,7 +25,7 @@ export function getAISettings(): AISettings | null {
     || process.env.AI_GOLDEN_SET_APPROVED !== "true"
     || process.env.AI_FACT_SOURCES_APPROVED !== "true"
     || process.env.AI_LICENSE_APPROVED !== "true"
-    || process.env.YEAR_FORECAST_EXPERT_REVIEW_APPROVED !== "true") {
+    || !isYearForecastExpertReviewApproved()) {
     return null;
   }
 

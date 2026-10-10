@@ -9,7 +9,9 @@ const COOKIE_NAMES = {
   birth: "lumina-report-profile",
   compatibility: "lumina-compatibility-profiles",
 } as const;
-const SESSION_AAD = "lumina-report-session:v1";
+export const REPORT_PROFILE_SESSION_TTL_SECONDS = 30 * 60;
+const SESSION_TTL_MS = REPORT_PROFILE_SESSION_TTL_SECONDS * 1_000;
+const SESSION_AAD = "lumina-report-session:v2";
 
 export type ReportProfilePayload =
   | Readonly<{ kind: "birth"; profile: MemberProfile }>
@@ -27,7 +29,12 @@ export function encryptReportProfileSession(payload: ReportProfilePayload): stri
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", sessionKey(), iv);
   cipher.setAAD(Buffer.from(`${SESSION_AAD}:${payload.kind}`, "utf8"));
-  const ciphertext = Buffer.concat([cipher.update(JSON.stringify(payload), "utf8"), cipher.final()]);
+  const envelope = {
+    version: 2,
+    expiresAt: Date.now() + SESSION_TTL_MS,
+    payload,
+  } as const;
+  const ciphertext = Buffer.concat([cipher.update(JSON.stringify(envelope), "utf8"), cipher.final()]);
   return [iv.toString("base64url"), cipher.getAuthTag().toString("base64url"), ciphertext.toString("base64url")].join(".");
 }
 
@@ -48,14 +55,18 @@ function decryptReportProfileSession(value: string, expectedKind: ReportProfileP
     const parsed: unknown = JSON.parse(plaintext);
     if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return null;
     const record = parsed as Readonly<Record<string, unknown>>;
+    if (record.version !== 2 || typeof record.expiresAt !== "number"
+      || !Number.isSafeInteger(record.expiresAt) || record.expiresAt <= Date.now()) return null;
+    if (typeof record.payload !== "object" || record.payload === null || Array.isArray(record.payload)) return null;
+    const payload = record.payload as Readonly<Record<string, unknown>>;
 
-    if (expectedKind === "birth" && record.kind === "birth") {
-      const profile = memberProfileSchema.safeParse(record.profile);
+    if (expectedKind === "birth" && payload.kind === "birth") {
+      const profile = memberProfileSchema.safeParse(payload.profile);
       return profile.success ? { kind: "birth", profile: profile.data } : null;
     }
-    if (expectedKind === "compatibility" && record.kind === "compatibility") {
-      const first = memberProfileSchema.safeParse(record.first);
-      const second = memberProfileSchema.safeParse(record.second);
+    if (expectedKind === "compatibility" && payload.kind === "compatibility") {
+      const first = memberProfileSchema.safeParse(payload.first);
+      const second = memberProfileSchema.safeParse(payload.second);
       return first.success && second.success
         ? { kind: "compatibility", first: first.data, second: second.data }
         : null;

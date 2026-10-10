@@ -10,10 +10,16 @@ const tossPaymentSchema = z.object({
   orderId: z.string().uuid(),
   status: z.string().min(1).max(40),
   totalAmount: z.number().int().nonnegative(),
+  balanceAmount: z.number().int().nonnegative().optional(),
   currency: z.string().length(3).default("KRW"),
   method: z.string().min(1).max(80),
   approvedAt: z.string().datetime({ offset: true }).nullable().optional(),
   lastTransactionKey: z.string().max(200).nullable().optional(),
+  cancels: z.array(z.object({
+    cancelAmount: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+    cancelStatus: z.string().min(1).max(40).optional(),
+    transactionKey: z.string().max(64).nullable().optional(),
+  })).nullable().optional(),
 });
 
 const billingAuthorizationSchema = z.object({
@@ -23,10 +29,36 @@ const billingAuthorizationSchema = z.object({
 });
 
 export class TossPaymentError extends Error {
-  constructor(readonly status: number, readonly code: string) {
+  constructor(readonly status: number, readonly code: string, readonly providerCode: string | null = null) {
     super("Payment provider request failed");
     this.name = "TossPaymentError";
   }
+}
+
+const definitiveCancelRejectionCodes = new Set([
+  "INVALID_REQUEST",
+  "NOT_SUPPORTED_USER_TRANSFER",
+  "INVALID_VIRTUAL_ACCOUNT_CANCEL_REQUEST_PARAM",
+  "INVALID_PAYMENT_FIELD",
+  "UNAUTHORIZED_KEY",
+  "INCORRECT_BASIC_AUTH_FORMAT",
+  "FORBIDDEN_REQUEST",
+  "NOT_CANCELABLE_AMOUNT",
+  "NOT_CANCELABLE_PAYMENT",
+  "EXCEED_MAX_REFUND_DUE",
+  "NOT_FOUND_PAYMENT",
+  "NOT_FOUND",
+]);
+
+export function isDefinitiveTossCancelRejection(error: TossPaymentError): boolean {
+  return error.status >= 400 && error.status < 500
+    && error.providerCode !== null
+    && definitiveCancelRejectionCodes.has(error.providerCode);
+}
+
+function readProviderErrorCode(value: unknown): string | null {
+  const parsed = z.object({ code: z.string().regex(/^[A-Z0-9_]{2,60}$/u) }).passthrough().safeParse(value);
+  return parsed.success ? parsed.data.code : null;
 }
 
 function authorizationHeader(): string {
@@ -54,7 +86,9 @@ async function requestPayment(path: string, body: unknown, idempotencyKey: strin
     throw new TossPaymentError(503, "provider_unavailable");
   }
   const value: unknown = await response.json().catch(() => null);
-  if (!response.ok) throw new TossPaymentError(response.status, "provider_rejected");
+  if (!response.ok) {
+    throw new TossPaymentError(response.status, "provider_rejected", readProviderErrorCode(value));
+  }
   const parsed = tossPaymentSchema.safeParse(value);
   if (!parsed.success) throw new TossPaymentError(502, "invalid_provider_response");
   return parsed.data;

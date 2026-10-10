@@ -320,6 +320,7 @@ async function finishAIBudgetReservation(input: Readonly<{
   }>;
 }>): Promise<void> {
   await withAITransaction(async (client) => {
+    const costMicrousd = Math.max(0, input.usage?.costMicrousd ?? 0);
     const reservationResult = await client.query<{ budget_date: string; amount_microusd: string }>(
       `select budget_date::text, amount_microusd::text from ai.budget_reservations where id = $1 for update`,
       [input.reservationId],
@@ -331,7 +332,7 @@ async function finishAIBudgetReservation(input: Readonly<{
           set reserved_microusd = greatest(0, reserved_microusd - $2),
               spent_microusd = spent_microusd + $3, updated_at = now()
         where budget_date = $1::date`,
-      [reservation.budget_date, reservation.amount_microusd, input.usage?.costMicrousd ?? 0],
+      [reservation.budget_date, reservation.amount_microusd, costMicrousd],
     );
     if (input.usage) {
       const inputTokens = Math.max(0, Math.min(2_147_483_647, Math.floor(input.usage.inputTokens)));
@@ -343,7 +344,7 @@ async function finishAIBudgetReservation(input: Readonly<{
          values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          on conflict (request_id) do nothing`,
         [input.usage.requestId, input.usage.narrativeId, input.usage.userRefHmac, input.usage.tier,
-          model, inputTokens, outputTokens, Math.max(0, input.usage.costMicrousd), input.usage.costIsEstimate],
+          model, inputTokens, outputTokens, costMicrousd, input.usage.costIsEstimate],
       );
     }
     await client.query(`delete from ai.budget_reservations where id = $1`, [input.reservationId]);

@@ -4,14 +4,17 @@ import { createHash, createHmac, randomUUID } from "node:crypto";
 import type { PoolClient } from "pg";
 import { serverFeatureFlags } from "@/lib/flags";
 import type { Locale } from "@/i18n/locale";
+import { isMemberAuthConfigured } from "@/server/auth";
 import { getSignedInMember } from "@/server/auth/session";
 import { hasRequiredMemberConsents } from "@/server/member/consents";
 import { withMemberTransaction } from "@/server/member/database";
+import { isYearForecastExpertReviewApproved } from "@/server/yearForecastApproval";
 import { decryptBillingValue, encryptBillingValue, encryptPaymentKey, paymentKeyDigest } from "./crypto";
 import type { TossPayment } from "./toss";
 import { withBillingTransaction } from "./workerDatabase";
 
 const PRODUCT_KEY = "saju-2027";
+const SAFE_TOSS_IDEMPOTENCY_RETRY_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
 
 export class BillingAccessError extends Error {
   constructor(readonly reason: "authentication_required" | "consent_required" | "billing_unavailable") {
@@ -49,7 +52,9 @@ function billingStorageReady(): boolean {
 function billingCheckoutReady(): boolean {
   return billingStorageReady()
     && serverFeatureFlags.billing
+    && isMemberAuthConfigured()
     && process.env.BILLING_LEGAL_DOCUMENTS_APPROVED === "true"
+    && isYearForecastExpertReviewApproved()
     && Boolean(process.env.TOSS_CLIENT_KEY?.trim())
     && Boolean(process.env.TOSS_SECRET_KEY?.trim())
     && Boolean(process.env.BILLING_ENCRYPTION_KEY?.trim())
@@ -67,11 +72,6 @@ async function requireBillingMember(requireCheckout = false): Promise<Member> {
   if (!session) throw new BillingAccessError("authentication_required");
   if (!(await hasRequiredMemberConsents(session.user.id))) throw new BillingAccessError("consent_required");
   return { id: session.user.id, email: session.user.email };
-}
-
-function userReference(userId: string): Buffer {
-  const key = billingHmacKey();
-  return createHmac("sha256", key).update(userId, "utf8").digest();
 }
 
 function billingHmacKey(): string {
@@ -157,6 +157,25 @@ export async function createPendingOrder(input: CreateOrderInput): Promise<Creat
     throw new BillingInputError("payment_state_invalid");
   }
 
+  const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL;
+  if (!siteOrigin) throw new BillingAccessError("billing_unavailable");
+  let siteUrl: URL;
+  try {
+    siteUrl = new URL(siteOrigin);
+  } catch {
+    throw new BillingAccessError("billing_unavailable");
+  }
+  if (siteUrl.username || siteUrl.password || siteUrl.pathname !== "/" || siteUrl.search || siteUrl.hash
+    || (process.env.APP_ENV !== "development" && siteUrl.protocol !== "https:")) {
+    throw new BillingAccessError("billing_unavailable");
+  }
+
+  const hmacKey = billingHmacKey();
+  const memberReference = createHmac("sha256", hmacKey).update(member.id, "utf8").digest();
+  const customerKey = createHmac("sha256", hmacKey)
+    .update(`toss-customer:${member.id}`)
+    .digest("base64url");
+
   const termsVersion = requiredDocumentVersion("BILLING_TERMS_VERSION");
   const withdrawalVersion = requiredDocumentVersion("BILLING_WITHDRAWAL_NOTICE_VERSION");
   const transferVersion = requiredDocumentVersion("MEMBER_TRANSFER_VERSION");
@@ -201,7 +220,7 @@ export async function createPendingOrder(input: CreateOrderInput): Promise<Creat
          receipt_email_ciphertext, receipt_email_key_version, receipt_locale, expires_at)
        values ($1, $2, $3, $4, $5, 'toss', $6, $7, $8, $9, $10, $11, now() + interval '30 minutes')
        returning id::text`,
-      [orderId, member.id, userReference(member.id), price.product_key, price.id, orderName, price.amount, price.currency,
+      [orderId, member.id, memberReference, price.product_key, price.id, orderName, price.amount, price.currency,
         receiptEmail.ciphertext, receiptEmail.keyVersion, input.locale],
     );
     const created = orderResult.rows[0];
@@ -223,18 +242,8 @@ export async function createPendingOrder(input: CreateOrderInput): Promise<Creat
     return { orderId, orderName, amount: price.amount, currency: "KRW" as const };
   });
 
-  const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL;
-  if (!siteOrigin) throw new BillingAccessError("billing_unavailable");
-  const siteUrl = new URL(siteOrigin);
-  if (siteUrl.username || siteUrl.password || siteUrl.pathname !== "/" || siteUrl.search || siteUrl.hash
-    || (process.env.APP_ENV !== "development" && siteUrl.protocol !== "https:")) {
-    throw new BillingAccessError("billing_unavailable");
-  }
   const successUrl = new URL("/api/billing/toss/return", siteUrl.origin);
   const failUrl = new URL("/api/billing/toss/fail", siteUrl.origin);
-  const customerKey = createHmac("sha256", billingHmacKey())
-    .update(`toss-customer:${member.id}`)
-    .digest("base64url");
 
   return {
     ...order,
@@ -330,7 +339,7 @@ export async function listBillingAdminOrders(): Promise<readonly Readonly<{
       `select o.id::text, o.product_name_snapshot, o.amount, o.currency, o.status,
               o.created_at::text, o.paid_at::text, o.viewed_at::text,
               encode(o.user_ref_hmac, 'hex') as user_ref
-         from billing.orders o order by o.created_at desc limit 200`,
+         from billing.orders o order by (o.status = 'refunding') desc, o.created_at desc limit 200`,
     );
     return result.rows.map((row) => ({
       id: row.id,
@@ -347,6 +356,7 @@ export async function listBillingAdminOrders(): Promise<readonly Readonly<{
 }
 
 export interface BillingKpiSummary {
+  readonly calculatedAt: string;
   readonly netRevenue30dKrw: number;
   readonly mrrKrw: number;
   readonly arppuKrw: number | null;
@@ -374,13 +384,15 @@ export async function getBillingKpiSummary(): Promise<BillingKpiSummary | null> 
             and o.paid_at >= now() - interval '30 days'
             and o.paid_at <= now()
             and o.status in ('paid', 'refunding', 'refunded', 'partially_refunded')
-       ), refunds_30d as (
-         select r.payment_id, sum(r.amount)::bigint as refunded_amount
-           from billing.refunds r
-          where r.status = 'succeeded' and r.processed_at >= now() - interval '30 days'
-          group by r.payment_id
        ), payment_orders as (
          select p.id as payment_id, p.order_id from billing.payments p
+         join paid_period pp on pp.id = p.order_id
+       ), succeeded_refunds_by_payment as (
+         select r.payment_id, sum(r.amount)::bigint as refunded_amount
+           from billing.refunds r
+           join payment_orders po on po.payment_id = r.payment_id
+          where r.status = 'succeeded'
+          group by r.payment_id
        ), active as (
          select coalesce(sum(case when pr.billing_interval = 'year' then pr.amount / 12.0 else pr.amount end), 0)::text as mrr_krw
            from billing.subscriptions s
@@ -390,12 +402,12 @@ export async function getBillingKpiSummary(): Promise<BillingKpiSummary | null> 
        select active.mrr_krw,
               greatest(coalesce(sum(pp.amount), 0) - coalesce(sum(r.refunded_amount), 0), 0)::text as net_revenue_30d_krw,
               count(distinct pp.user_ref_hmac) filter (where pp.status in ('paid', 'partially_refunded'))::int as active_payers_30d,
-              count(*)::int as paid_orders_30d,
-              count(*) filter (where pp.status in ('refunded', 'partially_refunded'))::int as refunded_orders_30d
-         from paid_period pp
+              count(pp.id)::int as paid_orders_30d,
+              count(pp.id) filter (where pp.status in ('refunded', 'partially_refunded'))::int as refunded_orders_30d
+         from active
+         left join paid_period pp on true
          left join payment_orders po on po.order_id = pp.id
-         left join refunds_30d r on r.payment_id = po.payment_id
-         cross join active
+         left join succeeded_refunds_by_payment r on r.payment_id = po.payment_id
         group by active.mrr_krw`,
       [],
     );
@@ -431,6 +443,7 @@ export async function getBillingKpiSummary(): Promise<BillingKpiSummary | null> 
     : null;
 
   return {
+    calculatedAt: new Date().toISOString(),
     netRevenue30dKrw: billing.netRevenue30dKrw,
     mrrKrw: billing.mrrKrw,
     arppuKrw: billing.activePayers30d > 0 ? Math.round(billing.netRevenue30dKrw / billing.activePayers30d) : null,
@@ -475,7 +488,13 @@ export async function applyTossPaymentEvent(input: Readonly<{
       );
       return "ignored";
     }
-    if (order.status === "paid") return "ignored";
+    if (order.status === "paid") {
+      await client.query(
+        `update billing.webhook_events set status = 'ignored' where provider = 'toss' and provider_event_id = $1`,
+        [input.eventId],
+      );
+      return "ignored";
+    }
     // Toss is the settlement authority: a verified DONE payment can arrive after
     // the local checkout window when a webhook or browser return was delayed.
     if (order.status !== "pending") {
@@ -534,10 +553,19 @@ export async function applyTossCancellation(input: Readonly<{
       [input.orderId],
     );
     const order = result.rows[0];
-    if (!order || order.status !== "refunding") throw new BillingInputError("payment_state_invalid");
+    if (!order) throw new BillingInputError("payment_state_invalid");
     const payment = await client.query<{ id: string }>(`select id::text from billing.payments where order_id = $1 for update`, [order.id]);
     const paymentId = payment.rows[0]?.id;
     if (!paymentId) throw new BillingInputError("payment_state_invalid");
+    if (order.status === "refunded") {
+      const completedRefund = await client.query<{ id: string }>(
+        `select r.id::text from billing.refunds r
+          where r.id = $1 and r.payment_id = $2 and r.status = 'succeeded'`,
+        [input.refundId, paymentId],
+      );
+      if (completedRefund.rows[0]) return;
+    }
+    if (order.status !== "refunding") throw new BillingInputError("payment_state_invalid");
     const refund = await client.query<{ actor_user_id: string | null; actor_ref_hmac: Buffer | null; reason_code: string }>(
       `update billing.refunds
           set status = 'succeeded', provider_refund_id = $2, processed_at = now()
@@ -629,8 +657,9 @@ async function reserveRefund(input: Readonly<{
     if (!order || order.user_id === null || order.status !== "paid" && order.status !== "refunding") {
       throw new BillingInputError("refund_unavailable");
     }
-    if (input.enforceSelfServicePolicy) {
-      if (order.status !== "paid" || order.viewed_at !== null || !order.paid_at
+    if (input.enforceSelfServicePolicy && order.status === "paid") {
+      if (order.viewed_at !== null || !order.paid_at
+        || order.paid_at.getTime() > Date.now()
         || Date.now() - order.paid_at.getTime() > 7 * 24 * 60 * 60 * 1000) {
         throw new BillingInputError("refund_unavailable");
       }
@@ -638,13 +667,24 @@ async function reserveRefund(input: Readonly<{
 
     let refundId: string;
     if (order.status === "refunding") {
-      const pending = await client.query<{ id: string; reason_code: string }>(
-        `select r.id::text, r.reason_code from billing.refunds r
+      const pending = await client.query<{
+        id: string;
+        reason_code: string;
+        actor_user_id: string | null;
+        created_at: Date;
+      }>(
+        `select r.id::text, r.reason_code, r.actor_user_id, r.created_at from billing.refunds r
           where r.payment_id = $1 and r.status = 'pending' order by r.created_at desc limit 1 for update`,
         [order.payment_id],
       );
       const existing = pending.rows[0];
-      if (!existing) throw new BillingInputError("refund_unavailable");
+      const retryWindowExpired = existing !== undefined
+        && (existing.created_at.getTime() > Date.now()
+          || Date.now() - existing.created_at.getTime() >= SAFE_TOSS_IDEMPOTENCY_RETRY_WINDOW_MS);
+      if (!existing || retryWindowExpired
+        || (input.enforceSelfServicePolicy && existing.actor_user_id !== input.actorUserId)) {
+        throw new BillingInputError("refund_unavailable");
+      }
       refundId = existing.id;
       reasonCode = existing.reason_code;
     } else {
@@ -667,6 +707,10 @@ async function reserveRefund(input: Readonly<{
   });
 }
 
+export async function authorizeOwnRefund(): Promise<void> {
+  await requireBillingMember();
+}
+
 export async function reserveOwnRefund(orderId: string, reasonCode: string): Promise<ReservedRefund> {
   const member = await requireBillingMember();
   return reserveRefund({ orderId, actorUserId: member.id, ownerUserId: member.id, reasonCode, enforceSelfServicePolicy: true });
@@ -676,13 +720,73 @@ export async function reserveAdminRefund(orderId: string, actorUserId: string, r
   return reserveRefund({ orderId, actorUserId, ownerUserId: null, reasonCode, enforceSelfServicePolicy: false });
 }
 
+export async function getAdminRefundReconciliationTarget(orderId: string): Promise<Readonly<{
+  id: string;
+  orderId: string;
+  paymentKey: string;
+  amount: number;
+  currency: string;
+}> | null> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(orderId)) {
+    throw new BillingInputError("refund_unavailable");
+  }
+  if (!billingStorageReady()) throw new BillingAccessError("billing_unavailable");
+
+  return withBillingTransaction(async (client) => {
+    const result = await client.query<{
+      refund_id: string;
+      order_id: string;
+      order_amount: number;
+      order_currency: string;
+      refund_amount: number;
+      payment_amount: number;
+      payment_currency: string;
+      provider: string;
+      encrypted_key: string;
+      key_version: number;
+    }>(
+      `select r.id::text as refund_id, o.id::text as order_id, o.amount as order_amount, o.currency as order_currency,
+              r.amount as refund_amount, p.amount as payment_amount, p.currency as payment_currency, p.provider,
+              p.provider_payment_key_ciphertext as encrypted_key, p.key_version
+         from billing.orders o
+         join billing.payments p on p.order_id = o.id
+         join billing.refunds r on r.payment_id = p.id
+        where o.id = $1 and o.status = 'refunding' and r.status = 'pending'
+        for update of o, p, r`,
+      [orderId],
+    );
+    if (result.rows.length !== 1) return null;
+    const row = result.rows[0];
+    if (!row || row.provider !== "toss" || row.order_amount !== row.refund_amount
+      || row.order_amount !== row.payment_amount || row.order_currency !== row.payment_currency) {
+      return null;
+    }
+    return {
+      id: row.refund_id,
+      orderId: row.order_id,
+      paymentKey: decryptBillingValue(row.encrypted_key, "payment-key", row.order_id, row.key_version),
+      amount: row.order_amount,
+      currency: row.order_currency,
+    };
+  });
+}
+
 export async function failReservedRefund(input: Readonly<{ refundId: string; orderId: string; errorCode: string }>): Promise<void> {
   await withBillingTransaction(async (client) => {
-    await client.query(
+    const order = await client.query<{ id: string }>(
+      `select id::text from billing.orders where id = $1 and status = 'refunding' for update`,
+      [input.orderId],
+    );
+    if (!order.rows[0]) return;
+
+    const refund = await client.query<{ id: string }>(
       `update billing.refunds set status = 'failed', processed_at = now(), reason_code = $3
-        where id = $1 and payment_id = (select id from billing.payments where order_id = $2) and status = 'pending'`,
+        where id = $1 and payment_id = (select id from billing.payments where order_id = $2) and status = 'pending'
+        returning id::text`,
       [input.refundId, input.orderId, input.errorCode],
     );
+    if (!refund.rows[0]) return;
+
     await client.query(
       `update billing.orders set status = 'paid', updated_at = now() where id = $1 and status = 'refunding'`,
       [input.orderId],

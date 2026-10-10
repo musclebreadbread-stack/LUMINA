@@ -4,7 +4,11 @@ export type BoundedJsonResult =
   | Readonly<{ ok: true; value: unknown }>
   | Readonly<{ ok: false; status: 400 | 413 }>;
 
-export async function readBoundedJson(request: Request, maxBytes: number): Promise<BoundedJsonResult> {
+export type BoundedBodyResult =
+  | Readonly<{ ok: true; bytes: Uint8Array }>
+  | Readonly<{ ok: false; status: 400 | 413 }>;
+
+export async function readBoundedBody(request: Request, maxBytes: number): Promise<BoundedBodyResult> {
   const declaredLength = Number(request.headers.get("content-length") ?? "0");
   if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
     return { ok: false, status: 413 };
@@ -28,11 +32,22 @@ export async function readBoundedJson(request: Request, maxBytes: number): Promi
     }
 
     const bytes = Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)), totalBytes);
-    const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-    return { ok: true, value: JSON.parse(text) as unknown };
+    return { ok: true, bytes };
   } catch {
     return { ok: false, status: 400 };
   } finally {
     reader.releaseLock();
+  }
+}
+
+export async function readBoundedJson(request: Request, maxBytes: number): Promise<BoundedJsonResult> {
+  const body = await readBoundedBody(request, maxBytes);
+  if (!body.ok) return body;
+
+  try {
+    const text = new TextDecoder("utf-8", { fatal: true }).decode(body.bytes);
+    return { ok: true, value: JSON.parse(text) as unknown };
+  } catch {
+    return { ok: false, status: 400 };
   }
 }

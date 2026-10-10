@@ -44,6 +44,7 @@ type RefundOrder = Readonly<{
   payment_id: string;
   encrypted_key: string;
   key_version: number;
+  subscription_invoice_id: string | null;
 }>;
 
 const paidOrder: RefundOrder = {
@@ -57,6 +58,7 @@ const paidOrder: RefundOrder = {
   payment_id: paymentId,
   encrypted_key: "encrypted-payment-key",
   key_version: 1,
+  subscription_invoice_id: null,
 };
 
 type PendingRefund = Readonly<{
@@ -199,6 +201,13 @@ describe("self-service refund reservations", () => {
 
   it("still rejects a self-refund after the paid report was viewed", async () => {
     configureDatabase({ order: { ...paidOrder, viewed_at: new Date() } });
+
+    await expect(reserveOwnRefund(orderId, "changed_mind"))
+      .rejects.toMatchObject({ reason: "refund_unavailable" });
+  });
+
+  it("rejects a self-refund of a recurring subscription invoice", async () => {
+    configureDatabase({ order: { ...paidOrder, subscription_invoice_id: "invoice-1" } });
 
     await expect(reserveOwnRefund(orderId, "changed_mind"))
       .rejects.toMatchObject({ reason: "refund_unavailable" });

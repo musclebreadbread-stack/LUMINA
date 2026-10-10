@@ -39,12 +39,13 @@ describe("billing rollback with FEATURE_BILLING turned off", () => {
   });
 
   it("keeps an existing purchaser's report access", async () => {
-    await expect(hasOwnEntitlement()).resolves.toBe(true);
+    await expect(hasOwnEntitlement("saju-2027")).resolves.toBe(true);
     expect(queryMock).toHaveBeenCalledWith(expect.stringContaining("from billing.entitlements"), ["member-1", "saju-2027"]);
   });
 
   it("refuses new checkouts before touching the database", async () => {
     const order = createPendingOrder({
+      productKey: "saju-2027",
       locale: "ko",
       acceptedPurchaseTerms: true,
       acceptedWithdrawalNotice: true,

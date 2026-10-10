@@ -201,7 +201,7 @@ describe("Toss payment webhook state transitions", () => {
   it("grants premium access only to the signed-in member with an active paid entitlement", async () => {
     const statements = configureMemberQueryResults({ ownEntitlement: "entitlement-1" });
 
-    await expect(hasOwnEntitlement()).resolves.toBe(true);
+    await expect(hasOwnEntitlement("saju-2027")).resolves.toBe(true);
 
     expect(statements).toHaveLength(1);
     expect(statements[0]).toContain("where e.user_id = $1 and e.product_key = $2");
@@ -213,7 +213,7 @@ describe("Toss payment webhook state transitions", () => {
   it("falls back to an active LUMINA Plus entitlement only for the base report product", async () => {
     const statements = configureMemberQueryResults({ subscriptionEntitlement: "plus-entitlement-1" });
 
-    await expect(hasOwnEntitlement()).resolves.toBe(true);
+    await expect(hasOwnEntitlement("saju-2027")).resolves.toBe(true);
 
     expect(statements).toHaveLength(2);
     expect(statements[1]).toContain("s.status in ('active', 'past_due')");
@@ -221,12 +221,12 @@ describe("Toss payment webhook state transitions", () => {
   });
 
   it("does not fall back to a subscription for an unrelated product key", async () => {
-    configureMemberQueryResults({ productKey: "unrelated-product" });
+    configureMemberQueryResults({ productKey: "lumina-plus-monthly" });
 
-    await expect(hasOwnEntitlement("unrelated-product")).resolves.toBe(false);
+    await expect(hasOwnEntitlement("lumina-plus-monthly")).resolves.toBe(false);
 
     expect(memberQueryMock).toHaveBeenCalledTimes(1);
-    expect(memberQueryMock.mock.calls[0]?.[1]).toEqual(["member-1", "unrelated-product"]);
+    expect(memberQueryMock.mock.calls[0]?.[1]).toEqual(["member-1", "lumina-plus-monthly"]);
   });
 
   it("marks a paid entitlement viewed only for the signed-in owner", async () => {
@@ -240,7 +240,7 @@ describe("Toss payment webhook state transitions", () => {
     const client = { query: queryMock } as unknown as PoolClient;
     vi.mocked(withBillingTransaction).mockImplementation(async (operation) => operation(client));
 
-    await expect(markOwnEntitlementViewed()).resolves.toBe(true);
+    await expect(markOwnEntitlementViewed("saju-2027")).resolves.toBe(true);
 
     expect(statements[0]).toContain("where o.user_id = $1 and o.product_key = $2 and o.status = 'paid'");
     expect(statements[0]).toContain("e.user_id = $1 and e.status = 'active'");
@@ -250,12 +250,12 @@ describe("Toss payment webhook state transitions", () => {
     getSignedInMemberMock.mockResolvedValue(null);
     configureMemberQueryResults({ ownEntitlement: "entitlement-1" });
 
-    await expect(hasOwnEntitlement()).rejects.toMatchObject({ reason: "authentication_required" });
+    await expect(hasOwnEntitlement("saju-2027")).rejects.toMatchObject({ reason: "authentication_required" });
     expect(memberQueryMock).not.toHaveBeenCalled();
 
     getSignedInMemberMock.mockResolvedValue({ user: { id: "member-1", email: "member@example.test" } });
     hasRequiredMemberConsentsMock.mockResolvedValue(false);
-    await expect(hasOwnEntitlement()).rejects.toMatchObject({
+    await expect(hasOwnEntitlement("saju-2027")).rejects.toMatchObject({
       name: "BillingAccessError",
       reason: "consent_required",
     });
@@ -350,7 +350,7 @@ describe("billing orders and account lifecycle", () => {
       .mockResolvedValueOnce({ rows: [{ id: "plus-entitlement-1" }] });
     vi.mocked(withMemberTransaction).mockImplementation(runMemberTransaction);
 
-    await expect(getOwnActiveEntitlementId()).resolves.toBe("plus-entitlement-1");
+    await expect(getOwnActiveEntitlementId("saju-2027")).resolves.toBe("plus-entitlement-1");
 
     expect(memberQueryMock).toHaveBeenCalledTimes(2);
     expect(memberQueryMock.mock.calls[1]?.[0]).toContain("s.status in ('active', 'past_due')");
@@ -360,7 +360,7 @@ describe("billing orders and account lifecycle", () => {
     memberQueryMock.mockResolvedValue({ rows: [] });
     vi.mocked(withMemberTransaction).mockImplementation(runMemberTransaction);
 
-    await expect(getOwnActiveEntitlementId("unrelated-product")).resolves.toBeNull();
+    await expect(getOwnActiveEntitlementId("lumina-plus-monthly")).resolves.toBeNull();
 
     expect(memberQueryMock).toHaveBeenCalledTimes(1);
   });
@@ -374,10 +374,10 @@ describe("billing orders and account lifecycle", () => {
     const client = { query: queryMock } as unknown as PoolClient;
     vi.mocked(withBillingTransaction).mockImplementation(async (operation) => operation(client));
 
-    await expect(markOwnEntitlementViewed()).resolves.toBe(true);
+    await expect(markOwnEntitlementViewed("saju-2027")).resolves.toBe(true);
 
     expect(statements).toHaveLength(2);
-    expect(statements[1]).toContain("s.product_key in ('lumina-plus-monthly', 'lumina-plus-yearly')");
+    expect(statements[1]).toContain("s.product_key = any($2::text[])");
   });
 
   it("blocks account deletion while a pending paid order has not expired", async () => {

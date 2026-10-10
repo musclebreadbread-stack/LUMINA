@@ -44,7 +44,7 @@ export async function buildBigFiveOgCard(summary: BigFiveSummaryV1): Promise<OgC
   }));
 
   const topFactor = bars.reduce((top, bar) => (bar.tScore > top.tScore ? bar : top));
-  const illustration = await loadOgPng(`psychometrics/factors/${topFactor.factor}.png`);
+  const illustration = await loadOgPng(`og/factors/${topFactor.factor}.png`);
   const kicker = tPsychometrics("kicker");
 
   const centerContent = (

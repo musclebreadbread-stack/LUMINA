@@ -209,6 +209,27 @@ export async function getOwnProfile(): Promise<MemberProfile | null> {
   });
 }
 
+/**
+ * Looks up a specific profile snapshot by id (e.g. one bound to a purchase via
+ * billing.order_profiles), rather than the caller's live 'local-default' profile.
+ * Scoped to the caller's own rows even though RLS already enforces this.
+ */
+export async function getOwnProfileById(profileId: string): Promise<MemberProfile | null> {
+  const member = await requireMemberIdentity();
+  return withMemberTransaction(member.id, async (client) => {
+    const result = await client.query<ProfileRow>(
+      `select id, label_ciphertext, birth_profile_ciphertext, key_version
+         from member.profiles
+        where user_id = $1 and id = $2
+        limit 1`,
+      [member.id, profileId],
+    );
+    const row = result.rows[0];
+    if (!row) return null;
+    return decryptJson(row.birth_profile_ciphertext, member.id, row.id, row.key_version, parseProfile);
+  });
+}
+
 export async function getOwnSavedResults(): Promise<readonly ResultSnapshotV1[]> {
   const member = await requireMemberIdentity();
   return withMemberTransaction(member.id, async (client) => {

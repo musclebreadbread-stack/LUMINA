@@ -1,6 +1,7 @@
 import "server-only";
 
 import { withMemberTransaction } from "@/server/member/database";
+import { withGrowthTransaction } from "./database";
 import { getApprovedMarketingPolicyVersion, isGrowthCapabilityEnabled } from "./featureGate";
 
 export type MarketingPreferenceStatus = "not_opted_in" | "subscribed" | "unsubscribed";
@@ -29,6 +30,28 @@ function toPreference(row: MarketingPreferenceRow | undefined): MarketingPrefere
     consentedAt: row.consented_at,
     unsubscribedAt: row.unsubscribed_at,
   };
+}
+
+export type MarketingSubscriberCounts = Readonly<{ subscribed: number; unsubscribed: number }>;
+
+/**
+ * Aggregate counts only — no member is identified. Read through the growth worker
+ * role (which already has select on member.marketing_preferences), so it is null
+ * whenever GROWTH_DATABASE_URL isn't configured rather than an error the admin
+ * page has to handle. This is the "launch-notification sign-ups" number the
+ * rollout plan asks to start recording before sales open.
+ */
+export async function getMarketingSubscriberCounts(): Promise<MarketingSubscriberCounts | null> {
+  if (!process.env.GROWTH_DATABASE_URL?.trim()) return null;
+  return withGrowthTransaction(async (client) => {
+    const result = await client.query<{ subscribed: number; unsubscribed: number }>(
+      `select count(*) filter (where preference_status = 'subscribed')::int as subscribed,
+              count(*) filter (where preference_status = 'unsubscribed')::int as unsubscribed
+         from member.marketing_preferences`,
+    );
+    const row = result.rows[0];
+    return { subscribed: Math.max(0, row?.subscribed ?? 0), unsubscribed: Math.max(0, row?.unsubscribed ?? 0) };
+  });
 }
 
 export async function getOwnMarketingPreference(userId: string): Promise<MarketingPreference> {

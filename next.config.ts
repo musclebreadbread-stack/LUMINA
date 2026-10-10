@@ -32,14 +32,20 @@ const scriptSources = [
   "'self'", "'unsafe-inline'", ...(isDevelopment ? ["'unsafe-eval'"] : []),
   "https://challenges.cloudflare.com", "https://pagead2.googlesyndication.com",
   "https://t1.kakaocdn.net", "https://www.google.com",
-  "https://www.gstatic.com", ...(umamiOrigin ? [umamiOrigin] : []),
+  "https://www.gstatic.com", "https://*.tosspayments.com",
+  ...(umamiOrigin ? [umamiOrigin] : []),
 ];
 const connectSources = [
   "'self'", "https://challenges.cloudflare.com",
   "https://*.googlesyndication.com", "https://googleads.g.doubleclick.net",
+  "https://*.tosspayments.com",
   ...(umamiOrigin ? [umamiOrigin] : []), ...(sentryIngestOrigin ? [sentryIngestOrigin] : []),
 ];
 // Keep this nonce-free and static; nonce CSP requires dynamic rendering in Next.js.
+// Kakao/Google/Apple sign-in are excluded on purpose: SignInPanel.tsx drives them
+// with a plain window.location.assign() top-level navigation (confirmed by
+// reading the code), which CSP's fetch/frame directives don't govern — this repo
+// has no navigate-to directive, so there's nothing for those origins to unblock.
 const contentSecurityPolicyReportOnly = [
   "default-src 'self'",
   `script-src ${scriptSources.join(" ")}`,
@@ -48,7 +54,7 @@ const contentSecurityPolicyReportOnly = [
   "font-src 'self' data:",
   `connect-src ${connectSources.join(" ")}`,
   "media-src 'self' data: blob:",
-  "frame-src 'self' https://challenges.cloudflare.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com",
+  "frame-src 'self' https://challenges.cloudflare.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://*.tosspayments.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

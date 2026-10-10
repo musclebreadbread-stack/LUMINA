@@ -98,7 +98,11 @@ export function EstimatedResult({ score, locale, imageAlt }: EstimatedResultProp
           {korean ? "이론 분포 기반 추정치" : "theoretical-distribution estimate"}
         </p>
       </div>
-      <p className="text-sm text-hobun-dim">{korean ? `백분위 ${score.percentile}` : `Percentile ${score.percentile}`}</p>
+      <p className="text-sm text-hobun-dim">
+        {korean
+          ? `이론 분포 기준 백분위 ${score.percentile} (실제 집단 안의 순위가 아님)`
+          : `Percentile ${score.percentile} on the theoretical distribution (not a rank in a real population)`}
+      </p>
       <p className="text-sm text-hobun-dim">{korean ? `95% 신뢰구간 ${lower}–${upper}` : `95% confidence interval ${lower}–${upper}`}</p>
       <p className="text-xs text-hobun-faint">
         {korean

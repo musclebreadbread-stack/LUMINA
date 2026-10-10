@@ -28,10 +28,10 @@
 
 ## 분석 cron
 
-- `cron-daily`는 `node scripts/railway-daily-jobs.mjs`로 분석 롤업을 실행하고, `BILLING_RECONCILE_ENABLED=true`와 법무 승인 플래그가 함께 켜진 경우에만 결제 대사를 호출합니다.
+- `cron-daily`는 `node scripts/railway-daily-jobs.mjs`로 분석 롤업만 실행합니다.
 - UTC 17:00 스케줄은 한국 시간 매일 02:00에 최근 3일 롤업을 다시 수집합니다.
 - `INTERNAL_WEB_ORIGIN`에는 웹 서비스의 HTTPS origin 또는 Railway private-network origin을 설정합니다. 호출 스크립트는 production 환경, 내부 origin 형식, 최소 32자 비밀값을 확인하고 응답 본문이나 토큰을 로그에 남기지 않습니다.
-- `cron-10min`은 `node scripts/railway-10min-jobs.mjs`를 실행합니다. 영수증 발송은 `BILLING_RECEIPTS_ENABLED`와 법무 승인, AI sweeper는 기능·법무·데이터 출처·콘텐츠 라이선스·전문가·골든셋 승인 플래그, 구독 worker는 Toss 정기결제 계약·법무 승인·기능 플래그가 모두 켜진 경우에만 호출됩니다. 모든 플래그는 기본 `false`입니다.
+- `cron-10min`은 `node scripts/railway-10min-jobs.mjs`를 실행합니다. 영수증 발송은 `BILLING_RECEIPTS_ENABLED`와 법무 승인, **결제 대사(reconcile)는 `BILLING_RECONCILE_ENABLED`와 법무 승인**(토스 타임아웃으로 `refunding`에 고착된 환불을 최대 몇 분 안에 재시도하기 위해 일간이 아닌 10분 주기로 옮김), AI sweeper는 기능·법무·데이터 출처·콘텐츠 라이선스·전문가·골든셋 승인 플래그, 구독 worker는 Toss 정기결제 계약·법무 승인·기능 플래그가 모두 켜진 경우에만 호출됩니다. 모든 플래그는 기본 `false`입니다.
 - cron 실행 로그는 `railway logs --service cron-10min --environment production --since 10m --json`처럼 JSON 모드로 확인합니다. Railway는 앱의 JSON 로그를 `component`, `event`, `schedule` 같은 최상위 필드로 펼치므로 `message` 안에 JSON 문자열이 있다고 가정하지 않습니다. `component=railway-cron` 행의 `run_completed` 또는 `run_failed`를 실행 결과로 보고, `run_started`의 활성·건너뜀 수와 함께 대조합니다. 인스턴스 `EXITED`만으로 성공 여부를 판단하지 않습니다.
 
 ## RLS 확인
@@ -79,5 +79,44 @@ Railway의 프로젝트 구성은 현재 IaC(TypeScript) 방식으로 관리할 
 
 ## 판매자 정보(사업자 표시)
 
-- `NEXT_PUBLIC_SELLER_NAME`, `_REPRESENTATIVE`, `_REGISTRATION_NUMBER`, `_MAIL_ORDER_NUMBER`, `_ADDRESS`, `_PHONE`, `_CONTACT_EMAIL`과 `NEXT_PUBLIC_HOSTING_PROVIDER`는 `web` 서비스 변수로 등록한다. Next.js가 빌드 시점에 값을 인라인하므로 Dockerfile builder 단계가 같은 이름의 `ARG`를 선언한다. 값을 바꾸면 **재배포**해야 화면에 반영된다.
+- `NEXT_PUBLIC_SELLER_NAME`, `_REPRESENTATIVE`, `_REGISTRATION_NUMBER`, `_MAIL_ORDER_REGISTRATION`, `_ADDRESS`, `_PHONE`, `_CONTACT_EMAIL`과 `NEXT_PUBLIC_HOSTING_PROVIDER`는 `web` 서비스 변수로 등록한다. Next.js가 빌드 시점에 값을 인라인하므로 Dockerfile builder 단계가 같은 이름의 `ARG`를 선언한다. 값을 바꾸면 **재배포**해야 화면에 반영된다.
 - 8개가 모두 있어야 전역 푸터가 표시된다. `FEATURE_BILLING=true`이면 preflight가 8개 모두를 요구한다.
+## 2026-09-29 수익화 실행 계획 운영 DB 마이그레이션
+
+- 대상은 Neon `LUMINA-cognitive` 프로젝트의 `production` 브랜치(기본 브랜치)다. 적용 전 원장(`ops.schema_migrations`) 14개 항목의 체크섬이 저장소 마이그레이션 파일의 sha256과 모두 일치함을 확인했고, 대기 중인 마이그레이션은 아래 3개뿐이었다. 접속 역할은 `neondb_owner`, `billing.orders`는 0행이었다.
+- 롤백 기준으로 적용 직전에 Neon 스냅샷 `pre-migration-20261006-08-monetization`(`snap-calm-truth-azitmgoq`, 2026-09-29T01:16:04Z)을 만들었다.
+- `20261006000000_billing_orders_receipt_locale_grant.sql`, `20261007000000_billing_order_profiles.sql`, `20261008000000_billing_order_attribution.sql`을 순서대로 적용했다. 각각 단일 트랜잭션으로 어드바이저리 락(`db:neon:migrate`와 같은 키) → 본문(바깥 BEGIN/COMMIT 제거) → 원장 기록을 실행했다. 이 환경에는 `.env.production.admin.local`이 없어 `db:neon:migrate --apply` 대신 Neon MCP로 같은 절차를 수행했다.
+- 검증: 원장 17행과 새 3행 체크섬 일치, 새 테이블 2개의 RLS 활성·강제, 정책 5개, 컬럼·테이블 권한의 허용/차단(`lumina_member_app`의 `receipt_locale` insert 허용, `order_attribution` select·`created_at` insert 차단 등)을 카탈로그 조회로 확인했다. 기존 데이터는 변경하지 않았고 새 테이블 2개와 컬럼 grant 1개만 추가했다.
+- 주의: 이 3개 파일은 PR #5 머지 전까지 `master`에 없다. 그 사이 `master` 체크아웃에서 `db:neon:migrate`를 실행하면 "Migration ledger contains an unknown file"로 중단되므로, 머지 후 또는 이 브랜치에서 실행한다.
+- 코드 배포(`web`, `cron-10min`, `cron-daily`)는 아직 하지 않았다. Railway 운영 웹은 `31a9323` 그대로다.
+
+## 2026-09-29 수익화 실행 계획 운영 코드 배포
+
+- 배포 대상은 `master` 머지 커밋 `1b1550d`(PR #5)이며, 앞 섹션의 운영 DB 마이그레이션 3개(20261006~08)가 이미 적용된 상태에서 진행했다. 배포 전 `railway run --service web --environment production -- node scripts/railway-preflight.mjs`가 통과했다(9개 성장 게이트, Sentry 미설정·결제 비활성 경고 2건은 의도된 현재 상태).
+- 배포는 `railway up --ci`로 `web` → `cron-10min` → `cron-daily` 순서로 실행했다. 결과는 모두 `SUCCESS`이며 이전 배포 3건은 `REMOVED`가 됐다.
+
+| 서비스 | 새 배포 ID | 생성(UTC) |
+| --- | --- | --- |
+| `web` | `1c16d9cf-63e0-44ce-9e78-ec7cfcb11e9a` | 02:01 |
+| `cron-10min` | `6e55fa63-25ea-47ff-923f-dcaf3254b399` | 02:05 |
+| `cron-daily` | `c5d79ac4-3abc-4d51-826b-30701b1d4238` | 02:07 |
+
+- 검증: `web` 시작 로그에서 production preflight 통과와 Next 서버 준비를 확인했다. `railway-smoke`는 `lumina.jack.ai.kr`에서 19/19 통과했고 분석 이벤트는 보내지 않았다. `GET /pricing`은 200(2회)이었다. 배포 후 web 로그의 error 등급 행은 0건이었다.
+- `cron-10min`은 새 이미지에서 02:10 UTC 예약 실행이 `run_started`로 시작됐다. 결제 영수증·대사, AI 서술 등은 기능 플래그가 꺼져 있어 `skippedTasks`로 기록됐다. 실행 완료(`run_completed`)와 다음 `cron-daily` 17:00 UTC 롤업은 아직 관찰 전이다. cron 스케줄 문자열은 이번에 다시 읽지 못했으므로(CLI 조회에 표시되지 않음) 이전 기록(`*/10 * * * *`, `0 17 * * *`)을 그대로 따른다.
+- 이번 작업에서 DB 마이그레이션, Railway 환경 변수, 기능 플래그는 변경하지 않았다.
+
+## 2026-09-29 결과 미출력 수정 운영 배포 (PR #6)
+
+- 배포 대상은 `master` 머지 커밋 `03bb6a9`(PR #6)다. 배포 전 작업 트리가 `origin/master`와 동일함을 확인했고, production preflight가 통과했다(9개 성장 게이트, Sentry 미설정·결제 비활성 경고 2건은 의도된 상태).
+- `railway up --ci`로 `web` → `cron-10min` → `cron-daily` 순서로 배포했고 모두 `SUCCESS`다. 이전 배포 3건은 `REMOVED`가 됐다.
+
+| 서비스 | 새 배포 ID | 생성(UTC) |
+| --- | --- | --- |
+| `web` | `fe68a5f6-9986-47f0-8743-bf94fa465ce5` | 07:01 |
+| `cron-10min` | `9a05031a-e76f-4eb1-a43c-5d112b98d390` | 07:06 |
+| `cron-daily` | `ddbe9ee8-3196-4bc4-9dc7-ad0af3b0d8fb` | 07:08 |
+
+- 검증: `web` 시작 로그에서 preflight 통과와 Next 서버 준비를 확인했고 `/api/health`는 200이다. `railway-smoke`는 `lumina.jack.ai.kr`에서 19/19 통과했으며 분석 이벤트는 보내지 않았다. `/pricing`, `/en/pricing`, `/en/compatibility`, `/cognitive`, `/es/cognitive`는 모두 200이다.
+- 수정 동작의 운영 확인: (1) 궁합 세션 쿠키 발급 응답에 `Path=/compatibility`와 `/en`·`/ja`·`/zh-Hant`·`/es` 접두사 경로의 `Set-Cookie` 5개가 들어 있다. 합성 프로필로 쿠키만 발급했고 서버에는 아무것도 저장하지 않는다. (2) 그 쿠키를 보낸 `/en/compatibility/current/current`는 본문 `<h1>`이 "Two charts, several ways to meet"로 렌더링되고, 쿠키가 없으면 본문 제목이 없다. (3) 타로(`/tarot/single/...`) og:image는 158,488바이트, 별자리(`/horoscope/zodiac/aries`) og:image는 383,216바이트로 삽화가 실린 크기다.
+- 확인하지 못한 것: 인지 검사 20문항을 운영에서 끝까지 풀어 추정 결과 화면을 보는 것은 운영 DB에 응답을 쓰게 되므로 하지 않았다. 해당 화면은 단위·컴포넌트 테스트와 로컬 e2e로만 확인했다. 배포 후 담당자가 한 번 직접 완료해 보는 것이 좋다. `cron-10min`의 새 이미지 예약 실행과 다음 `cron-daily` 17:00 UTC 롤업은 아직 관찰 전이다.
+- 이번 작업에서 DB 마이그레이션, Railway 환경 변수, 기능 플래그는 변경하지 않았다.

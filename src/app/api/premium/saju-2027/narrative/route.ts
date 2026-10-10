@@ -1,16 +1,17 @@
 import { after, NextResponse } from "next/server";
-import { computeSaju } from "@engine/saju";
-import { buildYearForecast } from "@engine/saju/yearForecast";
 import { isLocale, type Locale } from "@/i18n/locale";
 import { readBoundedJson } from "@/server/http/readBoundedJson";
 import { getSignedInMember } from "@/server/auth/session";
 import { hasRequiredMemberConsents } from "@/server/member/consents";
-import { MemberAccessError, getOwnProfile } from "@/server/member/dal";
+import { MemberAccessError } from "@/server/member/dal";
 import { getOwnActiveEntitlementId } from "@/server/billing/service";
 import { enqueueYearForecastNarrative, getOwnYearForecastNarrative, AIQuotaError } from "@/server/ai/service";
 import { buildYearForecastFacts } from "@/server/ai/facts";
 import { isAIReportingEnabled } from "@/server/ai/settings";
 import { processYearForecastNarrative } from "@/server/ai/worker";
+import { forecastFromProfile } from "@/server/premium/forecastFromProfile";
+import { getOwnBoundProfile } from "@/server/premium/reportContext";
+import { captureServerError } from "@/server/observability/captureServerError";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,17 +35,6 @@ async function getMember() {
   return session.user;
 }
 
-function createForecast(profile: NonNullable<Awaited<ReturnType<typeof getOwnProfile>>>) {
-  return buildYearForecast(computeSaju({
-    date: { year: profile.year, month: profile.month, day: profile.day },
-    calendar: profile.calendar,
-    isLeapMonth: profile.isLeapMonth,
-    ...(profile.hour !== null && profile.minute !== null ? { time: { hour: profile.hour, minute: profile.minute } } : {}),
-    place: { lat: profile.lat, lng: profile.lng, label: profile.placeLabel, timeZone: profile.timeZone },
-    gender: profile.gender,
-  }, { dayBoundaryRule: profile.dayBoundaryRule }));
-}
-
 export async function POST(request: Request): Promise<NextResponse> {
   if (!isAIReportingEnabled()) return json(503, { error: "ai_narrative_disabled" });
   if (!/^application\/json(?:\s*;|$)/iu.test(request.headers.get("content-type") ?? "")) {
@@ -57,16 +47,17 @@ export async function POST(request: Request): Promise<NextResponse> {
   let user;
   try {
     user = await getMember();
-  } catch {
+  } catch (error) {
+    await captureServerError(error, "ai-narrative");
     return json(503, { error: "member_unavailable" });
   }
   if (!user) return json(401, { error: "authentication_required" });
 
   try {
-    const [entitlementId, profile] = await Promise.all([getOwnActiveEntitlementId(), getOwnProfile()]);
+    const [entitlementId, profile] = await Promise.all([getOwnActiveEntitlementId("saju-2027"), getOwnBoundProfile("saju-2027")]);
     if (!entitlementId) return json(403, { error: "entitlement_required" });
     if (!profile) return json(409, { error: "profile_required" });
-    const forecast = createForecast(profile);
+    const forecast = forecastFromProfile(profile);
     const facts = buildYearForecastFacts(forecast);
     const narrative = await enqueueYearForecastNarrative({
       userId: user.id,
@@ -75,12 +66,18 @@ export async function POST(request: Request): Promise<NextResponse> {
       facts,
     });
     if (narrative.status === "queued") {
-      after(async () => { await processYearForecastNarrative(narrative.id).catch(() => undefined); });
+      after(async () => {
+        await processYearForecastNarrative(narrative.id).catch((error: unknown) => captureServerError(error, "ai-narrative"));
+      });
     }
     return NextResponse.json(narrative, { status: narrative.status === "queued" ? 202 : 200, headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     if (error instanceof AIQuotaError) return json(429, { error: error.reason });
-    if (error instanceof MemberAccessError) return json(503, { error: "member_unavailable" });
+    if (error instanceof MemberAccessError) {
+      await captureServerError(error, "ai-narrative");
+      return json(503, { error: "member_unavailable" });
+    }
+    await captureServerError(error, "ai-narrative");
     return json(503, { error: "narrative_request_unavailable" });
   }
 }
@@ -94,7 +91,8 @@ export async function GET(request: Request): Promise<NextResponse> {
   let user;
   try {
     user = await getMember();
-  } catch {
+  } catch (error) {
+    await captureServerError(error, "ai-narrative");
     return json(503, { error: "member_unavailable" });
   }
   if (!user) return json(401, { error: "authentication_required" });
@@ -102,7 +100,8 @@ export async function GET(request: Request): Promise<NextResponse> {
     const result = await getOwnYearForecastNarrative(user.id, id);
     if (!result) return json(404, { error: "narrative_not_found" });
     return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
-  } catch {
+  } catch (error) {
+    await captureServerError(error, "ai-narrative");
     return json(503, { error: "narrative_status_unavailable" });
   }
 }

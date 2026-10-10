@@ -9,7 +9,8 @@ test.describe('standardized cognitive pilot', () => {
     await dismissConsentBanner(page);
 
     await expect(page.getByText('Standardized cognitive ability pilot', { exact: true })).toBeVisible();
-    await expect(page.getByText(/IQ, percentile, sub-scores.*withheld/i)).toBeVisible();
+    await expect(page.getByText(/confidence interval.*theoretical assumption|theoretical assumption/i).first()).toBeVisible();
+    await expect(page.getByText(/stay withheld until that norm/i).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /practice/i })).toBeVisible();
     await expect(page.getByText(/pilot/i).first()).toBeVisible();
 

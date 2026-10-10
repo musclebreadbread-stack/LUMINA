@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { SubscriptionAccessError, SubscriptionInputError, cancelOwnSubscription } from "@/server/billing/subscriptions";
 import { readBoundedJson } from "@/server/http/readBoundedJson";
+import { captureServerError } from "@/server/observability/captureServerError";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,6 +36,7 @@ export async function POST(request: Request): Promise<Response> {
       return response(status, { error: error.reason });
     }
     if (error instanceof SubscriptionInputError) return response(400, { error: error.reason });
+    await captureServerError(error, "billing-subscription");
     return response(503, { error: "cancellation_unavailable" });
   }
 }

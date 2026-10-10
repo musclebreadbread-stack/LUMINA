@@ -53,7 +53,8 @@ test.describe('interactive locale switch', () => {
 
     // Navigate via a real link, not a direct goto, to prove the locale choice
     // survives navigation with the as-needed English URL prefix.
-    await page.getByRole('link', { name: 'Privacy Policy', exact: true }).click();
+    // 본문 안내 링크와 푸터 사이트 링크에 같은 이름이 있으므로 로케일 접두사가 붙는 푸터 링크로 이동한다.
+    await page.getByLabel('Site links').getByRole('link', { name: 'Privacy Policy', exact: true }).click();
     await dismissConsentBanner(page);
 
     await expect(page).toHaveURL(/\/en\/privacy$/);
@@ -81,9 +82,9 @@ test.describe('privacy policy page', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Privacy Policy' })).toBeVisible();
 
     const sectionTitles = [
-      '1. There is no sign-up',
-      '2. What you enter stays only in this browser',
-      '3. How share links work',
+      '1. General analyses and the cognitive pilot',
+      '2. Browser storage for general analyses',
+      '3. Share links carry data in the URL',
       '4. Personality test (Big Five) responses',
       '5. Biometric data (palm prints, face images)',
       '6. Advertising and cookies',

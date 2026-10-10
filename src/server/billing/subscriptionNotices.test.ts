@@ -110,6 +110,8 @@ function statements(): string[] {
 beforeEach(() => {
   vi.resetModules();
   vi.stubEnv("APP_ENV", "production");
+  // billingJobsAllowed() (origin/master) pairs production with a live Toss key.
+  vi.stubEnv("TOSS_SECRET_KEY", "live_synthetic-toss-secret");
   vi.stubEnv("BILLING_DATABASE_URL", "postgresql://billing.invalid/database");
   vi.stubEnv("SUBSCRIPTION_ENABLED", "true");
   vi.stubEnv("SUBSCRIPTION_LEGAL_DOCUMENTS_APPROVED", "true");

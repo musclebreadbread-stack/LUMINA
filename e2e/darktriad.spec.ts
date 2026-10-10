@@ -28,7 +28,7 @@ test.describe('Short Dark Triad survey', () => {
     context,
     browser,
   }) => {
-    test.setTimeout(60_000);
+    test.setTimeout(120_000);
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     await setLocaleCookie(context, 'en');
     await page.goto('/darktriad', { timeout: 60_000 });

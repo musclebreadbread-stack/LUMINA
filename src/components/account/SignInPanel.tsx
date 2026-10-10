@@ -80,14 +80,22 @@ function routeForLocale(locale: Locale, path: string): string {
   return localePath(path, locale);
 }
 
+function consentPath(locale: Locale, returnTo: string | null | undefined): string {
+  const base = routeForLocale(locale, "/account/consent");
+  return returnTo ? `${base}?returnTo=${encodeURIComponent(returnTo)}` : base;
+}
+
 export function SignInPanel({
   locale,
   providers,
   captchaSiteKey,
+  returnTo,
 }: {
   locale: Locale;
   providers: ProviderAvailability;
   captchaSiteKey: string;
+  /** Already-sanitized (see src/lib/returnTo.ts) destination to land on after sign-in + consent. */
+  returnTo?: string | null;
 }) {
   const copy = COPY[locale === "ko" ? "ko" : "en"];
   const router = useRouter();
@@ -222,10 +230,10 @@ export function SignInPanel({
       const saved = await saveConsents();
       if (!saved) {
         setError(copy.consentError);
-        router.replace(routeForLocale(locale, "/account/consent"));
+        router.replace(consentPath(locale, returnTo));
         return;
       }
-      router.replace(routeForLocale(locale, "/account"));
+      router.replace(returnTo ?? routeForLocale(locale, "/account"));
       router.refresh();
     } catch {
       setError(copy.genericError);
@@ -251,7 +259,7 @@ export function SignInPanel({
     setBusy(true);
     try {
       if (!(await issueConsentGrant())) return;
-      const callbackURL = new URL(routeForLocale(locale, "/account/consent"), window.location.origin).toString();
+      const callbackURL = new URL(consentPath(locale, returnTo), window.location.origin).toString();
       const result = await accountAuthClient.signIn.social({
         provider,
         callbackURL,

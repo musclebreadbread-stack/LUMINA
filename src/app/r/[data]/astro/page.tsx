@@ -5,6 +5,8 @@ import { AdSlot } from "@/components/ads/AdSlot";
 import { ChartWheel } from "@/components/astro/ChartWheel";
 import { PlacementGuide } from "@/components/astro/PlacementGuide";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
+import { NextLens } from "@/components/report/NextLens";
+import { PremiumSaleBanner } from "@/components/premium/PremiumSaleBanner";
 import { ShareBar } from "@/components/report/ShareBar";
 import { DataRow, Disclaimer, Section, TierBadge } from "@/components/ui/Chrome";
 import { MethodNote } from "@/components/ui/MethodNote";
@@ -411,6 +413,8 @@ export default async function AstroPage({
       </Section>
 
       <AdSlot slot="astro-mid" label={tCommon("adLabel")} />
+      <PremiumSaleBanner />
+      <NextLens analysisKey="astro" id="section-next-lens" />
 
       <footer className="space-y-8 border-t border-ink-700 pt-8">
         <ShareBar title={`${birthLabel} ${t("navLabel")} · LUMINA`} allowLinkShare={false} />

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { getLocale, getTranslations } from "next-intl/server";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
@@ -9,12 +10,14 @@ import { SceneShell } from "@/components/ui/SceneShell";
 import { assetPath } from "@/lib/assets";
 import { buildAlternates } from "@/lib/seoAlternates";
 import { contentLocaleFor, intlLocale, localePath, type Locale } from "@/i18n/locale";
+import { MarketingOptIn } from "@/components/growth/MarketingOptIn";
 import { CheckoutButton } from "@/components/premium/CheckoutButton";
 import {
   PremiumReportFreeAnalysisLink,
   PremiumReportViewTracker,
 } from "@/components/premium/PremiumReportAnalytics";
-import { getActiveSaju2027Sale } from "@/server/billing/service";
+import { getSaju2027SaleState, isEuCountryCode, type ActiveSaju2027Sale } from "@/server/billing/service";
+import { isGrowthCapabilityEnabled } from "@/server/growth/featureGate";
 
 export const dynamic = "force-dynamic";
 
@@ -54,11 +57,27 @@ interface YearlySaju2027PageProps {
   readonly searchParams: Promise<Readonly<{ purchase?: string | readonly string[] }>>;
 }
 
+function PriceDisplay({ sale, locale }: { readonly sale: ActiveSaju2027Sale; readonly locale: Locale }) {
+  return (
+    <>
+      <h3 id="yearly-report-purchase" className="text-lg font-medium text-hobun">
+        {locale !== "ko" ? sale.nameEn : sale.nameKo}
+      </h3>
+      <p className="mt-2 font-mono text-xl text-hobun">
+        {new Intl.NumberFormat(intlLocale(locale), { style: "currency", currency: sale.currency }).format(sale.amount)}
+      </p>
+    </>
+  );
+}
+
 export default async function YearlySaju2027Page({ searchParams }: YearlySaju2027PageProps) {
   const locale = (await getLocale()) as Locale;
   const t = await getTranslations("yearlyReport");
-  const [sale, query] = await Promise.all([getActiveSaju2027Sale(), searchParams]);
+  const [saleState, query, requestHeaders] = await Promise.all([getSaju2027SaleState(), searchParams, headers()]);
   const purchaseState = Array.isArray(query.purchase) ? query.purchase[0] : query.purchase;
+  const rawCountry = requestHeaders.get("cf-ipcountry")?.trim().toUpperCase();
+  const countryCode = rawCountry && /^[A-Z]{2}$/u.test(rawCountry) ? rawCountry : null;
+  const isEuCountry = isEuCountryCode(countryCode);
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -66,12 +85,12 @@ export default async function YearlySaju2027Page({ searchParams }: YearlySaju202
     description: t("metaDescription"),
     inLanguage: contentLocaleFor(locale),
     image: assetPath("reports/yearly-2027/cover", "cover"),
-    ...(sale ? {
+    ...(saleState.status !== "hidden" ? {
       offers: {
         "@type": "Offer",
-        price: sale.amount,
-        priceCurrency: sale.currency,
-        availability: "https://schema.org/InStock",
+        price: saleState.sale.amount,
+        priceCurrency: saleState.sale.currency,
+        availability: saleState.status === "live" ? "https://schema.org/InStock" : "https://schema.org/PreOrder",
         url: localePath("/premium/saju-2027", locale),
       },
     } : {}),
@@ -143,15 +162,19 @@ export default async function YearlySaju2027Page({ searchParams }: YearlySaju202
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-hobun-dim">{t("chaptersDescription")}</p>
           </div>
-          {sale ? (
+          {saleState.status !== "hidden" ? (
             <section aria-labelledby="yearly-report-purchase" className="mt-6 border border-hobun/30 bg-ink-950/45 p-5 sm:p-7">
-              <h3 id="yearly-report-purchase" className="text-lg font-medium text-hobun">
-                {locale !== "ko" ? sale.nameEn : sale.nameKo}
-              </h3>
-              <p className="mt-2 font-mono text-xl text-hobun">
-                {new Intl.NumberFormat(intlLocale(locale), { style: "currency", currency: sale.currency }).format(sale.amount)}
-              </p>
-              <CheckoutButton locale={locale} />
+              <PriceDisplay sale={saleState.sale} locale={locale} />
+              {saleState.status === "live" ? (
+                <CheckoutButton locale={locale} isEuCountry={isEuCountry} />
+              ) : (
+                <>
+                  <p className="mt-3 text-sm leading-relaxed text-hobun-dim">{t("previewNotice")}</p>
+                  {isGrowthCapabilityEnabled("marketingRetention") ? (
+                    <MarketingOptIn locale={locale} returnTo={localePath("/premium/saju-2027", locale)} canSubscribe />
+                  ) : null}
+                </>
+              )}
             </section>
           ) : null}
           <div className="mt-7 grid gap-4 sm:grid-cols-2">

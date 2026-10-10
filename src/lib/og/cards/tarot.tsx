@@ -56,7 +56,7 @@ export async function buildTarotOgCard(spread: SpreadKey, seed: string, locale: 
   const shown = view.cards.slice(0, FAN_MAX_CARDS);
   const slots = fanSlotsFor(shown.length);
   const illustrations = await Promise.all(
-    shown.map((card) => loadOgPng(`tarot/cards/${String(card.id).padStart(2, "0")}.png`)),
+    shown.map((card) => loadOgPng(`og/tarot/cards/${String(card.id).padStart(2, "0")}.png`)),
   );
 
   const primary = view.cards[0];

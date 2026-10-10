@@ -41,38 +41,52 @@ export async function runRailwayCron({ schedule, tasks, log = console.log, now =
     skippedTasks,
   });
 
+  // Each task's failure is isolated from the others: one bad job (e.g. a single
+  // unreachable receipt-email address) must not stop unrelated jobs later in the
+  // same run (e.g. the AI sweeper or subscription charging) from being attempted.
+  // Every enabled task always runs; failures are collected and reported together,
+  // and the run still throws at the end so Railway sees the run as failed.
   let succeededTaskCount = 0;
-  for (const [index, task] of enabledTasks.entries()) {
+  const failedTasks = [];
+  for (const task of enabledTasks) {
     const taskStartedAt = now();
     emitLog(log, "task_started", { schedule, task: task.name });
 
     try {
       await task.run();
+      succeededTaskCount += 1;
+      emitLog(log, "task_completed", {
+        schedule,
+        task: task.name,
+        durationMs: durationSince(taskStartedAt, now),
+      });
     } catch (error) {
+      failedTasks.push({ name: task.name, error });
       emitLog(log, "task_failed", {
         schedule,
         task: task.name,
         failureType: "task_execution_failed",
         durationMs: durationSince(taskStartedAt, now),
       });
-      emitLog(log, "run_failed", {
-        schedule,
-        succeededTaskCount,
-        failedTaskCount: 1,
-        skippedTaskCount,
-        skippedTasks,
-        notStartedTaskCount: enabledTasks.length - index - 1,
-        durationMs: durationSince(startedAt, now),
-      });
-      throw error;
     }
+  }
 
-    succeededTaskCount += 1;
-    emitLog(log, "task_completed", {
+  if (failedTasks.length > 0) {
+    emitLog(log, "run_failed", {
       schedule,
-      task: task.name,
-      durationMs: durationSince(taskStartedAt, now),
+      succeededTaskCount,
+      failedTaskCount: failedTasks.length,
+      failedTasks: failedTasks.map((failure) => failure.name),
+      skippedTaskCount,
+      skippedTasks,
+      notStartedTaskCount: 0,
+      durationMs: durationSince(startedAt, now),
     });
+    throw new AggregateError(
+      failedTasks.map((failure) => failure.error),
+      `${failedTasks.length} of ${enabledTasks.length} Railway "${schedule}" cron tasks failed: ` +
+        failedTasks.map((failure) => failure.name).join(", "),
+    );
   }
 
   emitLog(log, "run_completed", {

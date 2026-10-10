@@ -111,11 +111,11 @@ describe("Premium report funnel trackers", () => {
     ));
     vi.stubGlobal("fetch", fetchMock);
 
-    act(() => root.render(<CheckoutButton locale="ko" />));
+    act(() => root.render(<CheckoutButton locale="ko" isEuCountry={false} />));
     const button = container.querySelector("button");
     const notices = container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
     expect(button).not.toBeNull();
-    expect(notices).toHaveLength(3);
+    expect(notices).toHaveLength(1);
 
     act(() => button?.click());
     expect(sendUmamiEvent).not.toHaveBeenCalled();
@@ -123,7 +123,6 @@ describe("Premium report funnel trackers", () => {
 
     act(() => {
       notices[0]?.click();
-      notices[1]?.click();
     });
     await act(async () => {
       button?.click();

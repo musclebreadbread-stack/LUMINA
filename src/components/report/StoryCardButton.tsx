@@ -13,9 +13,12 @@ import {
   type CognitiveDomain,
 } from "@engine/cognitive/items";
 import { classifyQuadrant } from "@engine/attachment/quadrants";
+import { characterFor } from "@engine/characters";
+import { pillarFromSexagenary, pillarLabel } from "@engine/saju";
 import type { AnalysisKey } from "@engine/shared/evidence";
 import { AXIS_LABELS } from "@/lib/attachmentModel";
 import { assetPath } from "@/lib/assets";
+import { characterArtworkPath } from "@/lib/characterArtwork";
 import { COGNITIVE_OVERVIEW_IMAGE, eqImagePath } from "@/lib/psychometricsAssets";
 import { track } from "@/lib/analytics";
 import { HOBUN, HOBUN_DIM, HOBUN_FAINT, INK, INK_LINE } from "@/lib/og/theme";
@@ -204,6 +207,21 @@ function cognitiveWithheldCardData(): CardData {
   };
 }
 
+/**
+ * 사주 카드. 담긴 값이 일주·오행·세력 셋뿐이라 막대로 그릴 연속·백분율 데이터가 없다 —
+ * cognitiveWithheldCardData와 같은 빈 bars 패턴을 그대로 쓴다. 삽화는 새 에셋 없이
+ * 메인 사주 리포트·`/characters`와 같은 15종 캐릭터 아트를 재사용한다.
+ */
+function sajuCardData(summary: Extract<ShareSummaryV1, { kind: "saju" }>): CardData {
+  const pillar = pillarFromSexagenary(summary.sexagenary);
+  const character = characterFor(summary.dominantElement, summary.strength);
+  return {
+    headline: pillarLabel(pillar, "hanja"),
+    bars: [],
+    illustrationSrc: characterArtworkPath(character.id),
+  };
+}
+
 interface CardLabelResolvers {
   readonly darkTriad: (subscale: DarkTriadFactor) => string;
   readonly eq: (factor: EqFactor) => string;
@@ -226,6 +244,8 @@ function buildCardData(summary: ShareSummaryV1, labels: CardLabelResolvers): Car
       return summary.version === 2
         ? cognitiveWithheldCardData()
         : cognitiveCardData(summary, labels.cognitive);
+    case "saju":
+      return sajuCardData(summary);
   }
 }
 

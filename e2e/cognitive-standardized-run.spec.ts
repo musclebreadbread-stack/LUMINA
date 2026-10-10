@@ -4,7 +4,7 @@ import { dismissConsentBanner, setLocaleCookie } from './helpers';
 
 test.skip(!process.env.E2E_COGNITIVE_DB, 'requires a live Neon database with the pilot item bank seeded (set E2E_COGNITIVE_DB=1)');
 
-test('completing all 20 pilot items keeps unapproved scores withheld', async ({ page, context }) => {
+test('completing all 20 pilot items shows a labelled theoretical estimate while no approved norm exists', async ({ page, context }) => {
   test.setTimeout(150_000);
   await setLocaleCookie(context, 'en');
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -33,7 +33,8 @@ test('completing all 20 pilot items keeps unapproved scores withheld', async ({ 
   }
 
   await expect(page).toHaveURL(/\/cognitive\/result\/[A-Za-z0-9_-]+$/, { timeout: 20_000 });
-  await expect(page.getByText(/IQ, percentile, sub-scores.*withheld/i).first()).toBeVisible();
-  await expect(page.getByText(/theoretical-distribution estimate/i)).toHaveCount(0);
-  await expect(page.getByText(/95% confidence interval/i)).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Estimated result' })).toBeVisible();
+  await expect(page.getByText(/theoretical-distribution estimate/i).first()).toBeVisible();
+  await expect(page.getByText(/95% confidence interval/i).first()).toBeVisible();
+  await expect(page.getByText(/not derived from an actual Korean adult norm sample/i)).toBeVisible();
 });

@@ -45,6 +45,8 @@ const job: ReceiptEmailJob = {
 
 function enabledReceiptDispatch(): void {
   vi.stubEnv("APP_ENV", "production");
+  // billingJobsAllowed() (origin/master) pairs production with a live Toss key.
+  vi.stubEnv("TOSS_SECRET_KEY", "live_synthetic-toss-secret");
   vi.stubEnv("BILLING_RECEIPTS_ENABLED", "true");
   vi.stubEnv("BILLING_LEGAL_DOCUMENTS_APPROVED", "true");
   vi.stubEnv("RESEND_API_KEY", "synthetic-resend-key");

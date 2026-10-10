@@ -53,6 +53,7 @@ next-env.d.ts
 /public/psychometrics/factors/*.png
 /public/fonts/og/
 /public/og/
+/social-cards-output/
 
 # Planned commercial assets remain local source files until reviewed and integrated.
 /public/commerce/**/*.png

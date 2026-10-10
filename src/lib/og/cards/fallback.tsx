@@ -14,11 +14,12 @@ import { HOBUN, HOBUN_FAINT } from "@/lib/og/theme";
 
 const FALLBACK_ART: Readonly<Record<ShareKind, string>> = Object.freeze({
   jungian: "og/types/intj.png",
-  bigfive: "psychometrics/factors/intellect.png",
+  bigfive: "og/factors/intellect.png",
   darktriad: "og/darktriad/overview.png",
   attachment: "og/attachment/overview.png",
   eq: "og/eq/overview.png",
   cognitive: "og/cognitive/overview.png",
+  saju: "og/saju/overview.png",
 });
 
 export async function buildFallbackOgCard(kind: ShareKind, locale: Locale): Promise<OgCard> {

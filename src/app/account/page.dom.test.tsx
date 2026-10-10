@@ -50,6 +50,9 @@ vi.mock("@/server/member/dal", () => ({
 }));
 vi.mock("@/server/billing/service", () => ({ listOwnBillingOrders: listOwnBillingOrdersMock }));
 vi.mock("@/server/billing/subscriptions", () => ({ listOwnSubscriptions: listOwnSubscriptionsMock }));
+vi.mock("@/components/growth/MarketingOptIn", () => ({ MarketingOptIn: () => null }));
+vi.mock("@/server/growth/featureGate", () => ({ isGrowthCapabilityEnabled: () => false }));
+vi.mock("@/server/growth/marketingPreference", () => ({ getOwnMarketingPreference: vi.fn(async () => null) }));
 
 import AccountPage from "./page";
 

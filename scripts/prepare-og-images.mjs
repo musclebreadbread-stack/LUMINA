@@ -32,6 +32,13 @@ const GROUPS = [
     outputDirectory: "public/og/attachment",
     longEdge: 620,
   },
+  // 타로·오늘의 운세·사주·Big Five 공유 카드 삽화. 원본 PNG는 저장소에 없고(.gitignore) WebP만
+  // 있으므로, 카드 코드는 이 파생본(public/og/...)을 읽는다.
+  { directory: "public/tarot/cards", outputDirectory: "public/og/tarot/cards", longEdge: 480 },
+  { directory: "public/horoscope/zodiac", outputDirectory: "public/og/horoscope/zodiac", longEdge: 480 },
+  { directory: "public/saju/zodiac", outputDirectory: "public/og/saju/zodiac", longEdge: 480 },
+  { directory: "public/saju", outputDirectory: "public/og/saju", longEdge: 620 },
+  { directory: "public/psychometrics/factors", outputDirectory: "public/og/factors", longEdge: 620 },
 ];
 
 const PNG_OPTIONS = { palette: true, quality: 85, effort: 7 };

@@ -8,6 +8,7 @@ import {
 } from "@/server/billing/service";
 import { isCompletedFullRefund, reconciledRefundTransactionKey } from "@/server/billing/reconciliation";
 import { readBoundedJson } from "@/server/http/readBoundedJson";
+import { captureServerError } from "@/server/observability/captureServerError";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,6 +53,7 @@ export async function POST(request: Request): Promise<Response> {
     return json(200);
   } catch (error) {
     if (error instanceof BillingInputError) return json(409, error.reason);
+    await captureServerError(error, "billing-refund");
     return json(503, "refund_reconciliation_unavailable");
   }
 }

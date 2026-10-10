@@ -14,6 +14,7 @@ export const SHARE_KIND_ANALYSIS_KEY: Readonly<Record<ShareKind, AnalysisKey>> =
   attachment: "attachment",
   eq: "eq",
   cognitive: "cognitive",
+  saju: "saju",
 });
 
 /** ShareKind → "home" 네임스페이스의 허브 카드 제목 키. 잠정 폴백 카드의 표시 이름에 쓴다. */
@@ -24,6 +25,7 @@ export const SHARE_KIND_HUB_TITLE_KEY: Readonly<Record<ShareKind, string>> = Obj
   attachment: "hubAttachmentTitle",
   eq: "hubEqTitle",
   cognitive: "hubCognitiveTitle",
+  saju: "hubSajuTitle",
 });
 
 export interface ShareMetaText {

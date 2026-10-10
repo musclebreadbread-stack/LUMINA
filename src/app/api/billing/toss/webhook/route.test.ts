@@ -2,21 +2,29 @@ import { createHash } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
+  applyDashboardCancellationMock,
   applyTossPaymentEventMock,
+  captureServerErrorMock,
   getPaymentProviderMock,
   getPaymentByOrderMock,
 } = vi.hoisted(() => ({
+  applyDashboardCancellationMock: vi.fn(),
   applyTossPaymentEventMock: vi.fn(),
+  captureServerErrorMock: vi.fn(),
   getPaymentProviderMock: vi.fn(),
   getPaymentByOrderMock: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/server/billing/service", () => ({
+  applyDashboardCancellation: applyDashboardCancellationMock,
   applyTossPaymentEvent: applyTossPaymentEventMock,
 }));
 vi.mock("@/server/billing/paymentProvider", () => ({
   getPaymentProvider: getPaymentProviderMock,
+}));
+vi.mock("@/server/observability/captureServerError", () => ({
+  captureServerError: captureServerErrorMock,
 }));
 
 import { POST } from "./route";
@@ -58,6 +66,8 @@ describe("Toss webhook route", () => {
     getPaymentProviderMock.mockResolvedValue({ getPaymentByOrder: getPaymentByOrderMock });
     getPaymentByOrderMock.mockResolvedValue(payment);
     applyTossPaymentEventMock.mockResolvedValue({ status: "applied" });
+    applyDashboardCancellationMock.mockResolvedValue("applied");
+    captureServerErrorMock.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -109,6 +119,39 @@ describe("Toss webhook route", () => {
 
     expect(response.status).toBe(200);
     expect(applyTossPaymentEventMock).not.toHaveBeenCalled();
+    expect(applyDashboardCancellationMock).not.toHaveBeenCalled();
+  });
+
+  it("ignores a CANCELED provider response for another order without calling either handler", async () => {
+    getPaymentByOrderMock.mockResolvedValue({ ...payment, orderId: "223e4567-e89b-42d3-a456-426614174000", status: "CANCELED" });
+
+    const response = await POST(webhookRequest(JSON.stringify(payload)));
+
+    expect(response.status).toBe(200);
+    expect(applyDashboardCancellationMock).not.toHaveBeenCalled();
+    expect(applyTossPaymentEventMock).not.toHaveBeenCalled();
+  });
+
+  it("applies a dashboard cancellation and does not touch applyTossPaymentEvent when Toss reports CANCELED", async () => {
+    getPaymentByOrderMock.mockResolvedValue({ ...payment, status: "CANCELED", lastTransactionKey: "tx-9" });
+
+    const response = await POST(webhookRequest(JSON.stringify(payload)));
+
+    expect(response.status).toBe(200);
+    expect(applyDashboardCancellationMock).toHaveBeenCalledWith({
+      orderId,
+      amount: 9_900,
+      providerRefundId: "tx-9",
+    });
+    expect(applyTossPaymentEventMock).not.toHaveBeenCalled();
+  });
+
+  it("still routes a DONE payment through applyTossPaymentEvent only (regression check)", async () => {
+    const response = await POST(webhookRequest(JSON.stringify(payload)));
+
+    expect(response.status).toBe(200);
+    expect(applyTossPaymentEventMock).toHaveBeenCalledTimes(1);
+    expect(applyDashboardCancellationMock).not.toHaveBeenCalled();
   });
 
   it("returns a generic retryable response when provider lookup or event processing fails", async () => {
@@ -122,5 +165,7 @@ describe("Toss webhook route", () => {
     expect(await providerFailure.json()).toEqual({ error: "webhook_processing_failed" });
     expect(processingFailure.status).toBe(503);
     expect(await processingFailure.json()).toEqual({ error: "webhook_processing_failed" });
+    expect(captureServerErrorMock).toHaveBeenCalledTimes(2);
+    expect(captureServerErrorMock).toHaveBeenCalledWith(expect.any(Error), "billing-webhook");
   });
 });

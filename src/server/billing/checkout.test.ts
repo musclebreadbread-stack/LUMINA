@@ -24,6 +24,17 @@ vi.mock("@/server/auth/session", () => ({ getSignedInMember: getSignedInMemberMo
 vi.mock("@/server/member/consents", () => ({ hasRequiredMemberConsents: hasRequiredMemberConsentsMock }));
 vi.mock("@/server/member/database", () => ({ withMemberTransaction: vi.fn() }));
 vi.mock("./workerDatabase", () => ({ withBillingTransaction: withBillingTransactionMock }));
+vi.mock("./orderAttribution", () => ({ recordOrderAttribution: vi.fn() }));
+vi.mock("@/server/member/profileSnapshot", () => ({
+  snapshotOwnProfile: vi.fn(async () => ({
+    id: "profile-snapshot-1",
+    profile: {
+      year: 1990, month: 1, day: 20, calendar: "solar", isLeapMonth: false, hour: 12, minute: 30,
+      gender: "female", dayBoundaryRule: "zi23", placeLabel: "Seoul", placeLabelEn: "Seoul",
+      lat: 37.5665, lng: 126.978, timeZone: "Asia/Seoul",
+    },
+  })),
+}));
 vi.mock("./crypto", () => ({
   decryptBillingValue: vi.fn(),
   encryptBillingValue: vi.fn(() => ({ ciphertext: "encrypted-receipt-email", keyVersion: 1 })),
@@ -31,7 +42,7 @@ vi.mock("./crypto", () => ({
   paymentKeyDigest: vi.fn(() => Buffer.alloc(32, 1)),
 }));
 
-import { BillingAccessError, createPendingOrder, getActiveSaju2027Sale } from "./service";
+import { BillingAccessError, createPendingOrder, getSaju2027SaleState } from "./service";
 import { withMemberTransaction } from "@/server/member/database";
 import { CURRENT_YEAR_FORECAST_EXPERT_REVIEW_VERSION } from "@/server/yearForecastApproval";
 
@@ -67,6 +78,7 @@ function configureDatabase(): string[] {
 }
 
 const validInput = {
+  productKey: "saju-2027",
   locale: "en",
   acceptedPurchaseTerms: true,
   acceptedWithdrawalNotice: true,
@@ -96,6 +108,7 @@ describe("pending billing order creation", () => {
     vi.stubEnv("BILLING_EU_WITHDRAWAL_WAIVER_VERSION", "eu-waiver-v1");
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://lumina.example/");
     vi.stubEnv("APP_ENV", "production");
+    vi.stubEnv("SAJU_2027_SALE_STATE", "live");
 
     getSignedInMemberMock.mockResolvedValue({ user: { id: "member-1", email: "member@example.test" } });
     hasRequiredMemberConsentsMock.mockResolvedValue(true);
@@ -111,7 +124,8 @@ describe("pending billing order creation", () => {
     ["billing legal document approval", "billing-approval"],
     ["forecast expert review approval", "forecast-review-approval"],
     ["current forecast expert review version", "forecast-review-version"],
-  ] as const)("does not expose a sale or create an order without %s", async (_label, missingGate) => {
+  ] as const)("keeps the sale in preview and creates no order without %s", async (_label, missingGate) => {
+    withBillingTransactionMock.mockResolvedValue({ amount: 9_900, currency: "KRW", nameKo: "2027 리포트", nameEn: "2027 Report" });
     if (missingGate === "feature") {
       serverFeatureFlagsMock.memberAuth = false;
     } else if (missingGate === "member-approval") {
@@ -124,13 +138,14 @@ describe("pending billing order creation", () => {
       vi.stubEnv("YEAR_FORECAST_EXPERT_REVIEW_VERSION", "2027-saju-report-v0");
     }
 
-    await expect(getActiveSaju2027Sale()).resolves.toBeNull();
+    // origin/master's three-stage rollout: a requested "live" sale downgrades to
+    // "preview" (price visible, checkout disabled) whenever a checkout gate is closed.
+    await expect(getSaju2027SaleState()).resolves.toMatchObject({ status: "preview" });
     await expect(createPendingOrder(validInput)).rejects.toMatchObject({
       name: "BillingAccessError",
       reason: "billing_unavailable",
     });
 
-    expect(withBillingTransactionMock).not.toHaveBeenCalled();
     expect(getSignedInMemberMock).not.toHaveBeenCalled();
     expect(queryMock).not.toHaveBeenCalled();
   });
@@ -143,8 +158,8 @@ describe("pending billing order creation", () => {
     expect(order.amount).toBe(productPrice.amount);
     expect(order.currency).toBe("KRW");
     expect(order.orderName).toBe(productPrice.name_en);
-    expect(order.successUrl).toBe("https://lumina.example/api/billing/toss/return");
-    expect(order.failUrl).toBe("https://lumina.example/api/billing/toss/fail");
+    expect(order.successUrl).toBe("https://lumina.example/api/billing/toss/return?locale=en");
+    expect(order.failUrl).toBe("https://lumina.example/api/billing/toss/fail?locale=en");
     expect(statements.filter((statement) => statement.startsWith("insert into billing.order_consents"))).toHaveLength(3);
   });
 

@@ -31,7 +31,7 @@ export async function buildHoroscopeOgCard(
   const signName = locale !== "ko" ? sign.en : sign.ko;
   const kicker = t(system === "zodiac" ? "systemZodiac" : "systemChinese");
   const subheadline = t("resultTitleSuffix");
-  const imagePath = system === "zodiac" ? `horoscope/zodiac/${sign.key}.png` : `saju/zodiac/${sign.key}.png`;
+  const imagePath = system === "zodiac" ? `og/horoscope/zodiac/${sign.key}.png` : `og/saju/zodiac/${sign.key}.png`;
   const illustration = await loadOgPng(imagePath);
 
   const centerContent = (

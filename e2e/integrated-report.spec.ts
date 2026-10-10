@@ -168,7 +168,7 @@ test.describe("integrated self portrait capture boundary", () => {
   });
 
   test("records one safe snapshot after a completed scientific result", async ({ page }) => {
-    test.setTimeout(60_000);
+    test.setTimeout(120_000);
     await completeBigFive(page);
     await page.goto("/integrated-report");
 

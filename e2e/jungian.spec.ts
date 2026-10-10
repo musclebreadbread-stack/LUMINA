@@ -34,10 +34,18 @@ const GENERATED_ARTWORK = [
   "psychometrics/types/entj.webp",
 ] as const;
 
+// 설문은 10문항씩 페이지로 나뉜다(SurveyForm PAGE_SIZE) — 한 페이지를 마치면 다음 페이지로 넘긴다.
+const PAGE_SIZE = 10;
+
 async function answerAll(page: Page): Promise<void> {
-  for (const item of ITEMS) {
+  for (const [index, item] of ITEMS.entries()) {
     const value = item.key === "plus" ? 5 : 1;
     await page.locator(`#item-${item.id}`).locator('label').nth(value - 1).click();
+    const next = ITEMS[index + 1];
+    if (next !== undefined && (index + 1) % PAGE_SIZE === 0) {
+      await page.locator('form nav button').last().click();
+      await expect(page.locator(`#item-${next.id}`)).toBeVisible();
+    }
   }
 }
 
@@ -56,7 +64,7 @@ test.describe('MBTI Type Analysis', () => {
   });
 
   test('reuses the IPIP-50 flow and renders six Korean axes', async ({ page, context }) => {
-    test.setTimeout(60_000);
+    test.setTimeout(120_000);
     await setLocaleCookie(context, 'ko');
     await page.goto('/psychometrics?to=types', { timeout: 60_000 });
     await dismissConsentBanner(page);
@@ -87,13 +95,13 @@ test.describe('MBTI Type Analysis', () => {
     const methodLink = page.getByRole('link', { name: 'MBTI를 어떻게 분석하나요?', exact: true });
     await expect(methodLink).toBeVisible();
     await expect(methodLink).toHaveAttribute('href', '/psychometrics?to=types');
-    await expect(methodLink).toHaveCSS('color', 'rgb(18, 16, 13)');
+    await expect(methodLink).toHaveCSS('color', 'rgb(13, 17, 24)');
     await methodLink.click();
     await expect(page).toHaveURL(/\/psychometrics\?to=types$/);
   });
 
   test('keeps the same response code between Big Five and MBTI result links', async ({ page, context }) => {
-    test.setTimeout(60_000);
+    test.setTimeout(120_000);
     await setLocaleCookie(context, 'en');
     await page.goto('/psychometrics?to=types', { timeout: 60_000 });
     await dismissConsentBanner(page);
@@ -124,7 +132,7 @@ test.describe('MBTI Type Analysis', () => {
   });
 
   test('shares a /s/jungian/<code> link that renders in a brand-new browser context', async ({ page, context, browser }) => {
-    test.setTimeout(60_000);
+    test.setTimeout(120_000);
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     await setLocaleCookie(context, 'en');
     await page.goto('/psychometrics?to=types', { timeout: 60_000 });

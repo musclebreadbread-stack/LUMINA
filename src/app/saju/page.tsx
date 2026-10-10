@@ -8,21 +8,27 @@ import { TierBadge } from "@/components/ui/Chrome";
 import { MotionSafeImage } from "@/components/ui/MotionSafeImage";
 import { SceneShell } from "@/components/ui/SceneShell";
 import { AnalysisEntryTracker } from "@/components/analytics/AnalysisTracker";
+import { Breadcrumbs } from "@/components/seo/Breadcrumbs";
 import { SAJU_OVERVIEW_IMAGE } from "@/lib/sajuAssets";
+import { buildAlternates } from "@/lib/seoAlternates";
 
 /**
- * "내 결과 다시 보기" 입구.
+ * "내 결과 다시 보기" 입구이자 "/saju"의 색인 대상 랜딩이기도 하다.
  *
  * 리포트는 /r/[encoded] 에 있다. 여기서는 이 브라우저에 저장된 값을 찾아
  * 그 주소로 보내 줄 뿐이다. 서버는 아무것도 기억하지 않는다.
+ *
+ * 색인: BirthForm 위에 정적 설명 콘텐츠(publicIntro/publicCalc/publicEvidence)가
+ * 있어야 얇은 콘텐츠로 보이지 않는다(docs/SEO-ADSENSE-READINESS.md). 실제 결과
+ * 페이지(/r/[data]/**)의 noindex 정책은 이 변경과 무관하게 그대로 둔다.
  */
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("saju");
-  return { title: t("entryTitle"), robots: { index: false } };
+  return { title: t("entryTitle"), alternates: await buildAlternates("/saju") };
 }
 
 export default async function SajuEntryPage() {
-  const t = await getTranslations("saju");
+  const [t, tNav] = await Promise.all([getTranslations("saju"), getTranslations("nav")]);
   return (
     <SceneShell tone="saju">
       <AnalysisEntryTracker analysis="saju" />
@@ -36,6 +42,7 @@ export default async function SajuEntryPage() {
           <TierBadge tier="cultural" />
         </div>
       </header>
+      <Breadcrumbs label={tNav("breadcrumb")} items={[{ href: "/", label: "LUMINA" }, { label: t("entryTitle") }]} />
       <RestoreFromStorage />
       <section className="border-t border-ink-700 py-12" aria-labelledby="new-saju-heading">
         <div className="grid items-center gap-8 sm:grid-cols-[minmax(0,1fr)_minmax(180px,0.48fr)]">
@@ -57,6 +64,27 @@ export default async function SajuEntryPage() {
         <div className="mt-8">
           <BirthForm />
         </div>
+      </section>
+
+      <section className="border-t border-ink-700 py-8">
+        <h2 className="text-lg font-medium text-hobun">{t("publicIntroHeading")}</h2>
+        <p className="mt-4 text-sm leading-relaxed text-hobun-dim">{t("publicIntroBody")}</p>
+      </section>
+
+      <section className="border-t border-ink-700 py-8">
+        <h2 className="text-lg font-medium text-hobun">{t("publicCalcHeading")}</h2>
+        <p className="mt-4 text-sm leading-relaxed text-hobun-dim">{t("publicCalcBody")}</p>
+      </section>
+
+      <section className="border-t border-ink-700 py-8">
+        <h2 className="text-lg font-medium text-hobun">{t("publicEvidenceHeading")}</h2>
+        <p className="mt-4 text-sm leading-relaxed text-hobun-dim">{t("publicEvidenceBody")}</p>
+        <Link
+          href="/methodology"
+          className="mt-4 inline-flex min-h-11 items-center border border-ink-700 px-4 text-sm text-hobun-dim underline underline-offset-4 hover:border-hobun hover:text-hobun"
+        >
+          {t("publicMethodologyCta")}
+        </Link>
       </section>
       </main>
     </SceneShell>

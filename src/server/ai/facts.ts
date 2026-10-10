@@ -18,9 +18,12 @@ function categoryValue(value: string): string {
 }
 
 export function buildYearForecastFacts(forecast: YearForecast): AIFacts {
-  if (forecast.expertReviewStatus !== "pending") {
-    throw new Error("Unexpected year forecast review state");
-  }
+  // Whether the calculation core has been expert-reviewed is a display concern for
+  // the report page, not a precondition for building facts: the AI pipeline's own
+  // gate (YEAR_FORECAST_EXPERT_REVIEW_APPROVED, checked in getAISettings()) already
+  // controls whether this function is ever called in production. A check here that
+  // instead required "pending" was backwards — it would throw the moment a real
+  // approval flow set expertReviewStatus to "approved", breaking every AI request.
   const facts: AIFact[] = [
     makeFact("annual.pillar", "annual", categoryValue(forecast.annual.labelHanja), "annual-pillar"),
     makeFact("annual.stem-god", "annual", forecast.annual.stemTenGod, "annual-ten-gods"),

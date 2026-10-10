@@ -93,10 +93,12 @@ describe("buildYearForecastFacts", () => {
     expect(buildYearForecastFacts(longLabel).find((fact) => fact.id === "annual.pillar")?.value).toHaveLength(80);
   });
 
-  it("refuses forecasts that no longer have the pending expert-review status", () => {
+  it("builds the same facts once the forecast's expert-review status is approved", () => {
+    // The expert-review gate lives in getAISettings() (exact approved version), so
+    // facts-building must not reject an approved forecast.
     const forecast = makeForecast();
     const reviewedForecast = { ...forecast, expertReviewStatus: "approved" } as unknown as YearForecast;
 
-    expect(() => buildYearForecastFacts(reviewedForecast)).toThrow("Unexpected year forecast review state");
+    expect(buildYearForecastFacts(reviewedForecast)).toEqual(buildYearForecastFacts(forecast));
   });
 });

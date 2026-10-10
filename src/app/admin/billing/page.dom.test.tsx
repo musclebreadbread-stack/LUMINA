@@ -3,15 +3,22 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getLocale } from "next-intl/server";
 import AdminBillingPage from "./page";
 import { getAdminAccess } from "@/server/admin/authorization";
-import { getBillingKpiSummary, listBillingAdminOrders, type BillingKpiSummary } from "@/server/billing/service";
+import {
+  getBillingChannelSummary,
+  getBillingKpiSummary,
+  listBillingAdminOrders,
+  type BillingKpiSummary,
+} from "@/server/billing/service";
 
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("next-intl/server", () => ({ getLocale: vi.fn() }));
 vi.mock("@/server/admin/authorization", () => ({ getAdminAccess: vi.fn() }));
 vi.mock("@/server/billing/service", () => ({
+  getBillingChannelSummary: vi.fn(),
   getBillingKpiSummary: vi.fn(),
   listBillingAdminOrders: vi.fn(),
 }));
+vi.mock("@/server/growth/marketingPreference", () => ({ getMarketingSubscriberCounts: vi.fn(async () => null) }));
 
 function billingSummary(overrides: Partial<BillingKpiSummary> = {}): BillingKpiSummary {
   return {
@@ -38,6 +45,7 @@ describe("AdminBillingPage AI cost rate status", () => {
     vi.mocked(getAdminAccess).mockResolvedValue({ status: "authorized", role: "owner", userId: "admin" });
     vi.mocked(getLocale).mockResolvedValue("en");
     vi.mocked(listBillingAdminOrders).mockResolvedValue([]);
+    vi.mocked(getBillingChannelSummary).mockResolvedValue(null);
     vi.mocked(getBillingKpiSummary).mockResolvedValue(billingSummary());
   });
 

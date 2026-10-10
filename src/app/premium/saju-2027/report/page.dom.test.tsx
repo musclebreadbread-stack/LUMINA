@@ -11,6 +11,8 @@ const {
   getOwnProfileMock,
   hasOwnEntitlementMock,
   markOwnEntitlementViewedMock,
+  getOwnBoundProfileMock,
+  getOwnPendingReportOpenOrderIdMock,
 } = vi.hoisted(() => ({
   getLocaleMock: vi.fn(),
   isMemberAuthConfiguredMock: vi.fn(),
@@ -18,6 +20,8 @@ const {
   getOwnProfileMock: vi.fn(),
   hasOwnEntitlementMock: vi.fn(),
   markOwnEntitlementViewedMock: vi.fn(),
+  getOwnBoundProfileMock: vi.fn(),
+  getOwnPendingReportOpenOrderIdMock: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -43,6 +47,10 @@ vi.mock("@/server/billing/service", () => ({
   BillingAccessError: class BillingAccessError extends Error {},
   hasOwnEntitlement: hasOwnEntitlementMock,
   markOwnEntitlementViewed: markOwnEntitlementViewedMock,
+}));
+vi.mock("@/server/premium/reportContext", () => ({
+  getOwnBoundProfile: getOwnBoundProfileMock,
+  getOwnPendingReportOpenOrderId: getOwnPendingReportOpenOrderIdMock,
 }));
 
 import Saju2027ReportPage from "./page";
@@ -77,6 +85,8 @@ describe("Saju2027ReportPage expert review status", () => {
     getOwnProfileMock.mockResolvedValue(profile);
     hasOwnEntitlementMock.mockResolvedValue(true);
     markOwnEntitlementViewedMock.mockResolvedValue(true);
+    getOwnBoundProfileMock.mockResolvedValue(profile);
+    getOwnPendingReportOpenOrderIdMock.mockResolvedValue(null);
     vi.stubEnv("YEAR_FORECAST_EXPERT_REVIEW_APPROVED", "false");
     vi.stubEnv("YEAR_FORECAST_EXPERT_REVIEW_VERSION", CURRENT_YEAR_FORECAST_EXPERT_REVIEW_VERSION);
   });
@@ -96,13 +106,33 @@ describe("Saju2027ReportPage expert review status", () => {
     const markup = await renderReportPage();
 
     expect(markup).toContain(status);
+    // Rendering never marks a report viewed; that only happens from the explicit open POST.
+    expect(markOwnEntitlementViewedMock).not.toHaveBeenCalled();
     if (reportVisible) {
       expect(markup).toContain("계산 근거");
-      expect(markOwnEntitlementViewedMock).toHaveBeenCalledOnce();
     } else {
       expect(markup).toContain("구매 권한은 유지됩니다. 전문가 검수가 완료되면 보고서를 열람할 수 있습니다.");
       expect(markup).not.toContain("계산 근거");
-      expect(markOwnEntitlementViewedMock).not.toHaveBeenCalled();
     }
+  });
+
+  it("asks an approved report's buyer to open it explicitly before showing it", async () => {
+    vi.stubEnv("YEAR_FORECAST_EXPERT_REVIEW_APPROVED", "true");
+    getOwnPendingReportOpenOrderIdMock.mockResolvedValue("order-1");
+
+    const markup = await renderReportPage();
+
+    expect(markup).toContain('action="/api/billing/orders/order-1/open"');
+    expect(markup).not.toContain("계산 근거");
+  });
+
+  it("does not offer the open gate while expert review is pending", async () => {
+    getOwnPendingReportOpenOrderIdMock.mockResolvedValue("order-1");
+
+    const markup = await renderReportPage();
+
+    expect(markup).not.toContain("/api/billing/orders/order-1/open");
+    expect(markup).toContain("구매 권한은 유지됩니다. 전문가 검수가 완료되면 보고서를 열람할 수 있습니다.");
+    expect(getOwnPendingReportOpenOrderIdMock).not.toHaveBeenCalled();
   });
 });

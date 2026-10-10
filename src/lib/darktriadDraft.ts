@@ -2,7 +2,7 @@ import type { LikertResponse } from "@engine/darktriad/scoring";
 
 const STORAGE_KEY = "lumina.darktriad.draft.v1";
 const listeners = new Set<() => void>();
-let cachedRaw: string | null = null;
+let cachedRaw: string | null | undefined;
 
 export type DarkTriadDraft = Partial<Record<number, LikertResponse>>;
 const EMPTY_DRAFT: DarkTriadDraft = Object.freeze({});
@@ -67,7 +67,7 @@ export function saveDarkTriadDraft(responses: DarkTriadDraft): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(responses));
-    cachedRaw = null;
+    cachedRaw = undefined;
   } catch {
     // A storage quota or privacy-mode failure should not interrupt the survey.
   }
@@ -78,7 +78,7 @@ export function clearDarkTriadDraft(): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(STORAGE_KEY);
-    cachedRaw = null;
+    cachedRaw = undefined;
   } catch {
     // Best effort only; the completed result remains usable.
   }

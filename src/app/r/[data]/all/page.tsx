@@ -4,6 +4,8 @@ import { DateTime } from "luxon";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
+import { NextLens } from "@/components/report/NextLens";
+import { PremiumSaleBanner } from "@/components/premium/PremiumSaleBanner";
 import { ShareBar } from "@/components/report/ShareBar";
 import { Disclaimer, Section, TierBadge } from "@/components/ui/Chrome";
 import { ResultCover } from "@/components/ui/ResultCover";
@@ -238,6 +240,8 @@ export default async function AllReportPage({
 
       <footer className="space-y-6 border-t border-ink-700 pt-8">
         <AdSlot slot="all-bottom" label={tCommon("adLabel")} />
+        <PremiumSaleBanner />
+        <NextLens analysisKey="saju" id="section-next-lens" />
         <ShareBar title={`${birthLabel} · LUMINA`} allowLinkShare={false} />
         <p className="text-xs leading-relaxed text-hobun-faint">{tSaju("calcNote")}</p>
         <Disclaimer tier="cultural" />

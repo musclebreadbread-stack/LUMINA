@@ -57,7 +57,7 @@ test.describe('Saju golden path (Korean locale)', () => {
     await expect(page.getByRole('button', { name: 'PDF로 저장' })).toBeVisible();
   });
 
-  test('reopening the same share link in a fresh browser context renders the same birth date', async ({
+  test('the private report URL does not reproduce the birth profile in a fresh browser context', async ({
     page,
     context,
     browser,
@@ -80,11 +80,10 @@ test.describe('Saju golden path (Korean locale)', () => {
     const originalHeadingText = (await heading.textContent())?.trim();
     expect(originalHeadingText).toBeTruthy();
 
-    // Fresh context = no localStorage, no prior profile. The share link must
-    // still reproduce the identical report, since everything needed lives in
-    // the URL itself (src/lib/share.ts encodeProfile/decodeProfile). Pin the
-    // same locale cookie so the comparison isn't confounded by the fresh
-    // context's own default Accept-Language.
+    // 개인 생년월일 리포트는 /r/current 처럼 URL에 프로필을 싣지 않고, 이 브라우저의 암호화 세션
+    // 쿠키로만 읽는다. 링크 공유는 요약 카드(/s/saju/<code>)로만 한다. 따라서 쿠키가 없는 새
+    // 컨텍스트에서 같은 주소를 열어도 생년월일이 재현되면 안 된다.
+    expect(reportUrl).toMatch(/\/r\/current$/);
     const freshContext = await browser.newContext();
     try {
       await setLocaleCookie(freshContext, 'ko');
@@ -92,9 +91,9 @@ test.describe('Saju golden path (Korean locale)', () => {
       await freshPage.goto(reportUrl);
       await dismissConsentBanner(freshPage);
 
-      const freshHeading = freshPage.getByRole('heading', { level: 1 });
-      await expect(freshHeading).toBeVisible();
-      await expect(freshHeading).toHaveText(originalHeadingText!);
+      await expect(freshPage.getByText('이 링크의 결과를 읽지 못했습니다.')).toBeVisible();
+      await expect(freshPage.getByRole('link', { name: '출생 정보 다시 넣기' })).toBeVisible();
+      await expect(freshPage.getByText(originalHeadingText!, { exact: false })).toHaveCount(0);
     } finally {
       await freshContext.close();
     }

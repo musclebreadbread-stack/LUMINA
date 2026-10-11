@@ -33,6 +33,12 @@ export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations();
   const localeValue = await getLocale();
   const locale = isLocale(localeValue) ? localeValue : DEFAULT_LOCALE;
+  const googleVerification = process.env.GOOGLE_SITE_VERIFICATION?.trim();
+  const naverVerification = process.env.NAVER_SITE_VERIFICATION?.trim();
+  const verificationOther = {
+    ...(naverVerification ? { "naver-site-verification": naverVerification } : {}),
+    ...(adSenseClient ? { "google-adsense-account": adSenseClient } : {}),
+  };
 
   return {
     metadataBase: getSiteUrl(),
@@ -52,8 +58,10 @@ export async function generateMetadata(): Promise<Metadata> {
       locale: openGraphLocale(contentLocaleFor(locale)),
       type: "website",
     },
-    // AdSense 사이트 소유확인. 게시자 ID가 없거나 형식이 틀리면 내보내지 않는다.
-    ...(adSenseClient ? { other: { "google-adsense-account": adSenseClient } } : {}),
+    verification: {
+      ...(googleVerification ? { google: googleVerification } : {}),
+      ...(Object.keys(verificationOther).length > 0 ? { other: verificationOther } : {}),
+    },
   };
 }
 

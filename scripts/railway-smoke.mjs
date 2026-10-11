@@ -14,6 +14,12 @@ const SERVICE_CHECKS = [
   { method: "POST", path: "/api/auth/sign-up/email", status: 403, contentType: "application/json", body: "sign-up-blocked", requestBody: "{}" },
   { method: "POST", path: "/api/auth/sign-in/social", status: 403, contentType: "application/json", body: "social-sign-in-blocked", requestBody: "{}" },
   { method: "GET", path: "/api/internal/analytics-rollup", status: 401, contentType: "application/json", body: "json" },
+  { method: "GET", path: "/api/internal/growth-report", status: 401, contentType: "application/json", body: "json" },
+  // Prerendered at build time: a missing NEXT_PUBLIC_SITE_URL build arg ships localhost URLs.
+  { method: "GET", path: "/sitemap.xml", status: 200, contentType: "application/xml", body: "sitemap" },
+  { method: "GET", path: "/robots.txt", status: 200, contentType: "text/plain", body: "robots" },
+  // ads.txt is a route now (no committed file); a regression would silently drop seller authorization.
+  { method: "GET", path: "/ads.txt", status: 200, contentType: "text/plain", body: "text" },
   { method: "HEAD", path: "/audio/bgm/digital-observatory.mp3", status: 200, contentType: "audio/mpeg", body: "none" },
 ];
 const PRODUCTION_UMAMI_CHECK = {
@@ -89,12 +95,26 @@ export function hasRequiredSecurityHeaders(headers) {
     && contentSecurityPolicy.has("frame-ancestors 'none'");
 }
 
-async function validateBody(response, mode) {
+/** Every sitemap URL (<loc> and hreflang alternates) must live on the checked origin — never localhost. */
+export function sitemapUsesOrigin(xml, origin) {
+  const locations = [...xml.matchAll(/<loc>([^<]+)<\/loc>/gu)].map((match) => match[1].trim());
+  const alternates = [...xml.matchAll(/<xhtml:link\b[^>]*\bhref="([^"]+)"/gu)].map((match) => match[1].trim());
+  return locations.length > 0
+    && [...locations, ...alternates].every((location) => location === origin || location.startsWith(`${origin}/`));
+}
+
+export function robotsPointsToSitemap(text, origin) {
+  return text.split(/\r?\n/u).some((line) => line.trim().toLowerCase() === `sitemap: ${origin}/sitemap.xml`.toLowerCase());
+}
+
+async function validateBody(response, mode, origin) {
   if (mode === "none") return true;
   if (mode === "text") {
     await response.arrayBuffer();
     return true;
   }
+  if (mode === "sitemap") return sitemapUsesOrigin(await response.text(), origin);
+  if (mode === "robots") return robotsPointsToSitemap(await response.text(), origin);
 
   try {
     const body = await response.json();
@@ -143,7 +163,7 @@ async function runCheck(origin, check, fetchImpl) {
       && cacheDirectives.has("no-store")
     );
     const securityHeadersValid = check.securityHeaders !== true || hasRequiredSecurityHeaders(response.headers);
-    const bodyIsValid = await validateBody(response, check.body);
+    const bodyIsValid = await validateBody(response, check.body, origin);
     const passed = response.status === check.status
       && contentType === check.contentType
       && lengthIsValid

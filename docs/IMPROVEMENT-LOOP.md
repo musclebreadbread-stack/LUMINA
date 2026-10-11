@@ -500,3 +500,10 @@
 - **검증:** 통합 19/19(PG 18.6), 기본 Vitest 1,635개 통과(통합 19개는 기본 건너뜀), 스크립트 테스트 33/33, ESLint, typecheck, Next.js production build 통과. 일반 Node ESM import로는 `@sentry/nextjs`의 `captureMessage`·`flush`가 노출되지 않아 CommonJS 진입점으로 바꿨다. SDK의 `flush` 성공은 네트워크 도달을 보장하지 않으므로, 출력은 `submitted`로 표기하고 도착은 Sentry 화면에서 확인한다.
 - **리뷰 반영:** 통합 테스트를 CI `db-integration` job(PG18 서비스 컨테이너, `LUMINA_IT_REQUIRED=1`이면 skip 대신 실패)에 연결했다. 거래키 함수가 음수·비정수 취소 금액을 자체적으로 거부하게 했다. CI job은 trust 인증 컨테이너로 로컬 시뮬레이션해 마이그레이션 14개 적용과 통합 19/19를 확인했다. GitHub Actions에서의 실제 실행은 push 이후에 확인한다.
 - **운영 경계·다음:** Neon·Railway·Toss·Sentry에는 연결하거나 변경하지 않았다. staging Toss 테스트 키 결제창 여정, Neon 실제 역할 경로의 RLS 확인, Sentry DSN 등록 후 수신 확인, staging 롤백 리허설은 `docs/LAUNCH-APPROVAL-READINESS.md` §4에 남아 있다.
+
+## 2026-10-10 병합본·보안 수정 운영 배포
+
+- **사전 확인:** 운영 Neon `production` 브랜치의 `ops.schema_migrations`에 17개가 모두 적용돼 있고, 체크섬이 저장소 git blob과 일치한다. Windows 작업 사본에서는 병합으로 받은 마이그레이션 3개만 CRLF로 바뀌어 체크섬이 달랐으므로 `.gitattributes`로 `neon/migrations/*.sql`을 LF로 고정했다. 운영과 staging 모두 `FEATURE_BILLING`, `FEATURE_MEMBER_AUTH`, `FEATURE_AI_NARRATIVE`가 `false`이고 `SAJU_2027_SALE_STATE`는 미설정, Toss 키·결제 DB·판매자 변수는 비어 있다.
+- **배포:** `1ff091a`을 staging `web`(배포 `26c4757b`, SUCCESS)에 먼저 올렸다. 읽기 전용 smoke 19/19와 `/pricing`·`/premium/saju-2027`·`/refund-policy`·`/terms`·`/privacy`·`/premium/saju-2027/report` 200을 확인한 뒤 production `web`(배포 `44949d4c`, SUCCESS)에 배포했다. 운영 smoke 19/19와 주요 페이지 200을 확인했고 분석 이벤트는 보내지 않았다. 되돌릴 대상은 직전 운영 배포 `41dca1b7`(2026-10-04)이다.
+- **변경하지 않은 것:** DB 마이그레이션, Railway 환경 변수, 기능 플래그, cron 서비스 이미지.
+- **남은 확인:** Railway CLI가 이 환경에서 런타임 로그를 반환하지 않아 배포 직후 5xx 로그 대조는 하지 못했다. Railway 대시보드의 HTTP 지표로 확인한다. 결제 개통은 `docs/LAUNCH-APPROVAL-READINESS.md`의 외부 승인과 staging 결제 여정이 끝난 뒤 진행한다.

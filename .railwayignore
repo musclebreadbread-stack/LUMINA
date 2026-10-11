@@ -1,0 +1,29 @@
+# `railway up` uploads the working directory and honors only .gitignore and
+# .railwayignore — not .dockerignore. Keep local credentials, agent workspaces,
+# and untracked personal files out of the upload itself (mirrors .dockerignore).
+.env
+.env.*
+**/.env
+**/.env.*
+*.pem
+**/*.pem
+.neon
+.agents
+.superpowers
+research
+skills-lock.json
+*.docx
+/%normalizedDocx%
+/32
+*.mp3
+!public/audio/bgm/digital-observatory.mp3
+*.m4a
+*.wav
+scripts/_tmp_*.mjs
+coverage
+test-results
+playwright-report
+.vercel
+.data-cache
+raw
+*.log

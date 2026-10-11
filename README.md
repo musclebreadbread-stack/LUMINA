@@ -55,7 +55,7 @@ pnpm fonts:prepare
 ## 운영 전 사람이 확인할 항목
 
 - Railway의 `NEXT_PUBLIC_SITE_URL`, 운영 도메인 TLS, `/api/health` 확인
-- 실제 게시자 ID를 받은 뒤에만 AdSense 환경변수와 `public/ads.txt` 활성화
+- 실제 게시자 ID를 받은 뒤에만 AdSense 환경변수(`NEXT_PUBLIC_ADSENSE_CLIENT`, 승인 후 `NEXT_PUBLIC_ADSENSE_SLOT_ID`) 활성화 — `/ads.txt`는 이 값으로 생성된다
 - Google Funding Choices 등 CMP 연결 및 지역별 동의 문구 검토
 - `/privacy`, `/terms` 초안에 대한 법률 검토와 시행일 확정
 - 타로·조디악 원본 PNG를 삭제하거나 외부 전송하기 전 백업 및 확인

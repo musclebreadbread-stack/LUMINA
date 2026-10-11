@@ -21,6 +21,7 @@ import { PlatformAtmosphere } from "@/components/scene3d/PlatformAtmosphere";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildAlternates } from "@/lib/seoAlternates";
 import { getSiteUrl } from "@/lib/siteUrl";
+import { readAdSenseClient } from "@/lib/adsense";
 import { isMemberAuthConfigured } from "@/server/auth";
 import { contentLocaleFor, DEFAULT_LOCALE, isLocale, openGraphLocale } from "@/i18n/locale";
 import "./globals.css";
@@ -32,6 +33,12 @@ export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations();
   const localeValue = await getLocale();
   const locale = isLocale(localeValue) ? localeValue : DEFAULT_LOCALE;
+  const googleVerification = process.env.GOOGLE_SITE_VERIFICATION?.trim();
+  const naverVerification = process.env.NAVER_SITE_VERIFICATION?.trim();
+  const verificationOther = {
+    ...(naverVerification ? { "naver-site-verification": naverVerification } : {}),
+    ...(adSenseClient ? { "google-adsense-account": adSenseClient } : {}),
+  };
 
   return {
     metadataBase: getSiteUrl(),
@@ -51,6 +58,10 @@ export async function generateMetadata(): Promise<Metadata> {
       locale: openGraphLocale(contentLocaleFor(locale)),
       type: "website",
     },
+    verification: {
+      ...(googleVerification ? { google: googleVerification } : {}),
+      ...(Object.keys(verificationOther).length > 0 ? { other: verificationOther } : {}),
+    },
   };
 }
 
@@ -59,7 +70,7 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-const adSenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
+const adSenseClient = readAdSenseClient(process.env.NEXT_PUBLIC_ADSENSE_CLIENT);
 
 export default async function RootLayout({
   children,

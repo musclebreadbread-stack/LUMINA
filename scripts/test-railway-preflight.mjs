@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
@@ -153,9 +154,58 @@ test("blocks checkout until every seller disclosure shown in the site footer is 
 
 test("passes every seller disclosure into the Docker build where Next.js inlines public values", () => {
   const dockerfile = readFileSync(fileURLToPath(new URL("../Dockerfile", import.meta.url)), "utf8");
-  const builderStage = dockerfile.slice(dockerfile.indexOf("AS builder"), dockerfile.indexOf("RUN pnpm run build"));
+  const builderStage = dockerfile.slice(dockerfile.indexOf("AS builder"), dockerfile.indexOf("pnpm run build"));
 
   for (const name of sellerDisclosureVariables) {
+    assert.match(builderStage, new RegExp(`^ARG ${name}$`, "mu"), `${name} needs a builder ARG`);
+    assert.match(builderStage, new RegExp(`${name}=\\$${name}`, "u"), `${name} needs a builder ENV`);
+  }
+});
+
+function publicVariablesReadBySource(directory) {
+  const names = new Set();
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const entryPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name === "__tests__") continue;
+      for (const name of publicVariablesReadBySource(entryPath)) names.add(name);
+    } else if (/\.(ts|tsx)$/u.test(entry.name) && !/\.test\.(ts|tsx)$/u.test(entry.name)) {
+      const source = readFileSync(entryPath, "utf8");
+      for (const match of source.matchAll(/process\.env(?:\.|\[["'])(NEXT_PUBLIC_[A-Z0-9_]+)/gu)) {
+        names.add(match[1]);
+      }
+    }
+  }
+  return names;
+}
+
+test("unsets empty NEXT_PUBLIC_* build values so missing build args keep runtime reads", () => {
+  const dockerfile = readFileSync(fileURLToPath(new URL("../Dockerfile", import.meta.url)), "utf8");
+  const buildLine = dockerfile.slice(dockerfile.lastIndexOf("RUN ", dockerfile.indexOf("pnpm run build")), dockerfile.indexOf("pnpm run build"));
+  assert.match(buildLine, /NEXT_PUBLIC_\[A-Z0-9_\]\*\\\)=\$/u, "the build step should select empty NEXT_PUBLIC_* values");
+  assert.match(buildLine, /unset "\$name"/u, "the build step should unset them before building");
+
+  // Run the same shell fragment against a fake environment.
+  const fragment = buildLine.replace(/^RUN /u, "").replace(/\\\r?\n\s*&&\s*$/u, "").trim();
+  const probe = spawnSync("sh", ["-c", `${fragment}; env | grep '^NEXT_PUBLIC_' | sort`], {
+    env: { PATH: process.env.PATH, NEXT_PUBLIC_EMPTY: "", NEXT_PUBLIC_SET: "value" },
+    encoding: "utf8",
+  });
+  if (probe.error) return; // no POSIX shell on this host; the regex assertions above still hold
+  assert.equal(probe.stdout.trim(), "NEXT_PUBLIC_SET=value");
+});
+
+test("passes every NEXT_PUBLIC_* the app reads into the Docker build", () => {
+  // Prerendered routes (sitemap.xml, robots.txt) and client bundles read these at
+  // build time. A missing ARG silently ships http://localhost:3000 or no tracker.
+  const dockerfile = readFileSync(fileURLToPath(new URL("../Dockerfile", import.meta.url)), "utf8");
+  const buildStep = dockerfile.indexOf("pnpm run build");
+  const builderStage = dockerfile.slice(dockerfile.indexOf("AS builder"), buildStep);
+  const names = publicVariablesReadBySource(fileURLToPath(new URL("../src", import.meta.url)));
+
+  assert.ok(buildStep > 0 && builderStage.length > 0, "the Dockerfile builder stage and build step should be found");
+  assert.ok(names.has("NEXT_PUBLIC_SITE_URL"), "the source scan should find NEXT_PUBLIC_SITE_URL");
+  for (const name of names) {
     assert.match(builderStage, new RegExp(`^ARG ${name}$`, "mu"), `${name} needs a builder ARG`);
     assert.match(builderStage, new RegExp(`${name}=\\$${name}`, "u"), `${name} needs a builder ENV`);
   }

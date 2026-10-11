@@ -72,14 +72,16 @@ curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" \
 - [x] 오클릭 유발 배치 없음 — `AdSlot`은 문항 화면에 없고 결과·랜딩 하단에만 배치
 - [ ] **About 페이지** — 없음. 제작 필요
 - [ ] **Contact 페이지** — 없음. 제작 필요
-- [ ] **`public/ads.txt` 유효화** — 현재 전 줄이 주석이라 **무효 파일**. 게시자 ID 발급 후 해제 필요
+- [x] **ads.txt** — `src/app/ads.txt/route.ts`가 `NEXT_PUBLIC_ADSENSE_CLIENT`로 생성한다(2026-10-10). 게시자 ID 등록 전에는 주석만 나간다.
 - [ ] Search Console 소유확인 — 사용자 계정 작업
 - [ ] AdSense 게시자 ID 발급 — 사용자 계정 작업
 - [ ] Core Web Vitals 실측
 
 ### 광고를 켜는 법
 
-`NEXT_PUBLIC_ADSENSE_CLIENT`에 실제 게시자 ID를 넣으면 **코드 변경 없이** 켜진다.
+`NEXT_PUBLIC_ADSENSE_CLIENT`에 실제 게시자 ID를 넣고 다시 빌드하면 스크립트·소유확인 메타·ads.txt가
+켜지고, 승인 후 `NEXT_PUBLIC_ADSENSE_SLOT_ID`(숫자 광고 단위 ID)를 넣으면 광고 자리가 채워진다.
+둘 다 빌드 시점에 인라인되므로 Dockerfile ARG로 전달된다(`docs/HERMES-GROWTH-OPERATOR.md`).
 값이 없으면 `AdSlot`은 DOM에 아무것도 렌더하지 않아 CLS도 생기지 않는다
 (`src/components/ads/AdSlot.tsx`). 가짜 ID는 넣어 두지 않았다.
 
@@ -103,6 +105,6 @@ curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" \
 |---|---|
 | Search Console 소유확인 + 사이트맵 제출 | `https://lumina.jack.ai.kr/sitemap.xml` |
 | AdSense 게시자 ID 발급 후 등록 | `NEXT_PUBLIC_ADSENSE_CLIENT` |
-| `public/ads.txt` 주석 해제 | 게시자 ID 발급 후 |
+| 사이트 승인 후 디스플레이 광고 단위 ID 등록 | `NEXT_PUBLIC_ADSENSE_SLOT_ID` |
 | (선택) GA4 도입 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` — 현재 연동 지점 없음 |
 | (선택) 카카오 공유 SDK | `NEXT_PUBLIC_KAKAO_JS_KEY` — 현재 연동 지점 없음 |

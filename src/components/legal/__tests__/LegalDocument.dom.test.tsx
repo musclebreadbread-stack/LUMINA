@@ -39,10 +39,17 @@ describe("LegalDocument renders the reviewed source without changing its wording
     expect(text).not.toMatch(/\*\*|\\\[|\\\]|&#91;|^#|\| --- \|/u);
   });
 
-  it("keeps the placeholders that the owner must fill before publishing", () => {
+  it.each(Object.keys(LEGAL_DOCUMENTS) as LegalDocumentKey[])("%s: shows the finalized revision date and the contact email", (key) => {
+    const { text } = renderedText(LEGAL_DOCUMENTS[key]);
+    expect(text).toContain("개정일 2026-10-12");
+    expect(text).toContain("확정본(법률 검토 완료)");
+    expect(text).toContain("geniuzm00@gmail.com");
+    expect(text).not.toMatch(/초안|\[게시일\]|【이메일】/u);
+  });
+
+  it("keeps the reviewed conditional clauses as written", () => {
     const { text } = renderedText(LEGAL_DOCUMENTS.terms);
-    expect(text).toContain("【상호】");
-    expect(text).toContain("시행일 [게시일]");
+    expect(text).toContain("이 약관은 2026-10-12부터 시행합니다.");
     expect(text).toContain("[결제 기능 도입 시 적용]");
   });
 

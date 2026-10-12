@@ -1,17 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/i18n/LocaleSwitcher";
+import { LegalDocument, legalDocumentTitle } from "@/components/legal/LegalDocument";
+import { LEGAL_DOCUMENTS } from "@/content/legal/documents";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("policy");
-  return { title: t("termsTitle") };
-}
-
-const SECTIONS = [1, 2, 3, 4, 5, 6, 7] as const;
+export const metadata: Metadata = { title: legalDocumentTitle(LEGAL_DOCUMENTS.terms) };
 
 export default async function TermsPage() {
-  const [t, tNav] = await Promise.all([getTranslations("policy"), getTranslations("nav")]);
+  const [t, tNav, locale] = await Promise.all([getTranslations("policy"), getTranslations("nav"), getLocale()]);
 
   return (
     <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
@@ -22,21 +19,10 @@ export default async function TermsPage() {
         <LocaleSwitcher />
       </header>
 
-      <div className="py-10">
-        <h1 className="text-[clamp(1.5rem,4.5vw,2rem)] leading-tight font-medium tracking-tight">
-          {t("termsTitle")}
-        </h1>
-        <p className="mt-3 font-mono text-[13px] text-hobun-faint">{t("draftNote")}</p>
-      </div>
-
-      <div className="space-y-10 border-t border-ink-700 pt-8 text-sm leading-relaxed text-hobun-dim">
-        {SECTIONS.map((n) => (
-          <section key={n}>
-            <h2 className="mb-3 text-base font-medium text-hobun">{t(`terms${n}Title`)}</h2>
-            <p>{t(`terms${n}Body`)}</p>
-          </section>
-        ))}
-      </div>
+      <LegalDocument
+        source={LEGAL_DOCUMENTS.terms}
+        notice={locale === "ko" ? undefined : t("koreanOriginalNotice")}
+      />
 
       <footer className="mt-16 border-t border-ink-700 pt-8">
         <Link href="/privacy" className="font-mono text-[13px] text-hobun-faint underline underline-offset-4">

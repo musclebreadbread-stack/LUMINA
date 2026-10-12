@@ -33,6 +33,7 @@
     "test:railway-smoke": "node --test scripts/test-railway-smoke.mjs",
     "test:railway-cron": "node --test scripts/test-railway-cron.mjs",
     "sentry:verify": "node scripts/sentry-verify.mjs",
+    "legal:sync": "node scripts/sync-legal-documents.mjs",
     "test:sentry-verify": "node --test scripts/test-sentry-verify.mjs",
     "test:integration": "vitest run src/server/__integration__",
     "railway:billing-reconcile": "node scripts/railway-billing-reconcile.mjs",

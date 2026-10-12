@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { dismissConsentBanner, setLocaleCookie } from './helpers';
 
+// 법무 문서는 검토된 한국어 원문만 게시하고, 비한국어 화면에는 원문 기준 안내를 붙인다.
+const KOREAN_ORIGINAL_NOTICE = 'This document is provided in Korean. The Korean original is the governing text.';
+
 test.describe('consent banner', () => {
   // These two tests intentionally do NOT call dismissConsentBanner — they test the
   // banner itself, so each needs a fresh browser context (no prior consent stored)
@@ -58,7 +61,8 @@ test.describe('interactive locale switch', () => {
     await dismissConsentBanner(page);
 
     await expect(page).toHaveURL(/\/en\/privacy$/);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Privacy Policy');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('개인정보처리방침');
+    await expect(page.getByText(KOREAN_ORIGINAL_NOTICE)).toBeVisible();
   });
 });
 
@@ -69,58 +73,54 @@ test.describe('privacy policy page', () => {
     await dismissConsentBanner(page);
 
     await expect(page).toHaveURL(/\/en\/privacy$/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Privacy Policy' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: '개인정보처리방침' })).toBeVisible();
   });
 
-  test('renders English title and all 8 sections', async ({ page, context }) => {
+  test('renders the reviewed Korean policy with all 16 sections and the governing-text notice', async ({ page, context }) => {
     await setLocaleCookie(context, 'en');
     await page.goto('/privacy');
     await dismissConsentBanner(page);
 
     // Root layout applies a "%s · LUMINA" title template on top of the page's own title.
-    await expect(page).toHaveTitle('Privacy Policy · LUMINA');
-    await expect(page.getByRole('heading', { level: 1, name: 'Privacy Policy' })).toBeVisible();
+    await expect(page).toHaveTitle('개인정보처리방침 · LUMINA');
+    await expect(page.getByRole('heading', { level: 1, name: '개인정보처리방침' })).toBeVisible();
+    await expect(page.getByText(KOREAN_ORIGINAL_NOTICE)).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2 })).toHaveCount(16);
 
-    const sectionTitles = [
-      '1. General analyses and the cognitive pilot',
-      '2. Browser storage for general analyses',
-      '3. Share links carry data in the URL',
-      '4. Personality test (Big Five) responses',
-      '5. Biometric data (palm prints, face images)',
-      '6. Advertising and cookies',
-      '7. Server access logs',
-      '8. Contact',
-    ];
-
-    for (const title of sectionTitles) {
+    for (const title of ['1. 처리하는 개인정보와 목적·보유 기간', '8. 개인정보 처리위탁과 국외 이전', '16. 방침의 변경과 문의']) {
       await expect(page.getByRole('heading', { level: 2, name: title })).toBeVisible();
     }
   });
 });
 
 test.describe('terms of service page', () => {
-  test('renders English title and all 7 sections', async ({ page, context }) => {
-    await setLocaleCookie(context, 'en');
+  test('renders the reviewed Korean terms with all articles', async ({ page, context }) => {
+    await setLocaleCookie(context, 'ko');
     await page.goto('/terms');
     await dismissConsentBanner(page);
 
     // Root layout applies a "%s · LUMINA" title template on top of the page's own title.
-    await expect(page).toHaveTitle('Terms of Service · LUMINA');
-    await expect(page.getByRole('heading', { level: 1, name: 'Terms of Service' })).toBeVisible();
+    await expect(page).toHaveTitle('이용약관 · LUMINA');
+    await expect(page.getByRole('heading', { level: 1, name: '이용약관' })).toBeVisible();
+    await expect(page.getByText(KOREAN_ORIGINAL_NOTICE)).toHaveCount(0);
+    await expect(page.getByRole('heading', { level: 2 })).toHaveCount(17);
 
-    const sectionTitles = [
-      '1. What this service is',
-      '2. Not medical, legal, or financial advice',
-      '3. Basis and limits of the calculations',
-      '4. Use by minors',
-      '5. A structure with no sign-up',
-      '6. Disclaimer',
-      '7. Changes to these terms',
-    ];
-
-    for (const title of sectionTitles) {
+    for (const title of ['제1조 (목적)', '제9조 (청약철회와 환불)', '제15조 (준거법과 관할)', '사업자 정보']) {
       await expect(page.getByRole('heading', { level: 2, name: title })).toBeVisible();
     }
+  });
+});
+
+test.describe('refund and withdrawal page', () => {
+  test('renders the reviewed Korean refund guide with all 9 sections', async ({ page, context }) => {
+    await setLocaleCookie(context, 'ko');
+    await page.goto('/refund-policy');
+    await dismissConsentBanner(page);
+
+    await expect(page).toHaveTitle('환불 및 청약철회 안내 · LUMINA');
+    await expect(page.getByRole('heading', { level: 1, name: '환불 및 청약철회 안내' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2 })).toHaveCount(9);
+    await expect(page.getByRole('heading', { level: 2, name: '3. 콘텐츠 열람 전: 7일 이내 전액 환불' })).toBeVisible();
   });
 });
 
@@ -134,11 +134,11 @@ test.describe('policy page cross-links', () => {
     await page.getByRole('link', { name: 'View Terms of Service' }).click();
     await dismissConsentBanner(page);
     await expect(page).toHaveURL(/\/terms$/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Terms of Service' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: '이용약관' })).toBeVisible();
 
     await page.getByRole('link', { name: 'View Privacy Policy' }).click();
     await dismissConsentBanner(page);
     await expect(page).toHaveURL(/\/privacy$/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Privacy Policy' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: '개인정보처리방침' })).toBeVisible();
   });
 });

@@ -1,3 +1,5 @@
 # Migration checksums in ops.schema_migrations are computed over the exact file bytes.
 # Keep SQL migrations LF-only on every OS so a Windows checkout matches the ledger.
 neon/migrations/*.sql text eol=lf
+# Reviewed legal source text is compared byte-for-byte with src/content/legal/documents.ts.
+src/content/legal/*.md text eol=lf

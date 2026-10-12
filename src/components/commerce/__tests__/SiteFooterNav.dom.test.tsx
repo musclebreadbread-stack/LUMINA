@@ -67,14 +67,15 @@ describe("SiteFooterNav", () => {
     });
   }
 
-  it("links pricing, refund, terms and privacy on every page", () => {
+  it("links about, contact, pricing, refund, terms and privacy on every page", () => {
     renderNav({ memberAuthEnabled: false });
-    expect(hrefs()).toEqual(["/pricing", "/refund-policy", "/terms", "/privacy"]);
+    expect(hrefs()).toEqual(["/about", "/contact", "/pricing", "/refund-policy", "/terms", "/privacy"]);
+    expect(Array.from(container.querySelectorAll("a")).slice(0, 2).map((link) => link.textContent)).toEqual(["소개", "문의"]);
   });
 
   it("prefixes the links for a non-default locale", () => {
     renderNav({ locale: "en", memberAuthEnabled: false });
-    expect(hrefs()).toEqual(["/en/pricing", "/en/refund-policy", "/en/terms", "/en/privacy"]);
+    expect(hrefs()).toEqual(["/en/about", "/en/contact", "/en/pricing", "/en/refund-policy", "/en/terms", "/en/privacy"]);
   });
 
   it("renders nothing on admin pages, including locale-prefixed ones", () => {

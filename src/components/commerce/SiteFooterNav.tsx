@@ -18,6 +18,7 @@ interface SiteFooterNavProps {
  * 모든 페이지 하단의 공통 링크(Track C4). 페이지마다 자기 헤더를 따로 그리는 구조라
  * 전역 헤더를 얹으면 각 헤더의 언어 전환기와 겹치므로, 겹칠 자리가 없는 하단에 둔다.
  * 요금·환불·약관 링크는 결제 심사가 요구하는 "모든 페이지에서 접근 가능한 고지"도 겸한다.
+ * 소개·문의 링크는 애드센스 심사가 확인하는 "사이트 안에서 찾을 수 있는 운영자 정보와 연락 경로"다.
  */
 export function SiteFooterNav({ locale, memberAuthEnabled }: SiteFooterNavProps) {
   const t = useTranslations("nav");
@@ -31,6 +32,8 @@ export function SiteFooterNav({ locale, memberAuthEnabled }: SiteFooterNavProps)
       className="no-print mx-auto w-full max-w-4xl px-5 pb-6 pt-10 text-xs leading-6 sm:px-8"
     >
       <ul className="flex flex-wrap items-start gap-x-5 gap-y-2 border-t border-ink-800 pt-5">
+        <li><Link href={localePath("/about", locale)} className={linkClass}>{t("about")}</Link></li>
+        <li><Link href={localePath("/contact", locale)} className={linkClass}>{t("contact")}</Link></li>
         <li><Link href={localePath("/pricing", locale)} className={linkClass}>{t("pricing")}</Link></li>
         <li><Link href={localePath("/refund-policy", locale)} className={linkClass}>{t("refund")}</Link></li>
         <li><Link href={localePath("/terms", locale)} className={linkClass}>{t("terms")}</Link></li>

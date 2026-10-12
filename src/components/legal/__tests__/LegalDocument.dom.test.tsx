@@ -44,7 +44,8 @@ describe("LegalDocument renders the reviewed source without changing its wording
     expect(text).toContain("개정일 2026-10-12");
     expect(text).toContain("확정본(법률 검토 완료)");
     expect(text).toContain("geniuzm00@gmail.com");
-    expect(text).not.toMatch(/초안|\[게시일\]|【이메일】/u);
+    expect(text).toContain("지니어즘");
+    expect(text).not.toMatch(/초안|\[게시일\]|【이메일】|【상호】|【전화】|전화/u);
   });
 
   it("keeps the reviewed conditional clauses as written", () => {

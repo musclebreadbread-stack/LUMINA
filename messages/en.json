@@ -1996,11 +1996,11 @@
     "previewNotice": "Sales open soon. Checkout is not yet enabled."
   },
   "sajuGuidesPage": {
-    "kicker": "LUMINA · 2027 Fire Goat Year",
+    "kicker": "LUMINA · Year of the Fire Goat 2027",
     "ogFooterNotice": "A calculated reference from traditional Bazi rules — not a prediction.",
-    "hubTitle": "2027 Ding-Wei (丁未) Saju Guide",
-    "hubDescription": "Traditional Saju rules — Ten Gods, the Twelve Stages, branch relations — applied to the 2027 annual pillar (丁未), broken down by zodiac sign, day stem, and day pillar.",
-    "hubIntro": "2027 is the year of Ding-Wei (丁未). Below you can check, by pure calculation, how your zodiac sign, your day stem (the heavenly stem of your birth day), or your full day pillar relates to this year in traditional terms. A detailed reading applied to your own chart continues in the 2027 yearly report.",
+    "hubTitle": "Year of the Fire Goat 2027: Ding-Wei (丁未) Saju Guide",
+    "hubDescription": "Traditional Saju rules — Ten Gods, the Twelve Stages, branch relations — applied to the Year of the Fire Goat 2027, the Ding-Wei (丁未) annual pillar that starts at Ipchun rather than the lunar new year, broken down by zodiac sign, day stem, and day pillar. A structural reading bounded by the calculation itself, not a prediction of specific events.",
+    "hubIntro": "The Year of the Fire Goat 2027 is the Ding-Wei (丁未) year in traditional Saju, counted from Ipchun (立春) rather than the lunar new year. Below you can check, by calculation alone, how your zodiac sign, your day stem (the heavenly stem of your birth day), or your full day pillar relates to this year's branch Wei (未, Goat) in traditional terms. These are structural readings limited to what the calculation itself can show — not a forecast of what will happen. A detailed reading applied to your own chart continues in the 2027 yearly report.",
     "boundaryHeading": "Ipchun or Lunar New Year — which boundary applies",
     "boundaryBody": "In 2027, Ipchun (立春, the start of spring) falls on {ipchun}, and the Lunar New Year falls on {seollal}. A Saju year pillar changes at Ipchun, not at the lunar new year, so every calculation on this guide treats \"2027\" as running from Ipchun on {ipchun} through the day before the next Ipchun. That differs from the lunar-New-Year boundary commonly used to count zodiac age.",
     "monthlyTableHeading": "The twelve months of 2027 — solar terms and month pillars",
